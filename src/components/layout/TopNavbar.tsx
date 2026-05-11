@@ -1,18 +1,18 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Menu, 
-  Search, 
-  Command, 
-  Sun, 
-  Moon, 
-  Bell, 
-  ShieldCheck, 
-  ShieldAlert, 
-  TrendingUp, 
-  Users, 
-  AlertTriangle, 
+import {
+  Menu,
+  Search,
+  Command,
+  Sun,
+  Moon,
+  Bell,
+  ShieldCheck,
+  ShieldAlert,
+  TrendingUp,
+  Users,
+  AlertTriangle,
   UserPlus,
   Eye,
   ExternalLink,
@@ -45,80 +45,82 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { useLayout } from '@/contexts/LayoutContext';
 import { Button } from "@/components/ui/button";
+import { toastActions } from '@/lib/toastActions';
+import { useRouter } from 'next/navigation';
 
 const initialNotifications = [
-  { 
-    id: 1, 
-    category: 'Users', 
-    title: '12 new users joined today', 
+  {
+    id: 1,
+    category: 'Users',
+    title: '12 new users joined today',
     desc: 'Onboarding spike detected in Lagos region. Manual tier review recommended for 3 users.',
-    time: '2m ago', 
-    icon: UserPlus, 
+    time: '2m ago',
+    icon: UserPlus,
     severity: 'low',
     priority: 'Normal',
     unread: true,
     action: 'View List',
     link: '/users'
   },
-  { 
-    id: 2, 
-    category: 'Compliance', 
-    title: '3 KYC verifications pending', 
+  {
+    id: 2,
+    category: 'Compliance',
+    title: '3 KYC verifications pending',
     desc: 'High-value account upgrades waiting for document verification (NIN/BVN).',
-    time: '14m ago', 
-    icon: ShieldCheck, 
+    time: '14m ago',
+    icon: ShieldCheck,
     severity: 'medium',
     priority: 'High',
     unread: true,
     action: 'Review Queue',
     link: '/compliance'
   },
-  { 
-    id: 3, 
-    category: 'Security', 
-    title: 'High-risk transaction detected', 
+  {
+    id: 3,
+    category: 'Security',
+    title: 'High-risk transaction detected',
     desc: 'USR-8821 attempted ₦2.4M transfer from unknown device in Singapore.',
-    time: '5m ago', 
-    icon: ShieldAlert, 
+    time: '5m ago',
+    icon: ShieldAlert,
     severity: 'critical',
     priority: 'Urgent',
     unread: true,
     action: 'Investigate',
     link: '/compliance'
   },
-  { 
-    id: 4, 
-    category: 'Investments', 
-    title: '₦2.4M investment matured', 
+  {
+    id: 4,
+    category: 'Investments',
+    title: '₦2.4M investment matured',
     desc: 'Agric-Shield Plan #9921 has reached maturity. Payout authorization required.',
-    time: '1h ago', 
-    icon: TrendingUp, 
+    time: '1h ago',
+    icon: TrendingUp,
     severity: 'info',
     priority: 'Normal',
     unread: false,
     action: 'Approve Payout',
     link: '/investments'
   },
-  { 
-    id: 5, 
-    category: 'Users', 
-    title: 'Suspicious IP access detected', 
+  {
+    id: 5,
+    category: 'Users',
+    title: 'Suspicious IP access detected',
     desc: 'Multiple failed login attempts for USR-0042 from 192.168.1.44 (VPN).',
-    time: '2h ago', 
-    icon: Lock, 
+    time: '2h ago',
+    icon: Lock,
     severity: 'high',
     priority: 'High',
     unread: true,
     action: 'Lock Account',
     link: '/users'
   },
-  { 
-    id: 6, 
-    category: 'Transactions', 
-    title: 'Failed airtime transactions spike', 
+  {
+    id: 6,
+    category: 'Transactions',
+    title: 'Failed airtime transactions spike',
     desc: '15% increase in provider timeouts detected for MTN/Airtel networks.',
-    time: '12h ago', 
-    icon: AlertTriangle, 
+    time: '12h ago',
+    icon: AlertTriangle,
     severity: 'medium',
     priority: 'Medium',
     unread: false,
@@ -135,7 +137,7 @@ export default function TopNavbar() {
   const [showPreferences, setShowPreferences] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
   const [notifs, setNotifs] = useState(initialNotifications);
-  
+
   // Preferences State
   const [prefs, setPrefs] = useState({
     securityOnly: false,
@@ -144,6 +146,30 @@ export default function TopNavbar() {
     desktopNotifications: true,
     emailEscalation: true
   });
+
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('global-search-input');
+        if (searchInput) searchInput.focus();
+        toastActions.showActionToast('Search activated', 'Command palette ready');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    toastActions.showActionToast(`Searching for "${searchQuery}"...`);
+    // In a real app, this might navigate to a results page or filter a list
+  };
 
   // Filter States
   const [filters, setFilters] = useState({
@@ -157,19 +183,19 @@ export default function TopNavbar() {
   }, []);
 
   const categories = ['All', 'Security', 'Transactions', 'Users', 'Compliance'];
-  
+
   const filteredNotifications = useMemo(() => {
     let result = notifs;
-    
+
     // Category Filter
     if (activeCategory !== 'All') {
       result = result.filter(n => n.category === activeCategory);
     }
-    
+
     // Quick Filters
     if (filters.unreadOnly) result = result.filter(n => n.unread);
     if (filters.criticalOnly) result = result.filter(n => n.severity === 'critical');
-    
+
     return result;
   }, [activeCategory, notifs, filters]);
 
@@ -207,17 +233,20 @@ export default function TopNavbar() {
           <Menu size={20} className="group-hover:rotate-90 transition-transform duration-500" />
         </button>
 
-        <div className="hidden md:flex items-center flex-1 max-w-xl relative group">
+        <form onSubmit={handleSearch} className="hidden md:flex items-center flex-1 max-w-xl relative group">
           <Search size={16} className="absolute left-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <input
+            id="global-search-input"
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search command or customer..."
             className="w-full bg-muted/50 border border-border rounded-2xl py-2 pl-11 pr-16 text-[13px] font-medium text-foreground outline-none focus:bg-background focus:border-primary/40 transition-all"
           />
           <div className="absolute right-3 flex items-center gap-1 bg-card border border-border px-2 py-1 rounded-lg text-[9px] font-black text-muted-foreground shadow-sm">
             <Command size={9} /><span>K</span>
           </div>
-        </div>
+        </form>
       </div>
 
       <div className="flex items-center gap-4">
@@ -247,17 +276,17 @@ export default function TopNavbar() {
               aria-label="Notifications"
               className={cn(
                 "relative flex items-center justify-center w-11 h-11 rounded-full border border-border/40 bg-background/40 backdrop-blur-md transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-primary/50 group active:scale-95",
-                showNotifications 
-                  ? "bg-primary/10 border-primary/30 text-primary shadow-[0_0_15px_rgba(59,130,246,0.1)]" 
+                showNotifications
+                  ? "bg-primary/10 border-primary/30 text-primary shadow-[0_0_15px_rgba(59,130,246,0.1)]"
                   : "text-muted-foreground hover:bg-primary/5 hover:border-primary/20 hover:text-foreground hover:shadow-lg hover:shadow-primary/5"
               )}
             >
-              <Bell 
-                size={20} 
+              <Bell
+                size={20}
                 className={cn(
                   "transition-all duration-300 group-hover:scale-110",
                   unreadCount > 0 && !showNotifications && "animate-[bell-swing_2s_infinite_ease-in-out]"
-                )} 
+                )}
               />
               {unreadCount > 0 && (
                 <span className={cn(
@@ -287,7 +316,7 @@ export default function TopNavbar() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           {showPreferences ? (
-                            <button 
+                            <button
                               onClick={() => setShowPreferences(false)}
                               className="size-10 bg-secondary/80 border border-border/40 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
                             >
@@ -310,12 +339,12 @@ export default function TopNavbar() {
                             )}
                           </div>
                         </div>
-                        <button 
+                        <button
                           onClick={() => setShowPreferences(!showPreferences)}
                           className={cn(
                             "p-2.5 border rounded-xl transition-all",
-                            showPreferences 
-                              ? "bg-primary border-primary text-white" 
+                            showPreferences
+                              ? "bg-primary border-primary text-white"
                               : "bg-secondary/50 border-border/40 text-muted-foreground hover:text-foreground hover:bg-secondary"
                           )}
                         >
@@ -333,8 +362,8 @@ export default function TopNavbar() {
                                 onClick={() => setActiveCategory(cat)}
                                 className={cn(
                                   "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
-                                  activeCategory === cat 
-                                    ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                                  activeCategory === cat
+                                    ? "bg-primary text-white shadow-lg shadow-primary/20"
                                     : "text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50"
                                 )}
                               >
@@ -345,24 +374,24 @@ export default function TopNavbar() {
 
                           {/* Quick Filters */}
                           <div className="flex items-center gap-2 pb-2">
-                             <button 
+                            <button
                               onClick={() => setFilters(f => ({ ...f, unreadOnly: !f.unreadOnly }))}
                               className={cn(
                                 "px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all",
                                 filters.unreadOnly ? "bg-amber-500/10 border-amber-500/20 text-amber-500" : "bg-muted/30 border-border/40 text-muted-foreground"
                               )}
-                             >
-                               Unread
-                             </button>
-                             <button 
+                            >
+                              Unread
+                            </button>
+                            <button
                               onClick={() => setFilters(f => ({ ...f, criticalOnly: !f.criticalOnly }))}
                               className={cn(
                                 "px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all",
                                 filters.criticalOnly ? "bg-red-500/10 border-red-500/20 text-red-500" : "bg-muted/30 border-border/40 text-muted-foreground"
                               )}
-                             >
-                               Critical
-                             </button>
+                            >
+                              Critical
+                            </button>
                           </div>
                         </>
                       )}
@@ -372,67 +401,67 @@ export default function TopNavbar() {
                     <div className="flex-1 overflow-y-auto no-scrollbar py-2">
                       {showPreferences ? (
                         <div className="p-6 space-y-6">
-                           <div className="bg-secondary/20 border border-border/10 rounded-2xl p-4 space-y-4">
-                              <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b border-border/5 pb-2">Delivery Channels</h4>
-                              <div className="space-y-4">
-                                 {[
-                                   { id: 'desktopNotifications', label: 'Desktop Notifications', icon: Monitor },
-                                   { id: 'soundEnabled', label: 'Sound Alerts', icon: Volume2 },
-                                   { id: 'vibrateEnabled', label: 'Haptic Feedback', icon: Vibrate },
-                                   { id: 'emailEscalation', label: 'Email Escalations', icon: Mail },
-                                 ].map((item) => (
-                                   <div key={item.id} className="flex items-center justify-between">
-                                      <div className="flex items-center gap-3">
-                                         <item.icon size={14} className="text-muted-foreground" />
-                                         <span className="text-[12px] font-bold text-foreground">{item.label}</span>
-                                      </div>
-                                      <button 
-                                        onClick={() => togglePref(item.id as any)}
-                                        className={cn(
-                                          "w-9 h-5 rounded-full transition-all relative p-1",
-                                          prefs[item.id as keyof typeof prefs] ? "bg-primary" : "bg-muted"
-                                        )}
-                                      >
-                                         <div className={cn("size-3 bg-white rounded-full transition-all", prefs[item.id as keyof typeof prefs] ? "translate-x-4" : "translate-x-0")} />
-                                      </button>
-                                   </div>
-                                 ))}
-                              </div>
-                           </div>
+                          <div className="bg-secondary/20 border border-border/10 rounded-2xl p-4 space-y-4">
+                            <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b border-border/5 pb-2">Delivery Channels</h4>
+                            <div className="space-y-4">
+                              {[
+                                { id: 'desktopNotifications', label: 'Desktop Notifications', icon: Monitor },
+                                { id: 'soundEnabled', label: 'Sound Alerts', icon: Volume2 },
+                                { id: 'vibrateEnabled', label: 'Haptic Feedback', icon: Vibrate },
+                                { id: 'emailEscalation', label: 'Email Escalations', icon: Mail },
+                              ].map((item) => (
+                                <div key={item.id} className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <item.icon size={14} className="text-muted-foreground" />
+                                    <span className="text-[12px] font-bold text-foreground">{item.label}</span>
+                                  </div>
+                                  <button
+                                    onClick={() => togglePref(item.id as any)}
+                                    className={cn(
+                                      "w-9 h-5 rounded-full transition-all relative p-1",
+                                      prefs[item.id as keyof typeof prefs] ? "bg-primary" : "bg-muted"
+                                    )}
+                                  >
+                                    <div className={cn("size-3 bg-white rounded-full transition-all", prefs[item.id as keyof typeof prefs] ? "translate-x-4" : "translate-x-0")} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
 
-                           <div className="bg-secondary/20 border border-border/10 rounded-2xl p-4 space-y-4">
-                              <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b border-border/5 pb-2">Filter Priorities</h4>
-                              <div className="space-y-4">
-                                 {[
-                                   { id: 'securityOnly', label: 'Security Critical Only', desc: 'Mute non-security alerts' },
-                                   { id: 'muteInvestments', label: 'Mute Investments', desc: 'Silence payout notifications' },
-                                 ].map((item) => (
-                                   <div key={item.id} className="flex items-center justify-between">
-                                      <div className="space-y-0.5">
-                                         <p className="text-[12px] font-bold text-foreground">{item.label}</p>
-                                         <p className="text-[9px] font-medium text-muted-foreground">{item.desc}</p>
-                                      </div>
-                                      <button 
-                                        onClick={() => togglePref(item.id as any)}
-                                        className={cn(
-                                          "w-9 h-5 rounded-full transition-all relative p-1",
-                                          prefs[item.id as keyof typeof prefs] ? "bg-primary" : "bg-muted"
-                                        )}
-                                      >
-                                         <div className={cn("size-3 bg-white rounded-full transition-all", prefs[item.id as keyof typeof prefs] ? "translate-x-4" : "translate-x-0")} />
-                                      </button>
-                                   </div>
-                                 ))}
-                              </div>
-                           </div>
+                          <div className="bg-secondary/20 border border-border/10 rounded-2xl p-4 space-y-4">
+                            <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b border-border/5 pb-2">Filter Priorities</h4>
+                            <div className="space-y-4">
+                              {[
+                                { id: 'securityOnly', label: 'Security Critical Only', desc: 'Mute non-security alerts' },
+                                { id: 'muteInvestments', label: 'Mute Investments', desc: 'Silence payout notifications' },
+                              ].map((item) => (
+                                <div key={item.id} className="flex items-center justify-between">
+                                  <div className="space-y-0.5">
+                                    <p className="text-[12px] font-bold text-foreground">{item.label}</p>
+                                    <p className="text-[9px] font-medium text-muted-foreground">{item.desc}</p>
+                                  </div>
+                                  <button
+                                    onClick={() => togglePref(item.id as any)}
+                                    className={cn(
+                                      "w-9 h-5 rounded-full transition-all relative p-1",
+                                      prefs[item.id as keyof typeof prefs] ? "bg-primary" : "bg-muted"
+                                    )}
+                                  >
+                                    <div className={cn("size-3 bg-white rounded-full transition-all", prefs[item.id as keyof typeof prefs] ? "translate-x-4" : "translate-x-0")} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       ) : (
                         <>
                           {filteredNotifications.length > 0 ? (
                             <div className="divide-y divide-border/5 px-4">
                               {filteredNotifications.map((notif) => (
-                                <div 
-                                  key={notif.id} 
+                                <div
+                                  key={notif.id}
                                   className={cn(
                                     "p-3 rounded-2xl hover:bg-secondary/40 dark:hover:bg-secondary/20 cursor-pointer transition-all flex flex-col gap-2 group relative mb-1.5 border border-transparent hover:border-border/20",
                                     notif.unread && "bg-primary/[0.02]"
@@ -458,43 +487,49 @@ export default function TopNavbar() {
                                         <h4 className="text-[12px] font-black text-foreground leading-tight tracking-tight truncate">{notif.title}</h4>
                                       </div>
                                     </div>
-                                    
+
                                     <div className="flex flex-col items-end shrink-0 gap-1">
-                                       <div className="flex items-center gap-1.5">
-                                          {notif.unread && <div className="size-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_8px_#3B82F6]" />}
-                                          <span className="text-[9px] font-bold text-muted-foreground/40">{notif.time}</span>
-                                       </div>
-                                       {/* Micro Actions */}
-                                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
-                                          <button className="h-6 px-2 bg-background border border-border/40 rounded-md text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all">
-                                             Assign
-                                          </button>
-                                          <button className="h-6 px-2 bg-background border border-border/40 rounded-md text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all">
-                                             View
-                                          </button>
-                                       </div>
+                                      <div className="flex items-center gap-1.5">
+                                        {notif.unread && <div className="size-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_8px_#3B82F6]" />}
+                                        <span className="text-[9px] font-bold text-muted-foreground/40">{notif.time}</span>
+                                      </div>
+                                      {/* Micro Actions */}
+                                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); toastActions.showComingSoon('Case Assignment'); }}
+                                          className="h-6 px-2 bg-background border border-border/40 rounded-md text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all"
+                                        >
+                                          Assign
+                                        </button>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); router.push(notif.link); setShowNotifications(false); }}
+                                          className="h-6 px-2 bg-background border border-border/40 rounded-md text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all"
+                                        >
+                                          View
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
-                                  
+
                                   <div className="pl-11 pr-2">
                                     <p className="text-[11px] font-medium text-muted-foreground/70 leading-relaxed line-clamp-2 mb-2">
                                       {notif.desc}
                                     </p>
-                                    
+
                                     {/* Metadata Row */}
                                     <div className="flex items-center gap-3 text-[8px] font-black uppercase tracking-widest text-muted-foreground/30 py-1.5 border-t border-border/5">
-                                       <span className="flex items-center gap-1">
-                                          <Shield size={9} />
-                                          Risk: <span className="text-foreground/50">{notif.priority}</span>
-                                       </span>
-                                       <span className="flex items-center gap-1">
-                                          <Layers size={9} />
-                                          Queue: 3
-                                       </span>
-                                       <span className="flex items-center gap-1">
-                                          <Activity size={9} />
-                                          {notif.category}
-                                       </span>
+                                      <span className="flex items-center gap-1">
+                                        <Shield size={9} />
+                                        Risk: <span className="text-foreground/50">{notif.priority}</span>
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <Layers size={9} />
+                                        Queue: 3
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <Activity size={9} />
+                                        {notif.category}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
@@ -502,10 +537,10 @@ export default function TopNavbar() {
                             </div>
                           ) : (
                             <div className="py-24 text-center space-y-4">
-                               <div className="size-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto border border-border/10">
-                                  <CheckCircle2 size={24} className="text-muted-foreground/20" />
-                               </div>
-                               <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">Operations Clear</p>
+                              <div className="size-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto border border-border/10">
+                                <CheckCircle2 size={24} className="text-muted-foreground/20" />
+                              </div>
+                              <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">Operations Clear</p>
                             </div>
                           )}
                         </>
@@ -514,10 +549,13 @@ export default function TopNavbar() {
 
                     {/* Footer */}
                     <div className="px-6 py-4 border-t border-border/10 bg-secondary/5 flex items-center justify-between">
-                       <button className="text-[9px] font-black text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-2">
-                          <History size={11} /> Audit Trail
-                       </button>
-                       <button 
+                      <button
+                        onClick={() => { router.push('/compliance'); setShowNotifications(false); }}
+                        className="text-[9px] font-black text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-2"
+                      >
+                        <History size={11} /> Audit Trail
+                      </button>
+                      <button
                         className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline"
                         onClick={() => {
                           if (showPreferences) {
@@ -527,9 +565,9 @@ export default function TopNavbar() {
                             toast.success("Log Cleared");
                           }
                         }}
-                       >
-                         {showPreferences ? "Close Settings" : "Resolve All"}
-                       </button>
+                      >
+                        {showPreferences ? "Close Settings" : "Resolve All"}
+                      </button>
                     </div>
                   </motion.div>
                 </>
@@ -538,15 +576,18 @@ export default function TopNavbar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 group cursor-pointer hover:bg-card p-1.5 px-2 rounded-2xl transition-all">
+        <div
+          onClick={() => toastActions.showComingSoon('Profile Management')}
+          className="flex items-center gap-3 group cursor-pointer hover:bg-card p-1.5 px-2 rounded-2xl transition-all"
+        >
           <div className="flex flex-col items-end hidden sm:flex">
             <span className="text-[12px] font-black text-foreground tracking-tight">Mick Jagger</span>
             <div className="flex items-center gap-1.5">
-               <div className="size-1 bg-emerald-500 rounded-full shadow-[0_0_8px_#10B981]" />
-               <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Global Admin</span>
+              <div className="size-1 bg-emerald-500 rounded-full shadow-[0_0_8px_#10B981]" />
+              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Global Admin</span>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 border border-primary/20 flex items-center justify-center font-black text-white text-xs shadow-lg shadow-primary/10">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 border border-primary/20 flex items-center justify-center font-black text-white text-xs shadow-lg shadow-primary/10 transition-transform group-hover:scale-105">
             MJ
           </div>
         </div>

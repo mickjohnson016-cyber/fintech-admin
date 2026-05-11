@@ -40,7 +40,7 @@ export default function OrganizationSettings() {
           >
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-8 items-start sm:items-center p-6 bg-secondary/30 border border-border/20 rounded-[32px]">
-                <div className="size-24 rounded-[28px] bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center text-primary group cursor-pointer hover:bg-primary/20 transition-all">
+                <div onClick={() => toastActions.showActionToast('Logo Upload', 'Opening secure media library for corporate branding assets...')} className="size-24 rounded-[28px] bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center text-primary group cursor-pointer hover:bg-primary/20 transition-all">
                    <div className="flex flex-col items-center gap-1">
                      <Plus size={24} />
                      <span className="text-[10px] font-black uppercase">Logo</span>
@@ -114,7 +114,7 @@ export default function OrganizationSettings() {
                   </div>
                   <div className="flex items-center gap-4">
                      <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-black uppercase rounded-full">{license.status}</span>
-                     <button className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
+                     <button onClick={() => toastActions.showActionToast('License Verification', `Verifying regulatory standing for ${license.name} with external authority...`)} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
                         <ExternalLink size={16} />
                      </button>
                   </div>
@@ -149,7 +149,7 @@ export default function OrganizationSettings() {
                 ))}
              </div>
              
-             <Button variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
+             <Button onClick={() => toastActions.showActionToast('Jurisdiction Manager', 'Opening global expansion and regional compliance panel...')} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
                 Manage Jurisdictions
              </Button>
           </div>
@@ -175,7 +175,7 @@ export default function OrganizationSettings() {
                     </div>
                  </div>
                ))}
-               <Button variant="ghost" className="w-full text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary">
+               <Button onClick={() => toastActions.showActionToast('Departmental Controls', 'Opening organogram and staff allocation management...')} variant="ghost" className="w-full text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary">
                  Manage Departments
                </Button>
             </div>

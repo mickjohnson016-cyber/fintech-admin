@@ -18,6 +18,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toastActions } from '@/lib/toastActions';
+import { useTableFilters } from '@/hooks/useTableFilters';
 
 // 1. EXPANDED TELECOM MOCK DATA
 const telecomMetrics = [
@@ -86,8 +89,17 @@ const NetworkLogo = ({ network }: { network: string }) => {
 
 export default function TelecomOperationsPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredData,
+    statusFilter,
+    setStatusFilter
+  } = useTableFilters(airtimeData, {
+    searchKeys: ['user', 'phone', 'id', 'network', 'type']
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -96,7 +108,8 @@ export default function TelecomOperationsPage() {
   };
 
   return (
-    <div className="w-full space-y-6 animate-in fade-in duration-700 pb-10">
+    <div className="w-full space-y-4 animate-in fade-in duration-700 pb-10">
+      <Breadcrumbs />
       
       {/* 3. OPERATIONS HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -113,13 +126,13 @@ export default function TelecomOperationsPage() {
         </motion.div>
         
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.triggerExport('CSV', 'TelecomRecharges')} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Download size={14} /> Export CSV
           </Button>
-          <Button variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.confirmAction('Retry All Failed', () => toastActions.showActionToast('Bulk Retry Initiated', '124 failed recharges have been queued for processing.'))} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <RefreshCw size={14} /> Retry Failed
           </Button>
-          <Button size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
+          <Button onClick={() => toastActions.showActionToast('Vendor Bridge', 'Connecting to real-time telecom gateway pool...')} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
             Open Vendor Queue
           </Button>
         </motion.div>
@@ -162,16 +175,28 @@ export default function TelecomOperationsPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
           {[
-            { label: 'All Networks', icon: Radio },
-            { label: 'Plan Type', icon: Database },
-            { label: 'Status', icon: ChevronDown },
-            { label: 'Amount Range', icon: Layers },
+            { label: 'MTN', network: 'MTN' },
+            { label: 'Airtel', network: 'Airtel' },
+            { label: 'Glo', network: 'Glo' },
+            { label: '9mobile', network: '9mobile' },
           ].map((f, i) => (
-            <button key={i} className="flex-1 xl:flex-none flex items-center justify-between gap-3 px-4 py-2 bg-card border border-border rounded-xl text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all">
-              {f.label} <f.icon size={12} className="text-muted-foreground" />
+            <button key={i} onClick={() => setSearchTerm(f.network)} className="flex-1 xl:flex-none flex items-center justify-between gap-3 px-4 py-2 bg-card border border-border rounded-xl text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all">
+              {f.label}
             </button>
           ))}
-          <Button variant="ghost" size="icon" className="border border-border rounded-xl h-9 w-9 bg-card hover:bg-secondary">
+          <div className="w-px h-6 bg-border mx-2" />
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-9 bg-card border border-border rounded-xl px-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-primary/40"
+          >
+             <option value="all">All Status</option>
+             <option value="Completed">Completed</option>
+             <option value="Failed">Failed</option>
+             <option value="Pending">Pending</option>
+             <option value="Reversed">Reversed</option>
+          </select>
+          <Button onClick={() => { setSearchTerm(''); setStatusFilter('all'); }} variant="ghost" size="icon" className="border border-border rounded-xl h-9 w-9 bg-card hover:bg-secondary">
             <RefreshCw size={16} className="text-muted-foreground" />
           </Button>
         </div>
@@ -190,7 +215,7 @@ export default function TelecomOperationsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/10 transition-all">Bulk Re-try</Button>
+              <Button onClick={() => toastActions.confirmAction('Bulk Retry', () => toastActions.showActionToast('Retrying...', 'Resubmitting failed telecom transactions.'))} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/10 transition-all">Bulk Re-try</Button>
             </div>
           </div>
           
@@ -209,8 +234,8 @@ export default function TelecomOperationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {airtimeData.map((txn) => (
-                  <tr key={txn.id} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
+                {filteredData.map((txn) => (
+                  <tr key={txn.id} onClick={() => toastActions.showActionToast('Opening Audit Log', `Record: ${txn.id}`)} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] font-black font-mono text-primary truncate max-w-[100px]">{txn.id}</span>

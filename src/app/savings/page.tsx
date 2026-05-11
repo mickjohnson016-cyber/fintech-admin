@@ -31,6 +31,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toastActions } from '@/lib/toastActions';
+import { useTableFilters } from '@/hooks/useTableFilters';
+import { useRouter } from 'next/navigation';
 
 // 1. BANKING OPERATIONS MOCK DATA
 const savingsMetrics = [
@@ -146,7 +150,16 @@ const Badge = ({ status }: { status: string }) => {
 };
 
 export default function SavingsOperationsPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredData,
+    statusFilter,
+    setStatusFilter
+  } = useTableFilters(savingsData, {
+    searchKeys: ['user.name', 'id', 'plan.name', 'plan.type']
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -159,7 +172,8 @@ export default function SavingsOperationsPage() {
   };
 
   return (
-    <div className="w-full space-y-6 animate-in fade-in duration-700 pb-10">
+    <div className="w-full space-y-4 animate-in fade-in duration-700 pb-10">
+      <Breadcrumbs />
       
       {/* 3. OPERATIONS HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -176,13 +190,13 @@ export default function SavingsOperationsPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.triggerExport('CSV', 'SavingsLedger', filteredData)} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Download size={14} /> Export CSV
           </Button>
-          <Button variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.triggerExport('PDF', 'SavingsGrowthReport', filteredData)} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <FileText size={14} /> Generate Report
           </Button>
-          <Button size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
+          <Button onClick={() => toastActions.showActionToast('Savings Policy Editor', 'Opening global savings rules and interest yield configuration...')} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
             System Config
           </Button>
         </div>
@@ -225,17 +239,18 @@ export default function SavingsOperationsPage() {
           />
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
-          {[
-            { label: 'All Status', icon: ChevronDown },
-            { label: 'Plan Type', icon: ChevronDown },
-            { label: 'Maturity', icon: Calendar },
-            { label: 'Risk Level', icon: ShieldAlert },
-          ].map((f, i) => (
-            <button key={i} className="flex-1 xl:flex-none flex items-center justify-between gap-3 px-4 py-2 bg-card border border-border rounded-xl text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all">
-              {f.label} <f.icon size={12} className="text-muted-foreground" />
-            </button>
-          ))}
-          <Button variant="ghost" size="icon" className="border border-border rounded-xl h-9 w-9 bg-card hover:bg-secondary">
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-9 bg-card border border-border rounded-xl px-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-primary/40"
+          >
+             <option value="all">All Status</option>
+             <option value="Active">Active</option>
+             <option value="Flagged">Flagged</option>
+             <option value="Paused">Paused</option>
+             <option value="Frozen">Frozen</option>
+          </select>
+          <Button onClick={() => { setSearchTerm(''); setStatusFilter('all'); }} variant="ghost" size="icon" className="border border-border rounded-xl h-9 w-9 bg-card hover:bg-secondary">
             <RefreshCw size={16} className="text-muted-foreground" />
           </Button>
         </div>
@@ -268,10 +283,10 @@ export default function SavingsOperationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {savingsData.map((plan) => {
+                {filteredData.map((plan) => {
                   const progress = calculateProgress(plan.balance, plan.target);
                   return (
-                    <tr key={plan.id} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
+                    <tr key={plan.id} onClick={() => router.push(`/users/${plan.user.id}`)} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-black text-[10px] border border-border shadow-sm shrink-0">
@@ -333,7 +348,7 @@ export default function SavingsOperationsPage() {
                         <Badge status={plan.status} />
                       </td>
                       <td className="px-4 py-2.5 text-right shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
+                        <Button onClick={() => toastActions.showActionToast('Savings Plan Details', `Inspecting account: ${plan.id}`)} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
                       </td>
                     </tr>
                   );
@@ -345,10 +360,10 @@ export default function SavingsOperationsPage() {
           <div className="px-6 py-4 bg-muted flex items-center justify-between border-t border-border">
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing 5 of 142,402 savings plans</p>
             <div className="flex items-center gap-1">
-              <button className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
+              <button onClick={() => toastActions.showActionToast('Loading Previous Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
               <button className="w-8 h-8 bg-primary text-white rounded-lg font-black text-[10px]">1</button>
-              <button className="w-8 h-8 bg-card border border-border text-muted-foreground rounded-lg font-black text-[10px] hover:bg-secondary transition-all">2</button>
-              <button className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Next</button>
+              <button onClick={() => toastActions.showActionToast('Loading Page 2')} className="w-8 h-8 bg-card border border-border text-muted-foreground rounded-lg font-black text-[10px] hover:bg-secondary transition-all">2</button>
+              <button onClick={() => toastActions.showActionToast('Loading Next Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Next</button>
             </div>
           </div>
         </div>

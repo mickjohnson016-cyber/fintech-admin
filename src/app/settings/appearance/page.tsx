@@ -86,7 +86,7 @@ export default function AppearanceSettings() {
                 description="Reduce padding and text size to show more data at once."
                 icon={Layers}
               >
-                <Switch defaultChecked={false} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Compact Mode Active' : 'Standard Spacing Restored', 'Re-adjusting interface density...')} />
               </SettingsField>
 
               <SettingsField 
@@ -94,7 +94,7 @@ export default function AppearanceSettings() {
                 description="Keep the navigation sidebar collapsed for a more focused workspace."
                 icon={ChevronRight}
               >
-                <Switch defaultChecked={false} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Collapsed Navigation' : 'Expanded Navigation', 'Updating sidebar persistence behavior...')} />
               </SettingsField>
 
               <SettingsField 
@@ -102,7 +102,7 @@ export default function AppearanceSettings() {
                 description="Toggle charts and graphical indicators across dashboard views."
                 icon={Zap}
               >
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Charts Enabled' : 'Charts Hidden', 'Updating dashboard rendering engine...')} />
               </SettingsField>
             </div>
           </SettingsCard>
@@ -119,7 +119,7 @@ export default function AppearanceSettings() {
                 description="Disable all non-essential UI animations and transitions."
                 icon={Monitor}
               >
-                <Switch defaultChecked={false} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Motion Reduced' : 'Motion Enabled', 'Updating accessibility preferences...')} />
               </SettingsField>
 
               <SettingsField 
@@ -127,7 +127,7 @@ export default function AppearanceSettings() {
                 description="Enable frosted glass and backdrop blur effects on surfaces."
                 icon={Layers}
               >
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Blur Effects Enabled' : 'Blur Effects Disabled', 'Updating visual depth settings...')} />
               </SettingsField>
 
               <SettingsField 
@@ -135,7 +135,7 @@ export default function AppearanceSettings() {
                 description="Show glowing indicators on active elements and cards."
                 icon={Sparkles}
               >
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Glow Effects Enabled' : 'Glow Effects Disabled', 'Updating premium aesthetic filters...')} />
               </SettingsField>
             </div>
           </SettingsCard>
@@ -159,7 +159,7 @@ export default function AppearanceSettings() {
                   <p className="text-[14px] font-mono font-bold text-foreground">JetBrains Mono</p>
                 </div>
               </div>
-              <Button variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
+              <Button onClick={() => toastActions.showActionToast('Font Manager', 'Opening typography and weight distribution panel...')} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
                 Manage Font Weights
               </Button>
             </div>
@@ -177,7 +177,7 @@ export default function AppearanceSettings() {
              </div>
 
              <div className="space-y-4 relative z-10">
-                <button className="w-full py-3 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                <button onClick={() => toastActions.showActionToast('Interaction Active', 'Micro-interaction feedback triggered successfully.')} className="w-full py-3 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                   Hover Me
                 </button>
                 <div className="flex gap-3">

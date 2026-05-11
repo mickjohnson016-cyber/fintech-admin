@@ -170,7 +170,7 @@ export default function Sidebar() {
             isCollapsed && "pointer-events-none"
           )}
         >
-          <div onClick={() => toast("Profile clicked", { description: "Manage your account settings" })} className="flex items-center gap-4 bg-secondary rounded-[24px] border border-border p-3 px-4 group cursor-pointer hover:bg-card transition-all duration-300">
+          <div onClick={() => toastActions.showActionToast('Opening Profile Settings', 'Navigating to personal account controls')} className="flex items-center gap-4 bg-secondary rounded-[24px] border border-border p-3 px-4 group cursor-pointer hover:bg-card transition-all duration-300">
             <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-border flex items-center justify-center font-black text-primary text-sm shadow-sm relative shrink-0">
               MJ
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-muted rounded-full"></span>

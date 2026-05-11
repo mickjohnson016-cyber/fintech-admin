@@ -3,12 +3,12 @@
 import React from 'react';
 import SettingsHeader from '@/components/settings/SettingsHeader';
 import SettingsCard from '@/components/settings/SettingsCard';
-import { 
-  Users2, 
-  UserPlus, 
-  ShieldCheck, 
-  Key, 
-  MoreVertical, 
+import {
+  Users2,
+  UserPlus,
+  ShieldCheck,
+  Key,
+  MoreVertical,
   Search,
   Mail,
   Shield,
@@ -42,8 +42,8 @@ const admins = [
 export default function AdminManagement() {
   return (
     <div className="space-y-10">
-      <SettingsHeader 
-        title="Admin & Role Management" 
+      <SettingsHeader
+        title="Admin & Role Management"
         description="Govern administrative access via Role-Based Access Control (RBAC). Manage users, permissions, and security scopes."
       />
 
@@ -58,12 +58,12 @@ export default function AdminManagement() {
               </div>
               <h4 className="text-[14px] font-black text-foreground tracking-tight mb-1">{role.name}</h4>
               <p className="text-[11px] font-medium text-muted-foreground leading-snug mb-4">{role.desc}</p>
-              <button className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 group-hover:gap-2 transition-all">
+              <button onClick={() => toastActions.showActionToast('Role Permission Editor', `Opening granular policy matrix for ${role.name}...`)} className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 group-hover:gap-2 transition-all">
                 Edit Permissions <ChevronRight size={12} />
               </button>
             </div>
           ))}
-          <button className="border-2 border-dashed border-border/40 rounded-[28px] p-6 flex flex-col items-center justify-center gap-3 hover:border-primary/40 hover:bg-primary/5 transition-all group">
+          <button onClick={() => toastActions.showActionToast('New Role Creator', 'Initializing custom permission scope wizard...')} className="border-2 border-dashed border-border/40 rounded-[28px] p-6 flex flex-col items-center justify-center gap-3 hover:border-primary/40 hover:bg-primary/5 transition-all group">
             <div className="p-3 bg-secondary rounded-2xl group-hover:bg-primary group-hover:text-white transition-all">
               <Plus size={20} />
             </div>
@@ -73,8 +73,8 @@ export default function AdminManagement() {
 
         {/* Admin Table */}
         <div className="xl:col-span-3">
-          <SettingsCard 
-            title="Administrative Directory" 
+          <SettingsCard
+            title="Administrative Directory"
             description="List of all accounts with administrative dashboard access."
             icon={Users2}
           >
@@ -82,17 +82,17 @@ export default function AdminManagement() {
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-secondary/30 p-4 rounded-2xl border border-border/20">
                 <div className="relative w-full sm:w-80 group">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                  <input 
-                    type="text" 
-                    placeholder="Search by name or email..." 
+                  <input
+                    type="text"
+                    placeholder="Search by name or email..."
                     className="w-full bg-background border border-border/40 rounded-xl py-2.5 pl-10 pr-4 text-[13px] font-medium outline-none focus:border-primary/40 transition-all"
                   />
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <Button variant="outline" className="flex-1 sm:flex-none h-11 rounded-xl font-black text-[10px] uppercase tracking-widest">
+                  <Button onClick={() => toastActions.showActionToast('Role Segmentation', 'Filtering directory by active permission scopes...')} variant="outline" className="flex-1 sm:flex-none h-11 rounded-xl font-black text-[10px] uppercase tracking-widest">
                     Filter Roles
                   </Button>
-                  <Button className="flex-1 sm:flex-none h-11 rounded-xl font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20 flex items-center gap-2">
+                  <Button onClick={() => toastActions.showActionToast('Invite Administrator', 'Opening secure invitation portal for new staff...')} className="flex-1 sm:flex-none h-11 rounded-xl font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20 flex items-center gap-2">
                     <UserPlus size={16} />
                     Invite Admin
                   </Button>
@@ -128,7 +128,7 @@ export default function AdminManagement() {
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Last Activity</p>
                         <p className="text-[12px] font-bold text-foreground">{admin.lastActive}</p>
                       </div>
-                      <button className="p-2.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all">
+                      <button onClick={() => toastActions.showActionToast('Account Operations', `Managing administrative access for ${admin.name}`)} className="p-2.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all">
                         <MoreVertical size={20} />
                       </button>
                     </div>
@@ -141,8 +141,8 @@ export default function AdminManagement() {
 
         {/* Permission Overview Sidebar */}
         <div className="xl:col-span-1 space-y-8">
-          <SettingsCard 
-            title="Permission Matrix" 
+          <SettingsCard
+            title="Permission Matrix"
             description="Quick reference for role capabilities."
             icon={ShieldCheck}
           >
@@ -167,35 +167,35 @@ export default function AdminManagement() {
                   </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5">
+              <Button onClick={() => toastActions.triggerExport('JSON', 'RBAC_Matrix', roles)} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5">
                 View Full RBAC Grid
               </Button>
             </div>
           </SettingsCard>
 
-          <SettingsCard 
-            title="Access Governance" 
+          <SettingsCard
+            title="Access Governance"
             description="Global access policies."
             icon={LockIcon}
           >
-              {/* Access Governance Policies */}
-              <div className="space-y-6">
-                {[
-                  { label: "Auto-Revoke", desc: "Revoke access after 90 days of inactivity.", icon: Activity },
-                  { label: "Multi-Admin Approval", desc: "Require 2 admins for sensitive changes.", icon: Shield },
-                  { label: "Regional Scoping", desc: "Restrict admins by geographical data.", icon: Globe },
-                ].map((policy, i) => (
-                  <div key={i} className="flex gap-5 items-start group">
-                    <div className="p-3 bg-secondary/50 border border-border/30 rounded-2xl text-muted-foreground group-hover:text-primary group-hover:bg-primary/5 transition-all shadow-sm shrink-0">
-                      <policy.icon size={18} />
-                    </div>
-                    <div className="space-y-1.5 py-0.5">
-                      <p className="text-[13px] font-black text-foreground tracking-tight leading-none">{policy.label}</p>
-                      <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">{policy.desc}</p>
-                    </div>
+            {/* Access Governance Policies */}
+            <div className="space-y-6">
+              {[
+                { label: "Auto-Revoke", desc: "Revoke access after 90 days of inactivity.", icon: Activity },
+                { label: "Multi-Admin Approval", desc: "Require 2 admins for sensitive changes.", icon: Shield },
+                { label: "Regional Scoping", desc: "Restrict admins by geographical data.", icon: Globe },
+              ].map((policy, i) => (
+                <div key={i} className="flex gap-5 items-start group">
+                  <div className="p-3 bg-secondary/50 border border-border/30 rounded-2xl text-muted-foreground group-hover:text-primary group-hover:bg-primary/5 transition-all shadow-sm shrink-0">
+                    <policy.icon size={18} />
                   </div>
-                ))}
-              </div>
+                  <div className="space-y-1.5 py-0.5">
+                    <p className="text-[13px] font-black text-foreground tracking-tight leading-none">{policy.label}</p>
+                    <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">{policy.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </SettingsCard>
         </div>
       </div>

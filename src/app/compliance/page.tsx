@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import SettingsHeader from '@/components/settings/SettingsHeader';
-import { 
-  ShieldCheck, 
-  ShieldAlert, 
-  Users, 
+import {
+  ShieldCheck,
+  ShieldAlert,
+  Users,
   Search,
   CheckCircle2,
   Clock,
@@ -38,6 +38,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from 'framer-motion';
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toastActions } from '@/lib/toastActions';
 
 // --- MOCK DATA ---
 
@@ -77,7 +79,8 @@ export default function ComplianceOperations() {
   const [activeQueueTab, setActiveQueueTab] = useState("all");
 
   return (
-    <div className="space-y-10 pb-20">
+    <div className="space-y-6 pb-20">
+      <Breadcrumbs />
       <SettingsHeader 
         title="Compliance & Fraud Ops" 
         description="Enterprise Risk Management system. Monitor AML/KYC flows, investigate fraud markers, and govern platform integrity."
@@ -114,7 +117,7 @@ export default function ComplianceOperations() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        
+
         {/* 2. KYC REVIEW QUEUE */}
         <div className="xl:col-span-2 space-y-8">
           <div className="bg-card border border-border/40 rounded-[32px] overflow-hidden shadow-sm">
@@ -196,10 +199,10 @@ export default function ComplianceOperations() {
                         </span>
                       </td>
                       <td className="px-8 py-5 text-right">
-                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-all"><UserCheck size={14} /></button>
-                            <button className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all"><UserX size={14} /></button>
-                         </div>
+                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={(e) => { e.stopPropagation(); toastActions.confirmAction('Approve KYC', () => console.log('approved')); }} className="p-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-all"><UserCheck size={14} /></button>
+                          <button onClick={(e) => { e.stopPropagation(); toastActions.confirmAction('Reject KYC', () => console.log('rejected')); }} className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all"><UserX size={14} /></button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -207,7 +210,10 @@ export default function ComplianceOperations() {
               </table>
             </div>
             <div className="p-4 bg-secondary/5 border-t border-border/10 flex justify-center">
-              <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary">
+              <Button 
+                onClick={() => toastActions.showActionToast('Fetching Records', 'Loading next batch of pending reviews...')}
+                variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary"
+              >
                 Load Next 20 Pending Reviews
               </Button>
             </div>
@@ -224,8 +230,8 @@ export default function ComplianceOperations() {
                 <p className="text-[11px] font-medium text-muted-foreground">Real-time fraud detection engine feed.</p>
               </div>
               <div className="flex items-center gap-1">
-                 <div className="size-2 bg-red-500 rounded-full animate-pulse" />
-                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Monitoring Active</span>
+                <div className="size-2 bg-red-500 rounded-full animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Monitoring Active</span>
               </div>
             </div>
 
@@ -240,27 +246,27 @@ export default function ComplianceOperations() {
                   </div>
                   <div className="flex-1 bg-secondary/20 border border-border/10 rounded-[28px] p-6 hover:bg-secondary/40 transition-all">
                     <div className="flex justify-between items-start mb-3">
-                       <div className="space-y-1">
-                          <h5 className="text-[14px] font-black text-foreground tracking-tight">{alert.type}</h5>
-                          <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground uppercase">
-                             <span className="text-primary">{alert.user}</span>
-                             <span className="size-1 bg-muted-foreground/30 rounded-full" />
-                             <span>{alert.amount}</span>
-                             <span className="size-1 bg-muted-foreground/30 rounded-full" />
-                             <span>{alert.time}</span>
-                          </div>
-                       </div>
-                       <span className={cn(
-                         "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white shadow-lg",
-                         alert.severity === "High" ? "bg-red-500 shadow-red-500/20" : "bg-amber-500 shadow-amber-500/20"
-                       )}>
-                         {alert.severity} Risk
-                       </span>
+                      <div className="space-y-1">
+                        <h5 className="text-[14px] font-black text-foreground tracking-tight">{alert.type}</h5>
+                        <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground uppercase">
+                          <span className="text-primary">{alert.user}</span>
+                          <span className="size-1 bg-muted-foreground/30 rounded-full" />
+                          <span>{alert.amount}</span>
+                          <span className="size-1 bg-muted-foreground/30 rounded-full" />
+                          <span>{alert.time}</span>
+                        </div>
+                      </div>
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white shadow-lg",
+                        alert.severity === "High" ? "bg-red-500 shadow-red-500/20" : "bg-amber-500 shadow-amber-500/20"
+                      )}>
+                        {alert.severity} Risk
+                      </span>
                     </div>
                     <p className="text-[12px] font-medium text-muted-foreground leading-relaxed">{alert.desc}</p>
                     <div className="mt-4 flex gap-2">
-                       <Button size="sm" className="h-8 rounded-lg bg-primary text-white text-[9px] font-black uppercase tracking-widest">Investigate</Button>
-                       <Button variant="outline" size="sm" className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-border/40">Dismiss</Button>
+                      <Button onClick={() => setSelectedCase(kycQueue[0])} size="sm" className="h-8 rounded-lg bg-primary text-white text-[9px] font-black uppercase tracking-widest">Investigate</Button>
+                      <Button onClick={() => toastActions.showActionToast('Alert Dismissed', 'Risk marker archived for audit.')} variant="outline" size="sm" className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-border/40">Dismiss</Button>
                     </div>
                   </div>
                 </div>
@@ -271,72 +277,72 @@ export default function ComplianceOperations() {
 
         {/* 4. AML & RISK PANELS */}
         <div className="xl:col-span-1 space-y-8">
-          
+
           {/* AML Panel */}
           <div className="bg-card border border-border/40 rounded-[32px] p-8 space-y-8 shadow-xl shadow-black/5 relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-8 opacity-5">
-                <Scale size={120} className="text-primary" />
-             </div>
-             <div className="space-y-1 relative z-10">
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary">Intelligence Hub</p>
-                <h3 className="text-2xl font-black text-foreground tracking-tighter">AML Monitoring</h3>
-             </div>
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+              <Scale size={120} className="text-primary" />
+            </div>
+            <div className="space-y-1 relative z-10">
+              <p className="text-[10px] font-black uppercase tracking-widest text-primary">Intelligence Hub</p>
+              <h3 className="text-2xl font-black text-foreground tracking-tighter">AML Monitoring</h3>
+            </div>
 
-             <div className="space-y-4 relative z-10">
-                {amlAlerts.map((alert, i) => (
-                  <div key={i} className="p-6 bg-secondary/30 border border-border/20 rounded-[28px] space-y-4 hover:border-primary/40 transition-all">
-                     <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                           <h6 className="text-[13px] font-black text-foreground">{alert.title}</h6>
-                           <p className="text-[10px] font-bold text-muted-foreground uppercase">{alert.status}</p>
-                        </div>
-                        <div className="text-right">
-                           <p className="text-lg font-black text-foreground">{alert.score}</p>
-                           <p className="text-[9px] font-bold text-muted-foreground uppercase">Threat Score</p>
-                        </div>
-                     </div>
-                     <div className="flex justify-between items-center bg-background/50 p-3 rounded-2xl border border-border/10">
-                        <div className="text-center flex-1 border-r border-border/10">
-                           <p className="text-[11px] font-black text-foreground">{alert.accounts}</p>
-                           <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">Nodes</p>
-                        </div>
-                        <div className="text-center flex-1">
-                           <p className="text-[11px] font-black text-foreground">{alert.volume}</p>
-                           <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">Exposure</p>
-                        </div>
-                     </div>
-                     <button className="w-full py-3 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">Analyze Clusters</button>
+            <div className="space-y-4 relative z-10">
+              {amlAlerts.map((alert, i) => (
+                <div key={i} className="p-6 bg-secondary/30 border border-border/20 rounded-[28px] space-y-4 hover:border-primary/40 transition-all">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <h6 className="text-[13px] font-black text-foreground">{alert.title}</h6>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase">{alert.status}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-black text-foreground">{alert.score}</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase">Threat Score</p>
+                    </div>
                   </div>
-                ))}
-             </div>
+                  <div className="flex justify-between items-center bg-background/50 p-3 rounded-2xl border border-border/10">
+                    <div className="text-center flex-1 border-r border-border/10">
+                      <p className="text-[11px] font-black text-foreground">{alert.accounts}</p>
+                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">Nodes</p>
+                    </div>
+                    <div className="text-center flex-1">
+                      <p className="text-[11px] font-black text-foreground">{alert.volume}</p>
+                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">Exposure</p>
+                    </div>
+                  </div>
+                  <button onClick={() => toastActions.showActionToast('Analyzing Clusters', 'Deep-scanning associated wallet addresses...')} className="w-full py-3 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">Analyze Clusters</button>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* 5. AUDIT LOGS */}
           <div className="bg-card border border-border/40 rounded-[32px] p-8 space-y-8">
-             <div className="flex items-center justify-between">
-                <h3 className="text-[14px] font-black text-foreground uppercase tracking-widest">Ops Audit Trail</h3>
-                <button className="p-2 text-muted-foreground hover:text-primary transition-all"><History size={18} /></button>
-             </div>
-             <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-border/20">
-                {auditLogs.map((log, i) => (
-                  <div key={i} className="flex gap-4 relative z-10">
-                    <div className="size-6 rounded-full bg-background border border-border flex items-center justify-center -ml-[1px]">
-                       <div className="size-1.5 bg-primary rounded-full" />
+            <div className="flex items-center justify-between">
+              <h3 className="text-[14px] font-black text-foreground uppercase tracking-widest">Ops Audit Trail</h3>
+              <button onClick={() => toastActions.showActionToast('Refreshing Logs', 'Syncing latest administrative actions...')} className="p-2 text-muted-foreground hover:text-primary transition-all"><History size={18} /></button>
+            </div>
+            <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-border/20">
+              {auditLogs.map((log, i) => (
+                <div key={i} className="flex gap-4 relative z-10">
+                  <div className="size-6 rounded-full bg-background border border-border flex items-center justify-center -ml-[1px]">
+                    <div className="size-1.5 bg-primary rounded-full" />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[12px] font-black text-foreground">{log.admin}</p>
+                      <span className="text-[9px] font-black text-muted-foreground/40 uppercase">{log.time}</span>
                     </div>
-                    <div className="space-y-1">
-                       <div className="flex items-center gap-2">
-                          <p className="text-[12px] font-black text-foreground">{log.admin}</p>
-                          <span className="text-[9px] font-black text-muted-foreground/40 uppercase">{log.time}</span>
-                       </div>
-                       <p className="text-[11px] font-medium text-muted-foreground leading-tight">{log.action}</p>
-                       <div className="flex items-center gap-1.5 text-[9px] font-bold text-primary/70 uppercase">
-                          <ShieldCheck size={10} /> {log.target}
-                       </div>
+                    <p className="text-[11px] font-medium text-muted-foreground leading-tight">{log.action}</p>
+                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-primary/70 uppercase">
+                      <ShieldCheck size={10} /> {log.target}
                     </div>
                   </div>
-                ))}
-             </div>
-             <Button variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">Full Audit Explorer</Button>
+                </div>
+              ))}
+            </div>
+            <Button onClick={() => toastActions.triggerExport('CSV', 'compliance-audit-log', auditLogs)} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">Full Audit Explorer</Button>
           </div>
         </div>
       </div>
@@ -345,14 +351,14 @@ export default function ComplianceOperations() {
       <AnimatePresence>
         {selectedCase && (
           <>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedCase(null)}
               className="fixed inset-0 bg-background/80 backdrop-blur-md z-[100]"
             />
-            <motion.div 
+            <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
@@ -366,8 +372,8 @@ export default function ComplianceOperations() {
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                       <h2 className="text-3xl font-black text-foreground tracking-tighter">{selectedCase.name}</h2>
-                       <span className="px-3 py-1 bg-red-500 text-white text-[9px] font-black uppercase rounded-full shadow-lg shadow-red-500/20">Investigation Active</span>
+                      <h2 className="text-3xl font-black text-foreground tracking-tighter">{selectedCase.name}</h2>
+                      <span className="px-3 py-1 bg-red-500 text-white text-[9px] font-black uppercase rounded-full shadow-lg shadow-red-500/20">Investigation Active</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest">{selectedCase.id}</p>
@@ -382,89 +388,92 @@ export default function ComplianceOperations() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-8 no-scrollbar space-y-10">
-                 {/* Section: Risk Summary */}
-                 <div className="grid grid-cols-3 gap-4">
+                {/* Section: Risk Summary */}
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { label: "Fraud Score", value: "92/100", icon: AlertTriangle, color: "text-red-500" },
+                    { label: "Device Health", value: "Flagged", icon: Smartphone, color: "text-amber-500" },
+                    { label: "Sanctions", value: "Clean", icon: ShieldCheck, color: "text-emerald-500" },
+                  ].map((metric, i) => (
+                    <div key={i} className="p-5 bg-secondary/20 border border-border/10 rounded-3xl space-y-2">
+                      <metric.icon size={18} className={metric.color} />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{metric.label}</p>
+                      <p className="text-[15px] font-black text-foreground">{metric.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Section: Behavioral Analytics */}
+                <div className="space-y-4">
+                  <h4 className="text-[12px] font-black uppercase tracking-[0.2em] text-foreground flex items-center gap-2">
+                    <Activity size={16} className="text-primary" />
+                    Behavioral Markers
+                  </h4>
+                  <div className="p-8 bg-card border border-border/20 rounded-[32px] space-y-6">
+                    <div className="flex justify-between items-center">
+                      <p className="text-[13px] font-bold text-foreground">Transaction Velocity</p>
+                      <span className="text-[11px] font-black text-red-500">EXCEEDED (14/hr)</span>
+                    </div>
+                    <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
+                      <div className="h-full bg-red-500 w-[85%] rounded-full shadow-[0_0_10px_#EF4444]" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-6 pt-4">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Primary Location</p>
+                        <p className="text-[14px] font-black text-foreground">Lagos, Nigeria</p>
+                        <p className="text-[11px] text-red-500 font-bold">Inconsistent with VPN Use</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Success Rate</p>
+                        <p className="text-[14px] font-black text-foreground">12.4%</p>
+                        <p className="text-[11px] text-amber-500 font-bold">High Failure Pattern</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section: Linked Entities */}
+                <div className="space-y-4">
+                  <h4 className="text-[12px] font-black uppercase tracking-[0.2em] text-foreground flex items-center gap-2">
+                    <ArrowUpRight size={16} className="text-primary" />
+                    Associated Nodes
+                  </h4>
+                  <div className="space-y-3">
                     {[
-                      { label: "Fraud Score", value: "92/100", icon: AlertTriangle, color: "text-red-500" },
-                      { label: "Device Health", value: "Flagged", icon: Smartphone, color: "text-amber-500" },
-                      { label: "Sanctions", value: "Clean", icon: ShieldCheck, color: "text-emerald-500" },
-                    ].map((metric, i) => (
-                      <div key={i} className="p-5 bg-secondary/20 border border-border/10 rounded-3xl space-y-2">
-                         <metric.icon size={18} className={metric.color} />
-                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{metric.label}</p>
-                         <p className="text-[15px] font-black text-foreground">{metric.value}</p>
+                      { id: "USR-0042", rel: "Shared Device", score: "High Risk" },
+                      { id: "USR-1192", rel: "Common Payee", score: "Med Risk" },
+                    ].map((link, i) => (
+                      <div key={i} className="p-4 bg-secondary/10 border border-border/10 rounded-2xl flex items-center justify-between group hover:bg-secondary/20 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="size-8 bg-card border border-border/40 rounded-lg flex items-center justify-center"><Users size={14} /></div>
+                          <div>
+                            <p className="text-[13px] font-black text-foreground">{link.id}</p>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase">{link.rel}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">{link.score}</span>
                       </div>
                     ))}
-                 </div>
-
-                 {/* Section: Behavioral Analytics */}
-                 <div className="space-y-4">
-                    <h4 className="text-[12px] font-black uppercase tracking-[0.2em] text-foreground flex items-center gap-2">
-                       <Activity size={16} className="text-primary" />
-                       Behavioral Markers
-                    </h4>
-                    <div className="p-8 bg-card border border-border/20 rounded-[32px] space-y-6">
-                       <div className="flex justify-between items-center">
-                          <p className="text-[13px] font-bold text-foreground">Transaction Velocity</p>
-                          <span className="text-[11px] font-black text-red-500">EXCEEDED (14/hr)</span>
-                       </div>
-                       <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
-                          <div className="h-full bg-red-500 w-[85%] rounded-full shadow-[0_0_10px_#EF4444]" />
-                       </div>
-                       <div className="grid grid-cols-2 gap-6 pt-4">
-                          <div className="space-y-1">
-                             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Primary Location</p>
-                             <p className="text-[14px] font-black text-foreground">Lagos, Nigeria</p>
-                             <p className="text-[11px] text-red-500 font-bold">Inconsistent with VPN Use</p>
-                          </div>
-                          <div className="space-y-1">
-                             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Success Rate</p>
-                             <p className="text-[14px] font-black text-foreground">12.4%</p>
-                             <p className="text-[11px] text-amber-500 font-bold">High Failure Pattern</p>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-
-                 {/* Section: Linked Entities */}
-                 <div className="space-y-4">
-                    <h4 className="text-[12px] font-black uppercase tracking-[0.2em] text-foreground flex items-center gap-2">
-                       <ArrowUpRight size={16} className="text-primary" />
-                       Associated Nodes
-                    </h4>
-                    <div className="space-y-3">
-                       {[
-                         { id: "USR-0042", rel: "Shared Device", score: "High Risk" },
-                         { id: "USR-1192", rel: "Common Payee", score: "Med Risk" },
-                       ].map((link, i) => (
-                         <div key={i} className="p-4 bg-secondary/10 border border-border/10 rounded-2xl flex items-center justify-between group hover:bg-secondary/20 transition-all">
-                            <div className="flex items-center gap-4">
-                               <div className="size-8 bg-card border border-border/40 rounded-lg flex items-center justify-center"><Users size={14} /></div>
-                               <div>
-                                  <p className="text-[13px] font-black text-foreground">{link.id}</p>
-                                  <p className="text-[10px] font-bold text-muted-foreground uppercase">{link.rel}</p>
-                               </div>
-                            </div>
-                            <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">{link.score}</span>
-                         </div>
-                       ))}
-                    </div>
-                 </div>
+                  </div>
+                </div>
               </div>
 
               {/* Action Toolbar */}
               <div className="p-8 border-t border-border/20 bg-secondary/10 grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                    <Button className="w-full h-12 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-red-500/20">Freeze Entire Portfolio</Button>
-                    <Button variant="outline" className="w-full h-12 border-red-500/20 text-red-500 hover:bg-red-500/5 rounded-2xl font-black text-[11px] uppercase tracking-widest">Mark as Identity Theft</Button>
-                 </div>
-                 <div className="space-y-2">
-                    <Button className="w-full h-12 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-primary/20">Request Enhanced Due Diligence</Button>
-                    <Button variant="outline" className="w-full h-12 border-border/40 text-muted-foreground rounded-2xl font-black text-[11px] uppercase tracking-widest">Escalate to Senior Compliance</Button>
-                 </div>
-                 <Button variant="outline" className="col-span-2 h-12 border-border/40 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2">
-                    <Download size={16} /> Export SAR Investigation Report (STR-9921)
-                 </Button>
+                <div className="space-y-2">
+                  <Button onClick={() => toastActions.confirmAction('Freeze Portfolio', () => toastActions.showActionToast('Portfolio Frozen', 'All associated accounts have been locked.'))} className="w-full h-12 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-red-500/20">Freeze Entire Portfolio</Button>
+                  <Button onClick={() => toastActions.confirmAction('Mark as Identity Theft', () => toastActions.showActionToast('Reported', 'Entity flagged for identity theft in regional database.'))} variant="outline" className="w-full h-12 border-red-500/20 text-red-500 hover:bg-red-500/5 rounded-2xl font-black text-[11px] uppercase tracking-widest">Mark as Identity Theft</Button>
+                </div>
+                <div className="space-y-2">
+                  <Button onClick={() => toastActions.showActionToast('EDD Requested', 'User notified to provide enhanced documentation.')} className="w-full h-12 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-primary/20">Request Enhanced Due Diligence</Button>
+                  <Button onClick={() => toastActions.showActionToast('Escalated', 'Case assigned to Senior Compliance Officer.')} variant="outline" className="w-full h-12 border-border/40 text-muted-foreground rounded-2xl font-black text-[11px] uppercase tracking-widest">Escalate to Senior Compliance</Button>
+                </div>
+                <Button 
+                  onClick={() => toastActions.triggerExport('PDF', `SAR-REPORT-${selectedCase.id}`, [selectedCase])}
+                  variant="outline" className="col-span-2 h-12 border-border/40 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2"
+                >
+                  <Download size={16} /> Export SAR Investigation Report (STR-9921)
+                </Button>
               </div>
             </motion.div>
           </>

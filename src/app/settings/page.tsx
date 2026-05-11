@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { motion } from 'framer-motion';
+import { toastActions } from '@/lib/toastActions';
 
 const container = {
   hidden: { opacity: 0 },
@@ -174,7 +175,10 @@ export default function SettingsOverview() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase mr-2">{req.time}</span>
-                    <button className="px-6 py-2.5 bg-primary text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">
+                    <button 
+                      onClick={() => toastActions.showActionToast('Governance Review', `Opening administrative review panel for case ${req.id}...`)}
+                      className="px-6 py-2.5 bg-primary text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all"
+                    >
                       Review
                     </button>
                   </div>
@@ -214,7 +218,10 @@ export default function SettingsOverview() {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-8 py-4 bg-secondary/50 hover:bg-secondary border border-border/40 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2">
+            <button 
+              onClick={() => toastActions.showActionToast('Audit Explorer', 'Opening high-fidelity administrative trail search engine...')}
+              className="w-full mt-8 py-4 bg-secondary/50 hover:bg-secondary border border-border/40 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2"
+            >
               Deep Audit View
               <ExternalLink size={12} />
             </button>

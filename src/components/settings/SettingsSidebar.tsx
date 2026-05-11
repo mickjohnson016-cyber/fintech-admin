@@ -3,19 +3,19 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutGrid, 
-  Building2, 
-  Users2, 
-  ShieldCheck, 
-  CreditCard, 
-  Wallet, 
-  Plug2, 
-  Bell, 
-  Scale, 
-  Code2, 
-  Activity, 
-  Palette, 
+import {
+  LayoutGrid,
+  Building2,
+  Users2,
+  ShieldCheck,
+  CreditCard,
+  Wallet,
+  Plug2,
+  Bell,
+  Scale,
+  Code2,
+  Activity,
+  Palette,
   AlertTriangle,
   Search,
   ChevronRight,
@@ -76,7 +76,7 @@ export default function SettingsSidebar() {
 
   const filteredGroups = menuGroups.map(group => ({
     ...group,
-    items: group.items.filter(item => 
+    items: group.items.filter(item =>
       item.label.toLowerCase().includes(searchQuery.toLowerCase())
     )
   })).filter(group => group.items.length > 0);
@@ -86,9 +86,9 @@ export default function SettingsSidebar() {
       {/* Search Settings */}
       <div className="relative group px-1">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-        <input 
-          type="text" 
-          placeholder="Search settings..." 
+        <input
+          type="text"
+          placeholder="Search settings..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-card/50 backdrop-blur-md border border-border/40 rounded-2xl py-3.5 pl-11 pr-4 text-[13px] font-medium outline-none focus:bg-card focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all placeholder:text-muted-foreground/50"
@@ -114,8 +114,8 @@ export default function SettingsSidebar() {
                     href={item.href}
                     className={cn(
                       "flex items-center justify-between px-4 py-3 rounded-2xl text-[13px] font-bold transition-all group relative overflow-hidden",
-                      isActive 
-                        ? "bg-primary/10 text-primary shadow-sm shadow-primary/5" 
+                      isActive
+                        ? "bg-primary/10 text-primary shadow-sm shadow-primary/5"
                         : isDanger
                           ? "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                           : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
@@ -133,7 +133,7 @@ export default function SettingsSidebar() {
                       </div>
                       <span className="tracking-tight">{item.label}</span>
                     </div>
-                    
+
                     {isActive && (
                       <div className="size-1.5 bg-primary rounded-full shadow-[0_0_12px_rgba(59,130,246,0.8)]" />
                     )}

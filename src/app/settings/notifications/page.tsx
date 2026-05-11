@@ -48,7 +48,7 @@ export default function NotificationSettings() {
                 description="Primary channel for official communication and transaction receipts."
                 icon={Mail}
               >
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Email Channel Enabled' : 'Email Channel Disabled', 'Updating global delivery routes...')} />
               </SettingsField>
 
               <SettingsField 
@@ -56,7 +56,7 @@ export default function NotificationSettings() {
                 description="Used for high-priority alerts and 2FA codes."
                 icon={MessageSquare}
               >
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'SMS Gateway Active' : 'SMS Gateway Disabled', 'High-priority alert delivery modified.')} />
               </SettingsField>
 
               <SettingsField 
@@ -64,7 +64,7 @@ export default function NotificationSettings() {
                 description="Real-time app notifications for transaction updates."
                 icon={Smartphone}
               >
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Push Service Enabled' : 'Push Service Disabled', 'Mobile engagement delivery modified.')} />
               </SettingsField>
 
               <SettingsField 
@@ -72,7 +72,7 @@ export default function NotificationSettings() {
                 description="Stream events to external monitoring services."
                 icon={Zap}
               >
-                <Switch defaultChecked={false} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Webhooks Streaming' : 'Webhooks Halted', 'External event streaming status updated.')} />
               </SettingsField>
             </div>
           </SettingsCard>
@@ -89,13 +89,13 @@ export default function NotificationSettings() {
                 <SettingsField label="Suspicious Login Attempt" icon={LockIcon}>
                   <div className="flex gap-4">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Mail size={12} /> Email</span>
-                    <Switch defaultChecked={true} />
+                    <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Alert Enforced' : 'Alert Silenced', 'Suspicious login notification policy updated.')} />
                   </div>
                 </SettingsField>
                 <SettingsField label="Admin Permission Change" icon={Settings2}>
                   <div className="flex gap-4">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Mail size={12} /> Email</span>
-                    <Switch defaultChecked={true} />
+                    <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Governance Alert Active' : 'Governance Alert Disabled', 'Permission change tracking updated.')} />
                   </div>
                 </SettingsField>
               </div>
@@ -105,7 +105,7 @@ export default function NotificationSettings() {
                 <SettingsField label="Provider Connectivity Drop" icon={Activity}>
                   <div className="flex gap-4">
                      <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Smartphone size={12} /> SMS</span>
-                     <Switch defaultChecked={true} />
+                     <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'SRE Alert Active' : 'SRE Alert Silenced', 'Network outage notification status updated.')} />
                   </div>
                 </SettingsField>
                 <SettingsField label="High-Value Transaction Flag" icon={Zap}>
@@ -142,10 +142,10 @@ export default function NotificationSettings() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
+                    <button onClick={() => toastActions.showActionToast('Template Preview', `Displaying rendered output for ${template.name}...`)} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
                       <Eye size={16} />
                     </button>
-                    <button className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
+                    <button onClick={() => toastActions.showActionToast('Template Editor', `Opening interactive designer for ${template.name}...`)} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
                       <Settings2 size={16} />
                     </button>
                   </div>
@@ -186,7 +186,7 @@ export default function NotificationSettings() {
                </div>
             </div>
 
-            <Button className="w-full h-11 rounded-2xl font-black text-[11px] uppercase tracking-widest bg-primary text-white">
+            <Button onClick={() => toastActions.showActionToast('Test Dispatched', 'Sending security alert payload to current administrator session...')} className="w-full h-11 rounded-2xl font-black text-[11px] uppercase tracking-widest bg-primary text-white">
               Send Test Notification
             </Button>
           </div>
@@ -233,9 +233,9 @@ export default function NotificationSettings() {
           >
             <div className="space-y-4">
               <SettingsField label="Admin Quiet Hours" description="Silence all non-emergency alerts from 11 PM to 6 AM.">
-                <Switch defaultChecked={false} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Quiet Hours Active' : 'Alerts Unsilenced', 'Updating global suppression schedule...')} />
               </SettingsField>
-              <Button variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
+              <Button onClick={() => toastActions.showActionToast('Schedule Config', 'Opening notification calendar and suppression rules...')} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
                 Configure Schedule
               </Button>
             </div>

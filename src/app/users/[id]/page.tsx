@@ -19,6 +19,8 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { exportUserStatement } from '@/lib/exportUserStatement';
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toastActions } from '@/lib/toastActions';
 
 // 1. TABS CONFIG
 const tabs = [
@@ -119,8 +121,10 @@ export default function UserProfilePage() {
     }
   };
 
+
   return (
-    <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
+    <div className="max-w-[1600px] mx-auto space-y-4 animate-in fade-in duration-700 pb-20">
+      <Breadcrumbs />
       
       {/* EXPORT MODAL OVERLAY */}
       <AnimatePresence>
@@ -400,7 +404,12 @@ export default function UserProfilePage() {
             <MessageSquare size={16} /> Contact User
           </Button>
           <div className="w-px h-6 bg-border mx-2" />
-          <Button variant="outline" size="sm" className="h-10 rounded-xl border-rose-500/20 font-bold text-rose-500 bg-rose-500/5 hover:bg-rose-500/10 flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => toastActions.confirmAction('Terminate Account', () => console.log('terminated'))}
+            className="h-10 rounded-xl border-rose-500/20 font-bold text-rose-500 bg-rose-500/5 hover:bg-rose-500/10 flex items-center gap-2"
+          >
             <Ban size={16} /> Terminate
           </Button>
         </div>
@@ -485,7 +494,17 @@ export default function UserProfilePage() {
                    <div className="p-8 space-y-6">
                       <textarea value={selectedTemplate} onChange={(e) => setSelectedTemplate(e.target.value)} rows={6} placeholder="Type your message..." className="w-full bg-muted/50 border border-border/40 rounded-[20px] p-5 text-[14px] outline-none" />
                       <div className="flex justify-end">
-                         <Button className="h-12 px-8 rounded-2xl bg-primary text-white font-black uppercase text-[11px] tracking-widest flex items-center gap-3">
+                         <Button 
+                            onClick={() => {
+                               if (!selectedTemplate.trim()) {
+                                  toast.error("Message body cannot be empty");
+                                  return;
+                               }
+                               toastActions.showActionToast(`Message sent via ${messageMethod}`, "User will receive a notification shortly");
+                               setSelectedTemplate("");
+                            }}
+                            className="h-12 px-8 rounded-2xl bg-primary text-white font-black uppercase text-[11px] tracking-widest flex items-center gap-3"
+                          >
                             <Send size={16} /> Send Message
                          </Button>
                       </div>
@@ -562,17 +581,21 @@ export default function UserProfilePage() {
                 Controls
              </h4>
              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'Freeze', icon: Ban, color: 'text-rose-500 bg-rose-500/5 border-rose-500/10' },
-                  { label: 'Verify', icon: UserCheck, color: 'text-emerald-500 bg-emerald-500/5 border-emerald-500/10' },
-                  { label: 'Reset', icon: Key, color: 'text-amber-500 bg-amber-500/5 border-amber-500/10' },
-                  { label: 'Flag', icon: Flag, color: 'text-primary bg-primary/5 border-primary/10' },
-                ].map((act, i) => (
-                  <button key={i} className={cn("p-4 rounded-2xl border flex flex-col items-center gap-2", act.color)}>
-                     <act.icon size={18} />
-                     <span className="text-[10px] font-black uppercase tracking-tight">{act.label}</span>
-                  </button>
-                ))}
+               {[
+                 { label: 'Freeze', icon: Ban, color: 'text-rose-500 bg-rose-500/5 border-rose-500/10', action: () => toastActions.confirmAction('Freeze User', () => console.log('frozen')) },
+                 { label: 'Verify', icon: UserCheck, color: 'text-emerald-500 bg-emerald-500/5 border-emerald-500/10', action: () => toastActions.showActionToast('Verification Successful') },
+                 { label: 'Reset', icon: Key, color: 'text-amber-500 bg-amber-500/5 border-amber-500/10', action: () => toastActions.confirmAction('Reset Credentials', () => console.log('reset')) },
+                 { label: 'Flag', icon: Flag, color: 'text-primary bg-primary/5 border-primary/10', action: () => toastActions.showActionToast('User Flagged for Review') },
+               ].map((act, i) => (
+                 <button 
+                  key={i} 
+                  onClick={act.action}
+                  className={cn("p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all hover:scale-105 active:scale-95", act.color)}
+                 >
+                    <act.icon size={18} />
+                    <span className="text-[10px] font-black uppercase tracking-tight">{act.label}</span>
+                 </button>
+               ))}
              </div>
           </div>
         </div>

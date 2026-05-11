@@ -76,16 +76,16 @@ export default function ApiSettings() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
+                    <button onClick={() => toastActions.showActionToast('API Key Reveal', `Decrypting and displaying sensitive secret for ${key.name}...`)} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
                       <Eye size={16} />
                     </button>
-                    <button className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-red-500 transition-all">
+                    <button onClick={() => toastActions.confirmAction('Rotate API Key', () => toastActions.showActionToast('Key Rotated', `A new secret has been generated for ${key.name}.`))} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-red-500 transition-all">
                       <RefreshCcw size={16} />
                     </button>
                   </div>
                 </div>
               ))}
-              <Button className="w-full h-12 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] bg-primary text-white shadow-lg shadow-primary/20 flex items-center gap-2">
+              <Button onClick={() => toastActions.showActionToast('Key Generator', 'Initializing secure administrative key provisioning workflow...')} className="w-full h-12 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] bg-primary text-white shadow-lg shadow-primary/20 flex items-center gap-2">
                 <Plus size={18} />
                 Generate Management Key
               </Button>
@@ -122,14 +122,14 @@ export default function ApiSettings() {
                    </div>
                    <div className="flex items-center justify-between pt-4 border-t border-border/10">
                       <div className="flex items-center gap-3">
-                         <button className="text-[10px] font-black text-primary uppercase tracking-widest">Test Webhook</button>
-                         <button className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Edit</button>
+                         <button onClick={() => toastActions.showActionToast('Webhook Test', `Firing test payload to ${webhook.url}...`)} className="text-[10px] font-black text-primary uppercase tracking-widest">Test Webhook</button>
+                         <button onClick={() => toastActions.showActionToast('Edit Endpoint', 'Opening webhook configuration drawer...')} className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Edit</button>
                       </div>
-                      <Switch defaultChecked={true} />
+                      <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Endpoint Enabled' : 'Endpoint Disabled', `Webhook ${webhook.url} traffic status updated.`)} />
                    </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full h-12 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] border-border/40">
+              <Button onClick={() => toastActions.showActionToast('Webhook Wizard', 'Initializing new endpoint registration process...')} variant="outline" className="w-full h-12 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] border-border/40">
                 Add Webhook Endpoint
               </Button>
             </div>
@@ -156,11 +156,11 @@ export default function ApiSettings() {
 
             <div className="space-y-3 relative z-10">
               {[
-                { label: "Core API Ref", icon: Globe },
-                { label: "Mobile SDKs", icon: Cpu },
-                { label: "Webhook Events", icon: Webhook },
+                { label: "Core API Ref", icon: Globe, action: () => toastActions.showActionToast('Documentation', 'Opening Core API Reference in new tab...') },
+                { label: "Mobile SDKs", icon: Cpu, action: () => toastActions.showActionToast('Documentation', 'Opening SDK distribution portal...') },
+                { label: "Webhook Events", icon: Webhook, action: () => toastActions.showActionToast('Documentation', 'Opening event schema registry...') },
               ].map((link, i) => (
-                <button key={i} className="w-full p-4 bg-background/50 border border-border/20 rounded-2xl flex items-center justify-between group hover:bg-background transition-all">
+                <button key={i} onClick={link.action} className="w-full p-4 bg-background/50 border border-border/20 rounded-2xl flex items-center justify-between group hover:bg-background transition-all">
                   <div className="flex items-center gap-3">
                     <link.icon size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
                     <span className="text-[12px] font-black uppercase tracking-widest text-foreground">{link.label}</span>
@@ -210,13 +210,13 @@ export default function ApiSettings() {
           >
             <div className="space-y-2">
               <SettingsField label="IP Pinning" icon={Globe}>
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'IP Pinning Enabled' : 'IP Pinning Disabled', 'Updating network security policy...')} />
               </SettingsField>
               <SettingsField label="Payload Encryption" icon={LockIcon}>
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Encryption Enforced' : 'Encryption Relaxed', 'Security protocol changed.')} />
               </SettingsField>
               <SettingsField label="Request Signing" icon={Terminal}>
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Signing Required' : 'Signing Optional', 'Updating auth signature requirements...')} />
               </SettingsField>
             </div>
           </SettingsCard>

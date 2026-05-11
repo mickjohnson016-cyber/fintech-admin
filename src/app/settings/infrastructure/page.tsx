@@ -26,10 +26,13 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toastActions } from '@/lib/toastActions';
 
 export default function InfrastructureSettings() {
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
+      <Breadcrumbs />
       <SettingsHeader 
         title="Infrastructure & Monitoring" 
         description="Monitor system health, manage cloud resources, and configure automated scaling and backup policies."
@@ -52,7 +55,7 @@ export default function InfrastructureSettings() {
                 { name: "Auth-Node-UK-01", region: "London, UK", cpu: "12%", ram: "2.1GB", status: "online", load: "Idle" },
                 { name: "Worker-Pool-SA-01", region: "Cape Town, SA", cpu: "65%", ram: "12.4GB", status: "online", load: "High Load" },
               ].map((node, i) => (
-                <div key={i} className="p-5 bg-secondary/30 border border-border/20 rounded-[32px] hover:bg-secondary/50 hover:border-primary/20 transition-all group">
+                <div key={i} onClick={() => toastActions.showActionToast('Node Telemetry', `Inspecting real-time metrics for ${node.name}...`)} className="p-5 bg-secondary/30 border border-border/20 rounded-[32px] hover:bg-secondary/50 hover:border-primary/20 transition-all group cursor-pointer">
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-3">
                       <div className="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10B981]" />
@@ -101,7 +104,7 @@ export default function InfrastructureSettings() {
                 description="Enable continuous incremental backups for the primary PostgreSQL cluster."
                 icon={RefreshCcw}
               >
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'PITR Enabled' : 'PITR Disabled', 'Continuous backup status updated.')} />
               </SettingsField>
 
               <SettingsField 
@@ -109,7 +112,7 @@ export default function InfrastructureSettings() {
                 description="Spin up additional read replicas when database CPU exceeds 70%."
                 icon={TrendingUp}
               >
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Auto-Scaling Active' : 'Scaling Restricted', 'DB replica management policy updated.')} />
               </SettingsField>
 
               <SettingsField 
@@ -129,7 +132,7 @@ export default function InfrastructureSettings() {
                 description="Automatically purge binlogs older than 7 days."
                 icon={HardDrive}
               >
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Log Purge Active' : 'Log Purge Disabled', 'Binlog retention policy updated.')} />
               </SettingsField>
             </div>
           </SettingsCard>
@@ -146,7 +149,7 @@ export default function InfrastructureSettings() {
                   <h6 className="text-[14px] font-black text-foreground">Horizontal Pod Autoscaler (HPA)</h6>
                   <p className="text-[11px] font-medium text-muted-foreground">Global scaling target across all AWS/Azure clusters.</p>
                 </div>
-                <Switch defaultChecked={true} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'K8s HPA Enabled' : 'HPA Disabled', 'Cluster scaling is now managed manually.')} />
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -227,7 +230,10 @@ export default function InfrastructureSettings() {
                   <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{alert.status}</span>
                 </div>
               ))}
-              <Button variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
+              <Button 
+                onClick={() => toastActions.showActionToast('Incident Command Center', 'Displaying real-time critical path monitoring.')}
+                variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40"
+              >
                  Incident Command Center
               </Button>
             </div>
@@ -240,16 +246,16 @@ export default function InfrastructureSettings() {
                SRE Toolkit
              </div>
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
+                <button onClick={() => toastActions.showActionToast('Log Streamer', 'Opening real-time Kubernetes log aggregator...')} className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
                   K8s Logs
                 </button>
-                <button className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
+                <button onClick={() => toastActions.showActionToast('Identity Access', 'Opening secure SSH key management vault...')} className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
                   SSH Keys
                 </button>
-                <button className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
+                <button onClick={() => toastActions.showActionToast('Network Config', 'Opening Cloudflare/Route53 DNS dashboard...')} className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
                   DNS Config
                 </button>
-                <button className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
+                <button onClick={() => toastActions.showActionToast('Security Status', 'Inspecting SSL/TLS certificate expiry and health...')} className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
                   SSL Status
                 </button>
              </div>

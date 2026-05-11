@@ -40,6 +40,16 @@ import { investments } from '@/lib/mock-data';
 import { ChartWrapper } from '@/components/charts/ChartWrapper';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toastActions } from '@/lib/toastActions';
+import { useTableFilters } from '@/hooks/useTableFilters';
+
+// 1. MOCK DATA FOR TABLE
+const tableData = [
+  { name: 'Ngozi Okonjo', id: 'INV-001245', plan: 'Fixed Plan', amount: 5000000, roi: '12.5%', status: 'Active', risk: 'Low', end: 'May 2025' },
+  { name: 'Chukwudi Okafor', id: 'INV-001246', plan: 'Agric Plan', amount: 200000, roi: '10.0%', status: 'Matured', risk: 'Low', end: 'Nov 2024' },
+  { name: 'Amina Yusuf', id: 'INV-001247', plan: 'Estate Plan', amount: 1500000, roi: '15.0%', status: 'Pending', risk: 'Med', end: 'May 2026' },
+];
 
 // 1. MOCK DATA FOR ANALYTICS
 const activityData = [
@@ -96,6 +106,16 @@ const Badge = ({ children, className }: { children: React.ReactNode, className?:
 export default function InvestmentsPage() {
   const [activeTab, setActiveTab] = useState('Daily');
 
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredData,
+    statusFilter,
+    setStatusFilter
+  } = useTableFilters(tableData, {
+    searchKeys: ['name', 'id', 'plan']
+  });
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
       style: 'currency', currency: 'NGN', minimumFractionDigits: 0
@@ -103,7 +123,8 @@ export default function InvestmentsPage() {
   };
 
   return (
-    <div className="w-full space-y-6 animate-in fade-in duration-700 pb-10">
+    <div className="w-full space-y-4 animate-in fade-in duration-700 pb-10">
+      <Breadcrumbs />
       
       {/* 3. HEADER SECTION */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -120,17 +141,17 @@ export default function InvestmentsPage() {
         </motion.div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button className="flex items-center gap-3 px-3 py-2 bg-card border border-border rounded-xl text-xs font-bold text-muted-foreground hover:bg-secondary shadow-sm transition-all">
+          <button onClick={() => toastActions.showActionToast('Calendar Picker', 'Opening operational date range selector...')} className="flex items-center gap-3 px-3 py-2 bg-card border border-border rounded-xl text-xs font-bold text-muted-foreground hover:bg-secondary shadow-sm transition-all">
             <span className="text-muted-foreground">May 20, 2025 - Jun 20, 2025</span>
             <Calendar size={14} className="text-muted-foreground" />
           </button>
-          <Button variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.showActionToast('Advanced Filters', 'Opening forensic filter panel...')} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Filter size={14} /> Filters
           </Button>
-          <Button variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.triggerExport('CSV', 'InvestmentsLedger', filteredData)} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Download size={14} /> Export
           </Button>
-          <Button size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all border-none">
+          <Button onClick={() => toastActions.triggerExport('PDF', 'InvestmentPerformanceReport', filteredData)} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all border-none">
             Generate Report <ChevronDown size={14} />
           </Button>
         </div>
@@ -159,7 +180,7 @@ export default function InvestmentsPage() {
                 {kpi.desc}
               </p>
             </div>
-            <div className="pt-3 border-t border-border flex items-center justify-between group-hover:text-primary transition-colors cursor-pointer">
+            <div onClick={() => toastActions.showActionToast(`Navigating to ${kpi.link}...`)} className="pt-3 border-t border-border flex items-center justify-between group-hover:text-primary transition-colors cursor-pointer">
               <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">{kpi.link}</span>
               <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform text-muted-foreground group-hover:text-primary" />
             </div>
@@ -302,10 +323,25 @@ export default function InvestmentsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative group">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <input type="text" placeholder="Search..." className="bg-muted border border-border rounded-xl py-1.5 px-9 text-[11px] font-bold text-foreground outline-none focus:bg-secondary transition-all w-48" />
+                <input 
+                  type="text" 
+                  placeholder="Search..." 
+                  className="bg-muted border border-border rounded-xl py-1.5 px-9 text-[11px] font-bold text-foreground outline-none focus:bg-secondary transition-all w-48" 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-              <Button variant="outline" size="sm" className="h-8 rounded-xl border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-card hover:bg-secondary hover:text-foreground">Filters</Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 bg-muted border border-border text-muted-foreground hover:text-primary rounded-xl"><Download size={16} /></Button>
+              <select 
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="h-8 bg-card border border-border rounded-xl px-3 text-[10px] font-black uppercase tracking-widest outline-none focus:border-primary/40"
+              >
+                <option value="all">All Status</option>
+                <option value="Active">Active</option>
+                <option value="Matured">Matured</option>
+                <option value="Pending">Pending</option>
+              </select>
+              <Button onClick={() => toastActions.triggerExport('CSV', 'RecentInvestments')} variant="ghost" size="icon" className="h-8 w-8 bg-muted border border-border text-muted-foreground hover:text-primary rounded-xl"><Download size={16} /></Button>
             </div>
           </div>
 
@@ -325,12 +361,8 @@ export default function InvestmentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {[
-                  { name: 'Ngozi Okonjo', id: 'INV-001245', plan: 'Fixed Plan', amount: 5000000, roi: '12.5%', status: 'Active', risk: 'Low', end: 'May 2025' },
-                  { name: 'Chukwudi Okafor', id: 'INV-001246', plan: 'Agric Plan', amount: 200000, roi: '10.0%', status: 'Matured', risk: 'Low', end: 'Nov 2024' },
-                  { name: 'Amina Yusuf', id: 'INV-001247', plan: 'Estate Plan', amount: 1500000, roi: '15.0%', status: 'Pending', risk: 'Med', end: 'May 2026' },
-                ].map((row, i) => (
-                  <tr key={i} className="hover:bg-secondary transition-all cursor-pointer border-b border-border last:border-0">
+                {filteredData.map((row, i) => (
+                  <tr key={i} onClick={() => toastActions.showActionToast('Opening Investment Details', `Record: ${row.id}`)} className="hover:bg-secondary transition-all cursor-pointer border-b border-border last:border-0">
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-3">
                         <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-black text-[9px] shrink-0 border border-border">
@@ -347,7 +379,7 @@ export default function InvestmentsPage() {
                     <td className="px-4 py-2.5 text-center"><Badge className={cn("text-[8px] border", row.risk === 'Low' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20')}>{row.risk}</Badge></td>
                     <td className="px-4 py-2.5 text-right text-[11px] font-bold text-muted-foreground">{row.end}</td>
                     <td className="px-4 py-2.5 text-right shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
+                      <Button onClick={() => toastActions.showActionToast('Investment Details', `Inspecting Record: ${row.id}`)} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
                     </td>
                   </tr>
                 ))}

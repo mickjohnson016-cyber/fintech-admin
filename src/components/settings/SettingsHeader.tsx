@@ -12,11 +12,11 @@ interface SettingsHeaderProps {
   isSaving?: boolean;
 }
 
-export default function SettingsHeader({ 
-  title, 
-  description, 
-  lastUpdated = "2 mins ago", 
-  isSaving = false 
+export default function SettingsHeader({
+  title,
+  description,
+  lastUpdated = "2 mins ago",
+  isSaving = false
 }: SettingsHeaderProps) {
   return (
     <div className="flex flex-col gap-8 mb-10">
@@ -27,7 +27,7 @@ export default function SettingsHeader({
           <span className="opacity-40">/</span>
           <span className="text-foreground">{title}</span>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-3 py-1 bg-secondary/50 border border-border/50 rounded-full text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             <History size={12} className="text-primary" />
@@ -60,13 +60,13 @@ export default function SettingsHeader({
         </div>
 
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="h-11 px-6 rounded-2xl border-border/50 font-bold text-muted-foreground bg-card/50 hover:bg-secondary hover:text-foreground transition-all"
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             className="h-11 px-8 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 flex items-center gap-2.5 transition-all border-none"
           >
             <Save size={18} />

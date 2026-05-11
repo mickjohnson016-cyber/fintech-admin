@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Search, Filter, Download, Calendar, ArrowUpRight, 
+import {
+  Search, Filter, Download, Calendar, ArrowUpRight,
   ArrowDownRight, MoreVertical, MoreHorizontal, ShieldAlert,
   Clock, CheckCircle2, AlertTriangle, RefreshCw, Layers,
   ExternalLink, Eye, Ban, Lock, History, User, Smartphone,
@@ -12,6 +12,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toastActions } from '@/lib/toastActions';
+import { useTableFilters } from '@/hooks/useTableFilters';
 
 // 1. EXPANDED TRANSACTION MOCK DATA
 const txnMetrics = [
@@ -62,7 +65,16 @@ const Badge = ({ status }: { status: string }) => {
 
 export default function TransactionsOperationsPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
+
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredData,
+    statusFilter,
+    setStatusFilter
+  } = useTableFilters(transactionData, {
+    searchKeys: ['id', 'sender', 'receiver', 'type']
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -71,8 +83,9 @@ export default function TransactionsOperationsPage() {
   };
 
   return (
-    <div className="w-full space-y-6 animate-in fade-in duration-700 pb-10">
-      
+    <div className="w-full space-y-4 animate-in fade-in duration-700 pb-10">
+      <Breadcrumbs />
+
       {/* 3. OPERATIONS HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
@@ -86,15 +99,15 @@ export default function TransactionsOperationsPage() {
             Real-time transaction monitoring, fraud detection, and payment investigation console.
           </p>
         </div>
-        
+
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.triggerExport('CSV', 'TransactionsLedger', filteredData)} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Download size={14} /> Export CSV
           </Button>
-          <Button variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.showActionToast('Review Queue', 'Displaying transactions pending manual compliance review...')} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Layers size={14} /> Review Queue
           </Button>
-          <Button size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
+          <Button onClick={() => toastActions.showActionToast('Escalation Protocol', 'Opening executive case escalation workflow...')} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
             Escalate Case
           </Button>
         </div>
@@ -127,9 +140,9 @@ export default function TransactionsOperationsPage() {
       <div className="bg-card border border-border rounded-2xl p-4 flex flex-col xl:flex-row items-center gap-4 shadow-sm">
         <div className="relative flex-1 w-full group">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <input 
-            type="text" 
-            placeholder="Search by Transaction ID, sender name, receiver, or user ID..." 
+          <input
+            type="text"
+            placeholder="Search by Transaction ID, sender name, receiver, or user ID..."
             className="w-full bg-muted border border-border rounded-xl py-2.5 pl-11 pr-4 text-xs font-bold text-foreground placeholder:text-muted-foreground outline-none focus:bg-secondary focus:border-primary/40 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -137,16 +150,16 @@ export default function TransactionsOperationsPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
           {[
-            { label: 'Date Range', icon: Calendar },
-            { label: 'Status', icon: ChevronDown },
-            { label: 'Txn Type', icon: Layers },
-            { label: 'Risk Score', icon: ShieldAlert },
+            { label: 'Date Range', icon: Calendar, action: () => toastActions.showActionToast('Calendar Picker', 'Selecting transaction investigation window...') },
+            { label: 'Status', icon: ChevronDown, action: () => toastActions.showActionToast('Status Filter', 'Filtering by transaction state...') },
+            { label: 'Txn Type', icon: Layers, action: () => toastActions.showActionToast('Type Filter', 'Filtering by payment instrument...') },
+            { label: 'Risk Score', icon: ShieldAlert, action: () => toastActions.showActionToast('Risk Filter', 'Filtering by fraud probability thresholds...') },
           ].map((f, i) => (
-            <button key={i} className="flex-1 xl:flex-none flex items-center justify-between gap-3 px-4 py-2 bg-muted border border-border rounded-xl text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all">
+            <button key={i} onClick={f.action} className="flex-1 xl:flex-none flex items-center justify-between gap-3 px-4 py-2 bg-muted border border-border rounded-xl text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all">
               {f.label} <f.icon size={12} className="text-muted-foreground" />
             </button>
           ))}
-          <Button variant="ghost" size="icon" className="border border-border rounded-xl h-9 w-9 bg-muted hover:bg-secondary text-muted-foreground hover:text-foreground">
+          <Button onClick={() => toastActions.showActionToast('Refreshing Ledger...', 'Syncing with transaction service')} variant="ghost" size="icon" className="border border-border rounded-xl h-9 w-9 bg-muted hover:bg-secondary text-muted-foreground hover:text-foreground">
             <RefreshCw size={16} />
           </Button>
         </div>
@@ -154,7 +167,7 @@ export default function TransactionsOperationsPage() {
 
       {/* 6. MAIN CONTENT AREA (FULL WIDTH) */}
       <div className="w-full">
-        
+
         {/* Main Transaction Table */}
         <div className="bg-card border border-border rounded-[24px] overflow-hidden flex flex-col min-w-0 shadow-sm">
           <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-background sticky top-0 z-10">
@@ -166,10 +179,10 @@ export default function TransactionsOperationsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 transition-all">Bulk Export</Button>
+              <Button onClick={() => toastActions.triggerExport('CSV', 'TransactionsBulk', filteredData)} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 transition-all">Bulk Export</Button>
             </div>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[1200px]">
               <thead>
@@ -186,9 +199,9 @@ export default function TransactionsOperationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {transactionData.map((txn) => (
-                  <tr 
-                    key={txn.id} 
+                {filteredData.map((txn) => (
+                  <tr
+                    key={txn.id}
                     className="hover:bg-secondary transition-colors group cursor-pointer"
                     onClick={() => router.push(`/transactions/${txn.id}`)}
                   >
@@ -224,7 +237,7 @@ export default function TransactionsOperationsPage() {
                           <span className={cn(txn.risk > 0.5 ? "text-rose-600 dark:text-rose-500" : "text-emerald-600 dark:text-emerald-500")}>{(txn.risk * 100).toFixed(0)}%</span>
                         </div>
                         <div className="w-20 h-1 bg-background rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className={cn("h-full", txn.risk > 0.7 ? "bg-rose-500" : txn.risk > 0.4 ? "bg-amber-500" : "bg-emerald-500")}
                             style={{ width: `${txn.risk * 100}%` }}
                           />
@@ -246,9 +259,9 @@ export default function TransactionsOperationsPage() {
                       <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{txn.date.split(' ').slice(1).join(' ')}</div>
                     </td>
                     <td className="px-4 py-2.5 text-right relative" onClick={(e) => e.stopPropagation()}>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
                       >
                         <Eye size={14} />

@@ -33,6 +33,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toastActions } from '@/lib/toastActions';
+import { useTableFilters } from '@/hooks/useTableFilters';
 
 // 1. BILL PAYMENTS MOCK DATA
 const billMetrics = [
@@ -116,6 +119,16 @@ const Badge = ({ status, type }: { status?: string, type?: string }) => {
 
 export default function BillPaymentsPage() {
   const [activeTab, setActiveTab] = useState('All Payments');
+  
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredData,
+    statusFilter,
+    setStatusFilter
+  } = useTableFilters(billTransactions, {
+    searchKeys: ['customer', 'id', 'type', 'provider', 'ref']
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -124,7 +137,8 @@ export default function BillPaymentsPage() {
   };
 
   return (
-    <div className="w-full space-y-6 animate-in fade-in duration-700 pb-10">
+    <div className="w-full space-y-4 animate-in fade-in duration-700 pb-10">
+      <Breadcrumbs />
       
       {/* 3. OPERATIONS HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -142,15 +156,15 @@ export default function BillPaymentsPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
+          <div onClick={() => toastActions.showActionToast('Calendar Picker', 'Selecting billing operational window...')} className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
             <Calendar size={14} className="text-primary" />
             <span>MAY 7 - MAY 13</span>
             <ChevronDown size={12} />
           </div>
-          <Button variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.triggerExport('CSV', 'BillPaymentsLedger', filteredData)} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Download size={14} /> Export CSV
           </Button>
-          <Button size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all border-none">
+          <Button onClick={() => toastActions.showActionToast('Audit Logs', 'Opening global billing audit trail...')} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all border-none">
             <BadgeCheck size={16} /> Audit Logs
           </Button>
         </div>
@@ -219,7 +233,9 @@ export default function BillPaymentsPage() {
             </div>
             <div className="pt-2 border-t border-border flex items-center justify-between">
               <span className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em]">{provider.status}</span>
-              <RefreshCw size={10} className="text-muted-foreground group-hover:rotate-180 transition-transform duration-700" />
+              <button onClick={() => toastActions.showActionToast(`Refreshing ${provider.name}...`)}>
+                <RefreshCw size={10} className="text-muted-foreground group-hover:rotate-180 transition-transform duration-700" />
+              </button>
             </div>
           </div>
         ))}
@@ -276,8 +292,8 @@ export default function BillPaymentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {billTransactions.map((txn) => (
-                  <tr key={txn.id} className="hover:bg-secondary transition-colors group cursor-pointer">
+                {filteredData.map((txn) => (
+                  <tr key={txn.id} onClick={() => toastActions.showActionToast('Opening Bill Record', `Reference: ${txn.ref}`)} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
                     <td className="px-5 py-2.5">
                       <span className="text-[11px] font-black text-foreground uppercase tracking-tighter">{txn.id}</span>
                     </td>
@@ -312,7 +328,7 @@ export default function BillPaymentsPage() {
                     </td>
                     <td className="px-5 py-2.5 text-right text-[10px] font-black text-muted-foreground uppercase tracking-tighter">{txn.time}</td>
                     <td className="px-5 py-2.5 text-right shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
+                      <Button onClick={() => toastActions.showActionToast('Bill Record Details', `Inspecting reference: ${txn.ref}`)} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
                     </td>
                   </tr>
                 ))}
@@ -323,10 +339,10 @@ export default function BillPaymentsPage() {
           <div className="px-6 py-4 bg-muted flex items-center justify-between border-t border-border">
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing 6 of 84,204 utility payments</p>
             <div className="flex items-center gap-1">
-              <button className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
+              <button onClick={() => toastActions.showActionToast('Loading Previous Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
               <button className="w-8 h-8 bg-primary text-white rounded-lg font-black text-[10px] shadow-lg shadow-primary/20">1</button>
-              <button className="w-8 h-8 bg-card border border-border text-muted-foreground rounded-lg font-black text-[10px] hover:bg-secondary transition-all">2</button>
-              <button className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Next</button>
+              <button onClick={() => toastActions.showActionToast('Loading Page 2')} className="w-8 h-8 bg-card border border-border text-muted-foreground rounded-lg font-black text-[10px] hover:bg-secondary transition-all">2</button>
+              <button onClick={() => toastActions.showActionToast('Loading Next Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Next</button>
             </div>
           </div>
         </div>

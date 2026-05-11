@@ -126,10 +126,10 @@ export default function UserManagement() {
             />
           </div>
           <div className="flex gap-2 w-full md:w-auto">
-            <Button variant="outline" className="h-12 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
+            <Button onClick={() => toastActions.showActionToast('Filter User Directory', 'Opening advanced user segmentation panel...')} variant="outline" className="h-12 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
               <Filter size={14} /> Filter
             </Button>
-            <Button className="h-12 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20">
+            <Button onClick={() => toastActions.triggerExport('CSV', 'UserDirectory', filteredUsers)} className="h-12 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20">
               Export Users
             </Button>
           </div>
@@ -196,7 +196,7 @@ export default function UserManagement() {
                       <p className="text-[10px] font-medium text-muted-foreground uppercase">{user.lastActive}</p>
                     </td>
                     <td className="px-6 py-4 bg-secondary/20 border-y border-r border-border/10 rounded-r-[24px] text-right group-hover:bg-secondary/40 group-hover:border-primary/20 transition-all">
-                      <button className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                      <button onClick={(e) => { e.stopPropagation(); toastActions.showActionToast('User Operations', `Managing profile permissions for ${user.id}`); }} className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
                         <MoreVertical size={18} />
                       </button>
                     </td>
@@ -444,22 +444,22 @@ export default function UserManagement() {
               {/* Profile Footer - Actions */}
               <div className="p-8 border-t border-border/20 bg-secondary/10 grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Button variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-all flex items-center justify-center gap-2">
+                  <Button onClick={() => toastActions.confirmAction('Freeze Account', () => toastActions.showActionToast('Account Frozen', `Profile ${selectedUser.id} has been restricted.`))} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-all flex items-center justify-center gap-2">
                     <Freeze size={14} /> Freeze Account
                   </Button>
-                  <Button variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-all flex items-center justify-center gap-2">
+                  <Button onClick={() => toastActions.confirmAction('Suspend User', () => toastActions.showActionToast('User Suspended', `Access revoked for ${selectedUser.id}.`))} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-all flex items-center justify-center gap-2">
                     <Ban size={14} /> Suspend User
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  <Button className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                  <Button onClick={() => toastActions.showActionToast('KYC Verified', `Identity level for ${selectedUser.id} promoted to Tier 3.`)} className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
                     <CheckCircle2 size={14} /> Verify KYC Level
                   </Button>
-                  <Button variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 flex items-center justify-center gap-2">
+                  <Button onClick={() => toastActions.confirmAction('PIN Reset', () => toastActions.showActionToast('PIN Reset Initiated', 'Customer will receive reset instructions.'))} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 flex items-center justify-center gap-2">
                     <History size={14} /> Reset Transaction PIN
                   </Button>
                 </div>
-                <Button variant="outline" className="col-span-2 h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 flex items-center justify-center gap-2">
+                <Button onClick={() => toastActions.triggerExport('PDF', `Statement_${selectedUser.id}`, [selectedUser])} variant="outline" className="col-span-2 h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 flex items-center justify-center gap-2">
                   <FileText size={14} /> Export Account Statement
                 </Button>
               </div>

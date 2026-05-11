@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  ArrowUpRight, 
-  Download, 
-  Filter, 
+import {
+  BarChart3,
+  TrendingUp,
+  ArrowUpRight,
+  Download,
+  Filter,
   RefreshCw,
   Search,
   MoreHorizontal,
@@ -29,8 +29,8 @@ import {
   FileText,
   UserPlus
 } from 'lucide-react';
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend, BarChart, Bar
 } from 'recharts';
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,8 @@ import { cn } from "@/lib/utils";
 import { ChartWrapper } from '@/components/charts/ChartWrapper';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toastActions } from '@/lib/toastActions';
 
 // 1. MOCK ANALYTICS DATA
 const performanceMetrics = [
@@ -76,8 +78,9 @@ const providerLatency = [
 
 export default function AnalyticsPage() {
   return (
-    <div className="w-full space-y-6 animate-in fade-in duration-700 pb-10">
-      
+    <div className="w-full space-y-4 animate-in fade-in duration-700 pb-10">
+      <Breadcrumbs />
+
       {/* 2. HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -86,17 +89,17 @@ export default function AnalyticsPage() {
             Comprehensive platform performance, user behavior, and revenue analytics.
           </p>
         </motion.div>
-        
+
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
+          <div onClick={() => toastActions.showComingSoon('Date Range Picker')} className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
             <Calendar size={14} className="text-primary" />
             <span>LAST 30 DAYS</span>
             <ChevronDown size={12} />
           </div>
-          <Button variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.triggerExport('PDF', 'PlatformPerformanceReport')} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Download size={14} /> Download PDF Report
           </Button>
-          <Button size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 border-none transition-all">
+          <Button onClick={() => toastActions.showActionToast('Recalculating Insights...', 'Refreshing all platform metrics')} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 border-none transition-all">
             <RefreshCw size={14} /> Recalculate
           </Button>
         </motion.div>
@@ -127,7 +130,7 @@ export default function AnalyticsPage() {
 
       {/* 4. CHARTS SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
+
         {/* Revenue Growth */}
         <Card className="lg:col-span-8 p-6">
           <div className="flex items-center justify-between mb-8">
@@ -144,17 +147,17 @@ export default function AnalyticsPage() {
             <AreaChart data={revenueData}>
               <defs>
                 <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.1}/>
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.1} />
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.05)" vertical={false} />
               <XAxis dataKey="date" stroke="#64748B" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} dy={10} />
-              <YAxis stroke="#64748B" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tickFormatter={(v) => `₦${v/1000000}M`} />
-              <Tooltip 
+              <YAxis stroke="#64748B" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tickFormatter={(v) => `₦${v / 1000000}M`} />
+              <Tooltip
                 contentStyle={{ backgroundColor: '#0D2340', border: '1px solid #11284A', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', color: '#F8FAFC' }}
                 itemStyle={{ color: '#F8FAFC', fontSize: '11px', fontWeight: 700 }}
-                formatter={(value: any) => [`₦${(value/1000000).toFixed(1)}M`, 'Revenue']}
+                formatter={(value: any) => [`₦${(value / 1000000).toFixed(1)}M`, 'Revenue']}
               />
               <Area type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
             </AreaChart>
@@ -192,7 +195,7 @@ export default function AnalyticsPage() {
 
       {/* 5. SECONDARY CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        
+
         {/* Provider Latency */}
         <Card className="p-6">
           <h3 className="text-sm font-black text-foreground uppercase tracking-widest mb-1">Provider Latency (ms)</h3>
@@ -222,18 +225,18 @@ export default function AnalyticsPage() {
             <ShieldCheck size={20} className="text-primary" />
           </div>
           <div className="space-y-4">
-            {[
+            { [
               { title: 'Concurrent Logins Spike', detail: '142 logins from unusual IP range in Nigeria', time: '12m ago', level: 'Medium' },
               { title: 'High-Value Transfer Loop', detail: 'Duplicate transfers detected between users MJ-01 and AS-04', time: '45m ago', level: 'High' },
               { title: 'Failed Pin Attempts', detail: '30+ failed education pin requests from single device', time: '1h ago', level: 'Low' },
             ].map((alert, i) => (
-              <div key={i} className="p-4 bg-muted border border-border rounded-xl hover:bg-secondary hover:border-[#3B82F6]/30 transition-all cursor-pointer group">
+              <div key={i} onClick={() => toastActions.showComingSoon('Anomaly Forensic Explorer')} className="p-4 bg-muted border border-border rounded-xl hover:bg-secondary hover:border-[#3B82F6]/30 transition-all cursor-pointer group">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[12px] font-black text-foreground">{alert.title}</span>
                   <span className={cn(
                     "text-[8px] font-black uppercase px-1.5 py-0.5 rounded",
-                    alert.level === 'High' ? 'bg-rose-500/10 text-rose-500' : 
-                    alert.level === 'Medium' ? 'bg-amber-500/10 text-amber-500' : 'bg-muted text-muted-foreground border border-border'
+                    alert.level === 'High' ? 'bg-rose-500/10 text-rose-500' :
+                      alert.level === 'Medium' ? 'bg-amber-500/10 text-amber-500' : 'bg-muted text-muted-foreground border border-border'
                   )}>
                     {alert.level}
                   </span>

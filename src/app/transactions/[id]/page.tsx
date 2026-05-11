@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toastActions } from '@/lib/toastActions';
 
 // 1. TIMELINE DATA
 const timeline = [
@@ -56,7 +58,8 @@ export default function TransactionDetailsPage() {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-8 animate-in fade-in duration-700">
+    <div className="max-w-[1400px] mx-auto space-y-4 animate-in fade-in duration-700">
+      <Breadcrumbs />
       
       {/* 2. HEADER & PRIMARY ACTIONS */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -83,13 +86,13 @@ export default function TransactionDetailsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" className="h-10 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toastActions.triggerExport('PDF', `Receipt ${txn.id}`)} variant="outline" size="sm" className="h-10 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Download size={16} /> Receipt
           </Button>
-          <Button variant="outline" size="sm" className="h-10 rounded-xl border-rose-500/20 font-bold text-rose-500 bg-card hover:bg-rose-500/5 shadow-sm flex items-center gap-2">
+          <Button onClick={() => toastActions.confirmAction('Reverse Payment', () => console.log('reversed'))} variant="outline" size="sm" className="h-10 rounded-xl border-rose-500/20 font-bold text-rose-500 bg-card hover:bg-rose-500/5 shadow-sm flex items-center gap-2">
             <RefreshCw size={16} /> Reverse Payment
           </Button>
-          <Button size="sm" className="h-10 rounded-xl bg-primary hover:bg-primary/90 text-white px-6 font-bold shadow-lg shadow-blue-500/10 flex items-center gap-2 border-none">
+          <Button onClick={() => toastActions.showActionToast('Case Escalated', 'A compliance officer will review this transaction shortly')} size="sm" className="h-10 rounded-xl bg-primary hover:bg-primary/90 text-white px-6 font-bold shadow-lg shadow-blue-500/10 flex items-center gap-2 border-none">
             <ShieldAlert size={16} /> Escalate
           </Button>
         </div>
@@ -133,7 +136,10 @@ export default function TransactionDetailsPage() {
                     <p className="text-[15px] font-black text-foreground mb-0.5">{txn.sender.name}</p>
                     <p className="text-[12px] font-bold text-muted-foreground">{txn.sender.email}</p>
                     <p className="text-[12px] font-bold text-muted-foreground">{txn.sender.phone}</p>
-                    <button className="mt-3 text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1">
+                    <button 
+                      onClick={() => router.push(`/users/${txn.sender.id}`)}
+                      className="mt-3 text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
+                    >
                       View Customer Profile <ExternalLink size={10} />
                     </button>
                   </div>
@@ -249,7 +255,10 @@ export default function TransactionDetailsPage() {
                 ))}
               </div>
               
-              <button className="w-full py-3.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20">
+              <button 
+                onClick={() => toastActions.showComingSoon('Forensic Investigation')}
+                className="w-full py-3.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
+              >
                 View Full Forensic Report
               </button>
             </div>
@@ -260,21 +269,21 @@ export default function TransactionDetailsPage() {
             <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Operational Actions</h4>
             
             <div className="space-y-2">
-              <button className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-secondary group transition-all text-muted-foreground hover:text-foreground">
+              <button onClick={() => toastActions.showActionToast('Re-try Attempted', 'Gateway response pending')} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-secondary group transition-all text-muted-foreground hover:text-foreground">
                 <div className="flex items-center gap-3">
                   <Zap size={16} className="text-muted-foreground group-hover:text-primary" />
                   <span className="text-[12px] font-black uppercase tracking-widest">Manual Re-try</span>
                 </div>
                 <ChevronRight size={14} className="text-muted-foreground" />
               </button>
-              <button className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-secondary group transition-all text-muted-foreground hover:text-foreground">
+              <button onClick={() => toastActions.showComingSoon('Support Ticketing')} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-secondary group transition-all text-muted-foreground hover:text-foreground">
                 <div className="flex items-center gap-3">
                   <AlertCircle size={16} className="text-muted-foreground group-hover:text-amber-500" />
                   <span className="text-[12px] font-black uppercase tracking-widest">Open Support Ticket</span>
                 </div>
                 <ChevronRight size={14} className="text-muted-foreground" />
               </button>
-              <button className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-rose-500/10 group transition-all text-rose-500">
+              <button onClick={() => toastActions.confirmAction('Block Beneficiary', () => console.log('blocked'))} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-rose-500/10 group transition-all text-rose-500">
                 <div className="flex items-center gap-3">
                   <Ban size={16} className="text-rose-500/50 group-hover:text-rose-500" />
                   <span className="text-[12px] font-black uppercase tracking-widest">Block Beneficiary</span>
@@ -296,7 +305,10 @@ export default function TransactionDetailsPage() {
                 <span className="text-[10px] font-black text-foreground uppercase tracking-widest">Admin David • May 07</span>
               </div>
             </div>
-            <button className="w-full mt-4 py-2 text-[10px] font-black text-primary uppercase tracking-widest hover:underline text-left">
+            <button 
+              onClick={() => toastActions.showComingSoon('Compliance Memos')}
+              className="w-full mt-4 py-2 text-[10px] font-black text-primary uppercase tracking-widest hover:underline text-left"
+            >
               Add New Note +
             </button>
           </div>
