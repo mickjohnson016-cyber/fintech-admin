@@ -25,8 +25,34 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from 'sonner';
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+
+import { toastActions } from '@/lib/toastActions';
 
 export default function NotificationSettings() {
+  const [isTesting, setIsTesting] = useState(false);
+
+  const handleSendTestNotification = async () => {
+    setIsTesting(true);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    toast.success('Test Dispatched', {
+      description: 'Sending security alert payload to current administrator session...'
+    });
+    
+    setIsTesting(false);
+  };
+
+  const handleToggle = (label: string, enabled: boolean) => {
+    toast.success(`${label} ${enabled ? 'Enabled' : 'Disabled'}`, {
+      description: 'Global notification preferences updated.'
+    });
+  };
+
   return (
     <div className="space-y-10">
       <SettingsHeader 
@@ -48,7 +74,7 @@ export default function NotificationSettings() {
                 description="Primary channel for official communication and transaction receipts."
                 icon={Mail}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Email Channel Enabled' : 'Email Channel Disabled', 'Updating global delivery routes...')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('Email Channel', checked)} />
               </SettingsField>
 
               <SettingsField 
@@ -56,7 +82,7 @@ export default function NotificationSettings() {
                 description="Used for high-priority alerts and 2FA codes."
                 icon={MessageSquare}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'SMS Gateway Active' : 'SMS Gateway Disabled', 'High-priority alert delivery modified.')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('SMS Gateway', checked)} />
               </SettingsField>
 
               <SettingsField 
@@ -64,7 +90,7 @@ export default function NotificationSettings() {
                 description="Real-time app notifications for transaction updates."
                 icon={Smartphone}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Push Service Enabled' : 'Push Service Disabled', 'Mobile engagement delivery modified.')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('Push Service', checked)} />
               </SettingsField>
 
               <SettingsField 
@@ -72,7 +98,7 @@ export default function NotificationSettings() {
                 description="Stream events to external monitoring services."
                 icon={Zap}
               >
-                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Webhooks Streaming' : 'Webhooks Halted', 'External event streaming status updated.')} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => handleToggle('Webhooks Streaming', checked)} />
               </SettingsField>
             </div>
           </SettingsCard>
@@ -89,13 +115,13 @@ export default function NotificationSettings() {
                 <SettingsField label="Suspicious Login Attempt" icon={LockIcon}>
                   <div className="flex gap-4">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Mail size={12} /> Email</span>
-                    <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Alert Enforced' : 'Alert Silenced', 'Suspicious login notification policy updated.')} />
+                    <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('Security Alert', checked)} />
                   </div>
                 </SettingsField>
                 <SettingsField label="Admin Permission Change" icon={Settings2}>
                   <div className="flex gap-4">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Mail size={12} /> Email</span>
-                    <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Governance Alert Active' : 'Governance Alert Disabled', 'Permission change tracking updated.')} />
+                    <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('Governance Alert', checked)} />
                   </div>
                 </SettingsField>
               </div>
@@ -105,13 +131,13 @@ export default function NotificationSettings() {
                 <SettingsField label="Provider Connectivity Drop" icon={Activity}>
                   <div className="flex gap-4">
                      <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Smartphone size={12} /> SMS</span>
-                     <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'SRE Alert Active' : 'SRE Alert Silenced', 'Network outage notification status updated.')} />
+                     <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('SRE Alert', checked)} />
                   </div>
                 </SettingsField>
                 <SettingsField label="High-Value Transaction Flag" icon={Zap}>
                    <div className="flex gap-4">
                      <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Smartphone size={12} /> SMS</span>
-                     <Switch defaultChecked={true} />
+                     <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('Transaction Alert', checked)} />
                   </div>
                 </SettingsField>
               </div>
@@ -186,8 +212,19 @@ export default function NotificationSettings() {
                </div>
             </div>
 
-            <Button onClick={() => toastActions.showActionToast('Test Dispatched', 'Sending security alert payload to current administrator session...')} className="w-full h-11 rounded-2xl font-black text-[11px] uppercase tracking-widest bg-primary text-white">
-              Send Test Notification
+            <Button 
+              disabled={isTesting}
+              onClick={handleSendTestNotification} 
+              className="w-full h-11 rounded-2xl font-black text-[11px] uppercase tracking-widest bg-primary text-white flex items-center justify-center gap-2"
+            >
+              {isTesting ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send Test Notification"
+              )}
             </Button>
           </div>
 
@@ -233,9 +270,9 @@ export default function NotificationSettings() {
           >
             <div className="space-y-4">
               <SettingsField label="Admin Quiet Hours" description="Silence all non-emergency alerts from 11 PM to 6 AM.">
-                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Quiet Hours Active' : 'Alerts Unsilenced', 'Updating global suppression schedule...')} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => handleToggle('Quiet Hours', checked)} />
               </SettingsField>
-              <Button onClick={() => toastActions.showActionToast('Schedule Config', 'Opening notification calendar and suppression rules...')} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
+              <Button onClick={() => toastActions.showComingSoon('Calendar Scheduling')} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
                 Configure Schedule
               </Button>
             </div>

@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLayout } from '@/contexts/LayoutContext';
+import { useBranding } from '@/context/BrandingContext';
+import { toastActions } from '@/lib/toastActions';
 
 const corePlatform = [
   { name: 'Dashboard', icon: LayoutGrid, href: '/dashboard' },
@@ -34,7 +36,13 @@ const systemSettings = [
 
 export default function Sidebar() {
   const { sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed } = useLayout();
+  const { logo: brandingLogo } = useBranding();
+  const [mounted, setMounted] = React.useState(false);
   const pathname = usePathname();
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <>
@@ -66,8 +74,12 @@ export default function Sidebar() {
           isCollapsed && "opacity-0"
         )}>
           <Link href="/dashboard" className="flex items-center gap-3 group overflow-hidden">
-            <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/30 group-hover:rotate-12 transition-transform duration-500 shrink-0">
-              <Zap size={22} fill="currentColor" />
+            <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/30 group-hover:rotate-12 transition-transform duration-500 shrink-0 overflow-hidden relative">
+              {mounted && brandingLogo !== "/logo.svg" ? (
+                <img src={brandingLogo} alt="Logo" className="size-full object-cover" />
+              ) : (
+                <Zap size={22} fill="currentColor" />
+              )}
             </div>
             {!isCollapsed && (
               <span className="text-2xl font-black text-foreground tracking-tighter uppercase animate-in slide-in-from-left-2 duration-300">OINZpay</span>
