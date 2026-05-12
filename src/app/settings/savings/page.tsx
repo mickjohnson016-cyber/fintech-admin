@@ -42,11 +42,7 @@ export default function SavingsInvestmentControls() {
             icon={Percent}
           >
             <div className="space-y-6">
-              {[
-                { label: "Target Savings (Core)", apy: "12.5%", trend: "+0.5%", icon: Wallet },
-                { label: "OINZ Vault (Locked)", apy: "15.0%", trend: "Stable", icon: LockIcon },
-                { label: "Mutual Funds (Market)", apy: "18.2%", trend: "+1.2%", icon: TrendingUp },
-              ].map((product, i) => (
+              {([] as any[]).map((product, i) => (
                 <div key={i} className="p-6 bg-secondary/30 border border-border/20 rounded-[32px] flex items-center justify-between group hover:border-primary/30 transition-all">
                    <div className="flex items-center gap-5">
                       <div className="p-3 bg-background border border-border/40 rounded-2xl text-primary">
@@ -114,11 +110,7 @@ export default function SavingsInvestmentControls() {
             icon={BarChart3}
           >
              <div className="space-y-6">
-                {[
-                  { label: "Government Bonds", allocation: 60, risk: "Low" },
-                  { label: "Corporate Debt", allocation: 25, risk: "Medium" },
-                  { label: "Equities & Market", allocation: 15, risk: "High" },
-                ].map((asset, i) => (
+                 {([] as any[]).map((asset, i) => (
                   <div key={i} className="space-y-3">
                     <div className="flex justify-between items-end">
                        <div className="space-y-0.5">
@@ -148,7 +140,7 @@ export default function SavingsInvestmentControls() {
                     <Coins size={14} />
                     Total AUM
                   </p>
-                  <h3 className="text-3xl font-black text-foreground tracking-tighter">₦8.42B</h3>
+                  <h3 className="text-3xl font-black text-foreground tracking-tighter">₦0.00</h3>
                   <p className="text-[12px] font-medium text-muted-foreground">Assets Under Management</p>
                 </div>
                 <div className="p-3 bg-primary/10 rounded-2xl text-primary">
@@ -160,26 +152,26 @@ export default function SavingsInvestmentControls() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
                     <span>Liabilities</span>
-                    <span>₦7.1B</span>
+                    <span>₦0.00</span>
                   </div>
                   <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-500 rounded-full" style={{ width: "84%" }} />
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: "0%" }} />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
                     <span>Treasury Reserve</span>
-                    <span>₦1.32B</span>
+                    <span>₦0.00</span>
                   </div>
                   <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: "16%" }} />
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: "0%" }} />
                   </div>
                 </div>
              </div>
 
              <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl flex items-center gap-3">
                 <CheckCircle2 size={16} className="text-emerald-500" />
-                <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Reserve Ratio Healthy (1.18x)</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Reserve Ratio Status: --</p>
              </div>
           </div>
 
@@ -190,11 +182,7 @@ export default function SavingsInvestmentControls() {
             icon={Zap}
           >
             <div className="space-y-4">
-               {[
-                 { date: "May 15, 2026", amount: "₦25.4M", product: "Locked Vault" },
-                 { date: "May 22, 2026", amount: "₦110.2M", product: "Target Savings" },
-                 { date: "June 01, 2026", amount: "₦42.1M", product: "Fixed Deposit" },
-               ].map((item, i) => (
+               {([] as any[]).map((item, i) => (
                  <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 border border-border/10 rounded-2xl">
                     <div className="space-y-0.5">
                        <p className="text-[12px] font-black text-foreground">{item.amount}</p>

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import SettingsHeader from '@/components/settings/SettingsHeader';
 import SettingsCard from '@/components/settings/SettingsCard';
 import SettingsField from '@/components/settings/SettingsField';
@@ -30,6 +30,12 @@ import { toast } from 'sonner';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 
 export default function InfrastructureSettings() {
+  // Pre-compute chart heights to avoid hydration mismatch from Math.random() in render
+  const chartHeights = useMemo(
+    () => [72, 45, 88, 33, 61, 52, 79, 40, 67, 55, 83, 38, 71, 48, 90, 35, 64, 57, 76, 42, 69, 50, 85, 37],
+    []
+  );
+
   return (
     <div className="space-y-6">
       <Breadcrumbs />
@@ -49,12 +55,7 @@ export default function InfrastructureSettings() {
             badgeVariant="success"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { name: "Core-Engine-NG-01", region: "Lagos, NG", cpu: "24%", ram: "4.2GB", status: "online", load: "Healthy" },
-                { name: "Core-Engine-NG-02", region: "Lagos, NG", cpu: "18%", ram: "3.8GB", status: "online", load: "Healthy" },
-                { name: "Auth-Node-UK-01", region: "London, UK", cpu: "12%", ram: "2.1GB", status: "online", load: "Idle" },
-                { name: "Worker-Pool-SA-01", region: "Cape Town, SA", cpu: "65%", ram: "12.4GB", status: "online", load: "High Load" },
-              ].map((node, i) => (
+              {([].length > 0) ? ([] as any[]).map((node, i) => (
                 <div key={i} onClick={() => toast.success('Node Telemetry', { description: `Inspecting real-time metrics for ${node.name}...` })} className="p-5 bg-secondary/30 border border-border/20 rounded-[32px] hover:bg-secondary/50 hover:border-primary/20 transition-all group cursor-pointer">
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-3">
@@ -88,7 +89,11 @@ export default function InfrastructureSettings() {
                      </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                 <div className="col-span-full py-20 text-center bg-secondary/10 border border-dashed border-border/20 rounded-[32px]">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">No active nodes detected.</p>
+                 </div>
+              )}
             </div>
           </SettingsCard>
 
@@ -177,15 +182,15 @@ export default function InfrastructureSettings() {
                   <Gauge size={14} />
                   System Latency
                 </p>
-                <h3 className="text-3xl font-black text-foreground tracking-tighter">42ms</h3>
+                <h3 className="text-3xl font-black text-foreground tracking-tighter">--ms</h3>
                 <p className="text-[12px] font-medium text-muted-foreground">Average P99 Response Time</p>
              </div>
 
              <div className="space-y-6">
                 {[
-                  { label: "API Gateway", val: "12ms", target: "15ms", color: "text-emerald-500" },
-                  { label: "Auth Middleware", val: "8ms", target: "10ms", color: "text-emerald-500" },
-                  { label: "DB Query Execution", val: "22ms", target: "25ms", color: "text-amber-500" },
+                  { label: "API Gateway", val: "0ms", target: "15ms", color: "text-muted-foreground" },
+                  { label: "Auth Middleware", val: "0ms", target: "10ms", color: "text-muted-foreground" },
+                  { label: "DB Query Execution", val: "0ms", target: "25ms", color: "text-muted-foreground" },
                 ].map((lat, i) => (
                   <div key={i} className="flex items-center justify-between">
                      <div className="space-y-0.5">
@@ -198,11 +203,11 @@ export default function InfrastructureSettings() {
              </div>
 
              <div className="h-20 w-full flex items-end gap-1 px-2">
-                {Array.from({ length: 24 }).map((_, i) => (
+                {chartHeights.map((h, i) => (
                   <div 
                     key={i} 
-                    className="flex-1 bg-primary/20 rounded-t-sm" 
-                    style={{ height: `${Math.random() * 60 + 20}%` }} 
+                    className="flex-1 bg-muted/20 rounded-t-sm" 
+                    style={{ height: `10%` }} 
                   />
                 ))}
              </div>
@@ -215,10 +220,10 @@ export default function InfrastructureSettings() {
             icon={AlertTriangle}
           >
             <div className="space-y-4">
-              {[
+              {[].length > 0 ? [
                 { title: "S3 Snapshot Delay", status: "Resolved", time: "12h ago", color: "bg-emerald-500" },
                 { title: "High RAM Usage (Worker-01)", status: "Alert", time: "14m ago", color: "bg-amber-500" },
-              ].map((alert, i) => (
+              ].map((alert: any, i: number) => (
                 <div key={i} className="p-4 bg-secondary/30 border border-border/10 rounded-2xl flex items-center justify-between group hover:bg-secondary/50 transition-all">
                   <div className="flex items-center gap-3">
                      <div className={cn("size-2 rounded-full", alert.color)} />
@@ -229,7 +234,11 @@ export default function InfrastructureSettings() {
                   </div>
                   <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{alert.status}</span>
                 </div>
-              ))}
+              )) : (
+                 <div className="py-8 text-center opacity-30">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No active incidents</p>
+                 </div>
+              )}
               <Button 
                 onClick={() => toast.success('Incident Command Center', { description: 'Displaying real-time critical path monitoring.' })}
                 variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40"

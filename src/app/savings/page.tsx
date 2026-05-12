@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import { 
   PiggyBank, 
-  Search, 
-  MoreVertical, 
+  Search,
   ArrowUpRight, 
   ArrowDownRight,
   TrendingUp,
@@ -27,7 +26,9 @@ import {
   Mail,
   FileText,
   UserCheck,
-  Calendar
+  Calendar,
+  Eye,
+  Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
@@ -35,97 +36,24 @@ import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { toast } from 'sonner';
 import { useTableFilters } from '@/hooks/useTableFilters';
 import { useRouter } from 'next/navigation';
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ActionMenu } from '@/components/ui/ActionMenu';
 
 // 1. BANKING OPERATIONS MOCK DATA
 const savingsMetrics = [
-  { label: 'Total Savings Accounts', value: '142,402', trend: '+12.4%', up: true, subtitle: 'Across all plan types', icon: PiggyBank, color: 'text-primary', bg: 'bg-primary/10' },
-  { label: 'Total Savings Balance', value: '₦42.8B', trend: '+18.7%', up: true, subtitle: 'Platform liquidity exposure', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  { label: 'Maturing Soon', value: '₦1.2B', trend: '240 Plans', up: null, subtitle: 'Due within 7 days', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-  { label: 'Locked Savings', value: '₦28.4B', trend: '68% of total', up: null, subtitle: 'Fixed term deposits', icon: Unlock, color: 'text-purple-600', bg: 'bg-purple-50' },
-  { label: 'Suspicious Activity', value: '14 Flags', trend: 'High Priority', up: false, subtitle: 'Potential AML/Fraud risk', icon: ShieldAlert, color: 'text-rose-600', bg: 'bg-rose-50' },
-  { label: 'Dormant Accounts', value: '2,840', trend: '2% of total', up: false, subtitle: 'Inactive > 90 days', icon: UserX, color: 'text-muted-foreground', bg: 'bg-muted' },
+  { label: 'Total Savings Accounts', value: '0', trend: '--', up: null, subtitle: 'Awaiting sync', icon: PiggyBank, color: 'text-primary', bg: 'bg-primary/10' },
+  { label: 'Total Savings Balance', value: '₦0', trend: '--', up: null, subtitle: 'Awaiting sync', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  { label: 'Maturing Soon', value: '₦0', trend: '0 Plans', up: null, subtitle: 'Awaiting sync', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+  { label: 'Locked Savings', value: '₦0', trend: '--', up: null, subtitle: 'Awaiting sync', icon: Unlock, color: 'text-purple-600', bg: 'bg-purple-50' },
+  { label: 'Suspicious Activity', value: '0 Flags', trend: '--', up: null, subtitle: 'Awaiting sync', icon: ShieldAlert, color: 'text-rose-600', bg: 'bg-rose-50' },
+  { label: 'Dormant Accounts', value: '0', trend: '--', up: null, subtitle: 'Awaiting sync', icon: UserX, color: 'text-muted-foreground', bg: 'bg-muted' },
 ];
 
-const opsAlerts = [
-  { id: 1, type: 'large_deposit', title: '₦5,000,000 Deposit detected', user: 'Chukwudi Okafor', time: '2 mins ago', color: 'bg-emerald-500' },
-  { id: 2, type: 'failed_autosave', title: 'Auto-save failed (Insufficient funds)', user: 'Amina Yusuf', time: '12 mins ago', color: 'bg-amber-500' },
-  { id: 3, type: 'frozen_account', title: 'Savings account frozen (Compliance)', user: 'Olumide Bakare', time: '45 mins ago', color: 'bg-rose-500' },
-  { id: 4, type: 'maturity_alert', title: 'Locked Savings Plan matured', user: 'Ngozi Okonjo', time: '1 hour ago', color: 'bg-primary/100' },
-  { id: 5, type: 'kyc_missing', title: 'Missing KYC for high-balance account', user: 'Ibrahim Danjuma', time: '2 hours ago', color: 'bg-purple-500' },
-];
+const opsAlerts: any[] = [];
 
-const savingsData = [
-  { 
-    id: 'SAV-849204', 
-    user: { name: 'Ngozi Okonjo', id: 'USR-2024-001', avatar: 'NO' },
-    plan: { name: 'Emergency Fund', type: 'Flexible', duration: 'Ongoing' },
-    balance: 2500000,
-    target: 5000000,
-    contribution: 250000,
-    lastDeposit: '2024-05-06',
-    maturity: 'N/A',
-    autoSave: true,
-    risk: 'Low',
-    kyc: 'Verified',
-    status: 'Active'
-  },
-  { 
-    id: 'SAV-128394', 
-    user: { name: 'Chukwudi Okafor', id: 'USR-2024-002', avatar: 'CO' },
-    plan: { name: 'Dec Wedding', type: 'Locked', duration: '12 Months' },
-    balance: 850000,
-    target: 2000000,
-    contribution: 150000,
-    lastDeposit: '2024-05-04',
-    maturity: '2024-12-01',
-    autoSave: true,
-    risk: 'Low',
-    kyc: 'Verified',
-    status: 'Active'
-  },
-  { 
-    id: 'SAV-992837', 
-    user: { name: 'Olumide Bakare', id: 'USR-2024-003', avatar: 'OB' },
-    plan: { name: 'New Car', type: 'Fixed', duration: '24 Months' },
-    balance: 1250000,
-    target: 5000000,
-    contribution: 200000,
-    lastDeposit: '2024-04-20',
-    maturity: '2025-10-01',
-    autoSave: false,
-    risk: 'Medium',
-    kyc: 'Pending',
-    status: 'Flagged'
-  },
-  { 
-    id: 'SAV-447283', 
-    user: { name: 'Amina Yusuf', id: 'USR-2024-004', avatar: 'AY' },
-    plan: { name: 'House Rent', type: 'Flexible', duration: '12 Months' },
-    balance: 450000,
-    target: 1500000,
-    contribution: 50000,
-    lastDeposit: '2024-05-01',
-    maturity: '2024-12-31',
-    autoSave: true,
-    risk: 'Low',
-    kyc: 'Verified',
-    status: 'Paused'
-  },
-  { 
-    id: 'SAV-662839', 
-    user: { name: 'Ibrahim Danjuma', id: 'USR-2024-005', avatar: 'ID' },
-    plan: { name: 'Education Fund', type: 'Locked', duration: '60 Months' },
-    balance: 8900000,
-    target: 10000000,
-    contribution: 500000,
-    lastDeposit: '2024-05-02',
-    maturity: '2028-05-01',
-    autoSave: true,
-    risk: 'High',
-    kyc: 'Verified',
-    status: 'Frozen'
-  }
-];
+const savingsData: any[] = [];
 
 // 2. HELPER COMPONENTS
 const Badge = ({ status }: { status: string }) => {
@@ -203,28 +131,20 @@ export default function SavingsOperationsPage() {
       </div>
 
       {/* 4. OVERVIEW METRICS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <DashboardGrid cols={6}>
         {savingsMetrics.map((stat, i) => (
-          <div key={i} className="bg-card border border-border p-5 rounded-2xl group relative overflow-hidden shadow-sm">
-            <div className="flex justify-between items-start mb-3">
-              <div className={cn("p-2 rounded-xl group-hover:scale-110 transition-transform", stat.color, "bg-background border border-border")}>
-                <stat.icon size={18} />
-              </div>
-              {stat.trend && (
-                <div className={cn("text-[10px] font-black px-2 py-0.5 rounded-lg", stat.up ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500")}>
-                  {stat.trend}
-                </div>
-              )}
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
-              <h3 className="text-xl font-black text-foreground tracking-tight">{stat.value}</h3>
-              <p className="text-[9px] font-bold text-muted-foreground italic truncate">{stat.subtitle}</p>
-            </div>
-            <div className="absolute bottom-0 left-0 h-1 bg-primary opacity-0 group-hover:opacity-100 transition-all w-full" />
-          </div>
+          <AdaptiveMetricCard
+            key={i}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            trend={stat.trend !== '--' ? stat.trend : undefined}
+            trendUp={stat.up}
+            description={stat.subtitle}
+            color={stat.color}
+          />
         ))}
-      </div>
+      </DashboardGrid>
 
       {/* 5. ADVANCED FILTER BAR */}
       <div className="bg-card border border-border rounded-2xl p-4 flex flex-col xl:flex-row items-center gap-4 shadow-sm">
@@ -283,7 +203,7 @@ export default function SavingsOperationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredData.map((plan) => {
+                {filteredData.length > 0 ? filteredData.map((plan) => {
                   const progress = calculateProgress(plan.balance, plan.target);
                   return (
                     <tr key={plan.id} onClick={() => router.push(`/users/${plan.user.id}`)} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
@@ -348,17 +268,32 @@ export default function SavingsOperationsPage() {
                         <Badge status={plan.status} />
                       </td>
                       <td className="px-4 py-2.5 text-right shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <Button onClick={() => toast.success('Savings Plan Details', { description: `Inspecting account: ${plan.id}` })} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
+                        <ActionMenu triggerSize={14} items={[
+                          { label: 'View Details', icon: Eye, onClick: () => toast.success('Opening Details', { description: `Loading savings plan ${plan.id}` }) },
+                          { label: 'Copy Plan ID', icon: Copy, onClick: () => { navigator.clipboard.writeText(plan.id); toast.success('Copied', { description: plan.id }); } },
+                          { label: 'Export Statement', icon: Download, onClick: () => toast.success('Export Started', { description: `Generating statement for ${plan.id}` }), dividerBefore: true },
+                          { label: 'Flag for Review', icon: ShieldAlert, onClick: () => toast.warning('Flagged', { description: `Plan ${plan.id} marked for compliance review.` }), variant: 'danger', dividerBefore: true },
+                        ]} />
                       </td>
                     </tr>
                   );
-                })}
+                }) : (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-20 text-center">
+                      <EmptyState 
+                        icon={PiggyBank}
+                        title="No savings plans found"
+                        description="Awaiting backend connection"
+                      />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
           
           <div className="px-6 py-4 bg-muted flex items-center justify-between border-t border-border">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing 5 of 142,402 savings plans</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing 0 savings plans</p>
             <div className="flex items-center gap-1">
               <button onClick={() => toast.success('Loading Previous Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
               <button className="w-8 h-8 bg-primary text-white rounded-lg font-black text-[10px]">1</button>

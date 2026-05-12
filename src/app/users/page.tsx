@@ -5,7 +5,6 @@ import {
   Search,
   Filter,
   UserX,
-  MoreVertical,
   RefreshCw,
   TrendingUp,
   ShieldAlert,
@@ -37,7 +36,10 @@ import {
   Wallet,
   Building2,
   Trash2,
-  Loader2
+  Loader2,
+  Eye,
+  Copy,
+  Ban
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
@@ -45,126 +47,52 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { exportUserStatement } from '@/lib/exportUserStatement';
 import { executeExport } from '@/lib/exportUtils';
-import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { useTableFilters } from '@/hooks/useTableFilters';
 import { useRouter } from 'next/navigation';
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
+import { EmptyState } from '@/components/ui/EmptyState';
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { ActionMenu } from '@/components/ui/ActionMenu';
 
 // --- MOCK DATA ---
 
-const users = [
-  {
-    id: 'USR-2024-001',
-    name: 'Ngozi Okonjo',
-    email: 'ngozi@example.com',
-    phone: '+234 801 234 5678',
-    balance: "₦5,240,500",
-    savings: "₦2,400,000",
-    investments: "₦8,500,000",
-    kycLevel: 'Tier 3',
-    kycStatus: 'Verified',
-    status: 'Active',
-    riskLevel: 'Low',
-    riskScore: 12,
-    deviceTrust: 'High',
-    lastLocation: 'Lagos, NG',
-    linkedDevices: 2,
-    activityScore: 98,
-    lastActive: '2m ago',
-    initials: 'NO'
-  },
-  {
-    id: 'USR-2024-002',
-    name: 'Chukwudi Okafor',
-    email: 'chukwudi.o@outlook.com',
-    phone: '+234 805 111 2222',
-    balance: "₦120,400",
-    savings: "₦45,000",
-    investments: "₦0",
-    kycLevel: 'Tier 2',
-    kycStatus: 'Verified',
-    status: 'Active',
-    riskLevel: 'Low',
-    riskScore: 8,
-    deviceTrust: 'High',
-    lastLocation: 'Abuja, NG',
-    linkedDevices: 1,
-    activityScore: 42,
-    lastActive: '1h ago',
-    initials: 'CO'
-  },
-  {
-    id: 'USR-2024-003',
-    name: 'Olumide Bakare',
-    email: 'olumide.b@gmail.com',
-    phone: '+234 902 333 4444',
-    balance: "₦8,900,000",
-    savings: "₦1,200,000",
-    investments: "₦12,000,000",
-    kycLevel: 'Tier 3',
-    kycStatus: 'Pending',
-    status: 'Flagged',
-    riskLevel: 'High',
-    riskScore: 84,
-    deviceTrust: 'Low',
-    lastLocation: 'Lagos, NG',
-    linkedDevices: 5,
-    activityScore: 95,
-    lastActive: '12m ago',
-    initials: 'OB'
-  },
-  {
-    id: 'USR-2024-004',
-    name: 'Amina Yusuf',
-    email: 'amina@oinzpay.com',
-    phone: '+234 810 555 6666',
-    balance: "₦450,000",
-    savings: "₦150,000",
-    investments: "₦500,000",
-    kycLevel: 'Tier 3',
-    kycStatus: 'Verified',
-    status: 'Limited',
-    riskLevel: 'Med',
-    riskScore: 45,
-    deviceTrust: 'Med',
-    lastLocation: 'Kano, NG',
-    linkedDevices: 2,
-    activityScore: 68,
-    lastActive: '1d ago',
-    initials: 'AY'
-  },
-  {
-    id: 'USR-2024-005',
-    name: 'Ibrahim Musa',
-    email: 'musa.i@yahoo.com',
-    phone: '+234 703 777 8888',
-    balance: "₦12,500,000",
-    savings: "₦0",
-    investments: "₦0",
-    kycLevel: 'Tier 3',
-    kycStatus: 'Verified',
-    status: 'Frozen',
-    riskLevel: 'High',
-    riskScore: 92,
-    deviceTrust: 'Critical',
-    lastLocation: 'Enugu, NG',
-    linkedDevices: 3,
-    activityScore: 12,
-    lastActive: '5d ago',
-    initials: 'IM'
-  }
-];
+// User type for backend integration
+interface UserRecord {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  balance: string;
+  savings: string;
+  investments: string;
+  kycLevel: string;
+  kycStatus: string;
+  status: string;
+  riskLevel: string;
+  riskScore: number;
+  deviceTrust: string;
+  lastLocation: string;
+  linkedDevices: number;
+  activityScore: number;
+  lastActive: string;
+  initials: string;
+}
+
+// Empty — awaiting backend integration
+const users: UserRecord[] = [];
 
 const metrics = [
-  { label: 'Total Customers', value: '142,402', trend: '+12.4%', up: true, icon: Users, color: 'primary' },
-  { label: 'Active Users (24h)', value: '89,942', trend: '+8.2%', up: true, icon: Activity, color: 'emerald' },
-  { label: 'Pending KYC', value: '1,240', trend: '-2.1%', up: true, icon: ShieldCheck, color: 'amber' },
-  { label: 'Flagged Accounts', value: '14', trend: '+4', up: false, icon: ShieldAlert, color: 'rose' },
-  { label: 'Device Collision', value: '42', trend: 'High', up: false, icon: Smartphone, color: 'orange' },
-  { label: 'Suspended', value: '2,840', trend: '-12', up: true, icon: UserX, color: 'muted' },
+  { label: 'Total Customers', value: '0', trend: '--', up: null, icon: Users, color: 'primary' },
+  { label: 'Active Users (24h)', value: '0', trend: '--', up: null, icon: Activity, color: 'emerald' },
+  { label: 'Pending KYC', value: '0', trend: '--', up: null, icon: ShieldCheck, color: 'amber' },
+  { label: 'Flagged Accounts', value: '0', trend: '--', up: null, icon: ShieldAlert, color: 'rose' },
+  { label: 'Device Collision', value: '0', trend: '--', up: null, icon: Smartphone, color: 'orange' },
+  { label: 'Suspended', value: '0', trend: '--', up: null, icon: UserX, color: 'muted' },
 ];
 
 export default function UsersPage() {
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const router = useRouter();
 
@@ -217,41 +145,25 @@ export default function UsersPage() {
       </div>
 
       {/* 2. ANALYTICS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <DashboardGrid cols={6}>
         {metrics.map((stat, i) => (
-          <motion.div
+          <AdaptiveMetricCard
             key={i}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="bg-card border border-border/40 p-4 rounded-2xl group relative overflow-hidden shadow-sm hover:shadow-md hover:border-primary/20 transition-all cursor-default"
-          >
-            <div className="flex justify-between items-start mb-3">
-              <div className={cn(
-                "p-2 rounded-xl border border-border/10 transition-all group-hover:scale-110",
-                stat.color === 'primary' ? "bg-primary/10 text-primary" :
-                  stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-500" :
-                    stat.color === 'amber' ? "bg-amber-500/10 text-amber-500" :
-                      stat.color === 'rose' ? "bg-red-500/10 text-red-500" :
-                        stat.color === 'orange' ? "bg-orange-500/10 text-orange-500" : "bg-muted text-muted-foreground"
-              )}>
-                <stat.icon size={16} />
-              </div>
-              <div className={cn(
-                "text-[9px] font-black px-1.5 py-0.5 rounded-lg flex items-center gap-1",
-                stat.up === true ? "bg-emerald-500/10 text-emerald-500" : stat.up === false ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-500"
-              )}>
-                {stat.up === true ? <TrendingUp size={10} /> : stat.up === false ? <ShieldAlert size={10} /> : <Activity size={10} />}
-                {stat.trend}
-              </div>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</p>
-              <h3 className="text-lg font-black text-foreground tracking-tight">{stat.value}</h3>
-            </div>
-          </motion.div>
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            trend={stat.trend !== '--' ? stat.trend : undefined}
+            trendUp={stat.up}
+            color={
+              stat.color === 'primary' ? 'text-primary' :
+              stat.color === 'emerald' ? 'text-emerald-500' :
+              stat.color === 'amber' ? 'text-amber-500' :
+              stat.color === 'rose' ? 'text-red-500' :
+              stat.color === 'orange' ? 'text-orange-500' : 'text-muted-foreground'
+            }
+          />
         ))}
-      </div>
+      </DashboardGrid>
 
       {/* 3. FILTER & SEARCH SECTION */}
       <div className="bg-card border border-border/40 rounded-[28px] p-4 flex flex-col xl:flex-row items-center gap-4 shadow-sm">
@@ -325,7 +237,7 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/10">
-              {filteredData.map((user) => (
+              {filteredData.length > 0 ? filteredData.map((user) => (
                 <tr
                   key={user.id}
                   onClick={() => router.push(`/users/${user.id}`)}
@@ -396,24 +308,31 @@ export default function UsersPage() {
                     </div>
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast.info("User Options", { description: `Opening management suite for ${user.id}` });
-                      }}
-                      className="p-2.5 text-muted-foreground hover:text-primary transition-all rounded-xl hover:bg-primary/5"
-                    >
-                      <MoreVertical size={18} />
-                    </button>
+                    <ActionMenu triggerSize={18} items={[
+                      { label: 'View Profile', icon: Eye, onClick: () => router.push(`/users/${user.id}`) },
+                      { label: 'Copy User ID', icon: Copy, onClick: () => { navigator.clipboard.writeText(user.id); toast.success('Copied', { description: user.id }); } },
+                      { label: 'Export Statement', icon: Download, onClick: () => toast.success('Export Started', { description: `Statement for ${user.name} initiated.` }), dividerBefore: true },
+                      { label: 'Suspend Account', icon: Ban, onClick: () => toast.error('Account Suspended', { description: `${user.name} has been temporarily suspended.` }), variant: 'danger', dividerBefore: true },
+                    ]} />
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan={5} className="px-8 py-20 text-center">
+                    <EmptyState 
+                      icon={Users}
+                      title="No users found"
+                      description="Platform directory is currently empty"
+                    />
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="p-4 bg-secondary/5 border-t border-border/10 flex items-center justify-between px-8">
-          <p className="text-[11px] font-bold text-muted-foreground uppercase">Showing 5 of 142,402 Customers</p>
+          <p className="text-[11px] font-bold text-muted-foreground uppercase">Showing 0 Customers</p>
           <div className="flex gap-2">
             <Button onClick={() => toast.info('Pagination', { description: 'Loading previous customer segment...' })} variant="outline" size="sm" className="h-9 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 opacity-50">Previous</Button>
             <Button onClick={() => toast.info('Pagination', { description: 'Loading next customer segment...' })} variant="outline" size="sm" className="h-9 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40">Next Page</Button>
@@ -460,19 +379,19 @@ export default function UsersPage() {
 
               <div className="flex-1 overflow-y-auto p-8 no-scrollbar space-y-10">
                 {/* Section: Balances */}
-                <div className="grid grid-cols-3 gap-4">
+                <DashboardGrid cols={3}>
                   {[
                     { label: "Wallet Balance", value: selectedUser.balance, icon: Wallet, color: "text-primary" },
                     { label: "Total Savings", value: selectedUser.savings, icon: PiggyBank, color: "text-emerald-500" },
                     { label: "Investments", value: selectedUser.investments, icon: TrendingUp, color: "text-amber-500" },
                   ].map((metric, i) => (
-                    <div key={i} className="p-5 bg-secondary/20 border border-border/10 rounded-3xl space-y-2">
+                    <div key={i} className="p-5 bg-secondary/20 border border-border/10 rounded-3xl space-y-2 min-w-0">
                       <metric.icon size={18} className={metric.color} />
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{metric.label}</p>
-                      <p className="text-[16px] font-black text-foreground">{metric.value}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 truncate">{metric.label}</p>
+                      <p className="text-[16px] font-black text-foreground truncate">{metric.value}</p>
                     </div>
                   ))}
-                </div>
+                </DashboardGrid>
 
                 {/* Section: Behavioral Health */}
                 <div className="space-y-4">

@@ -46,25 +46,26 @@ export default function UserProfilePage() {
   const [reportType, setReportType] = useState('Account Summary');
 
   // MOCK USER DATA
+  // MOCK USER DATA - Placeholder for backend integration
   const user = {
     id: params.id,
-    name: 'Ngozi Okonjo',
-    email: 'ngozi@example.com',
-    phone: '+234 801 234 5678',
-    avatar: 'NO',
-    status: 'Active',
-    kycStatus: 'Verified',
-    riskScore: 0.12,
-    riskLevel: 'Low',
-    dateJoined: 'Nov 12, 2023',
-    lastSeen: '2 mins ago',
-    address: '14, Admiralty Way, Lekki Phase 1, Lagos',
-    totalBalance: 5240500,
-    savings: 2840000,
-    investments: 2400500,
-    kycTier: 'Tier 3 (Unrestricted)',
-    bvn: '222****4444',
-    nin: '102****9932',
+    name: 'Awaiting Sync...',
+    email: '---',
+    phone: '---',
+    avatar: '??',
+    status: 'Inactive',
+    kycStatus: 'Pending',
+    riskScore: 0,
+    riskLevel: 'Unknown',
+    dateJoined: '---',
+    lastSeen: '---',
+    address: '---',
+    totalBalance: 0,
+    savings: 0,
+    investments: 0,
+    kycTier: 'Unverified',
+    bvn: '---',
+    nin: '---',
   };
 
   const reportOptions = [
@@ -81,16 +82,9 @@ export default function UserProfilePage() {
     { label: 'Account Tier Upgrade', subject: 'Congratulations! Level Up', body: 'Based on your transaction volume, you are now eligible for a Tier 3 account upgrade. Follow the link to verify.' },
   ];
 
-  const communicationHistory = [
-    { id: 1, type: 'Email', subject: 'Monthly Statement - April 2024', status: 'Delivered', time: '2 days ago', admin: 'Mick J.' },
-    { id: 2, type: 'In-App', subject: 'Investment Matured', status: 'Read', time: '5 days ago', admin: 'Automated' },
-    { id: 3, type: 'SMS', subject: 'OTP Verification', status: 'Failed', time: '1 week ago', admin: 'System' },
-  ];
+  const communicationHistory: any[] = [];
 
-  const adminNotes = [
-    { id: 1, text: 'User triggered 3 failed transfers within 20 mins. Risk scoring slightly elevated. Monitoring behavioral pulse.', time: '2h ago', admin: 'Sarah K.' },
-    { id: 2, text: 'Verified address proofing via physical document upload. Matching Lekki geo-tag.', time: '3 days ago', admin: 'David O.' },
-  ];
+  const adminNotes: any[] = [];
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -264,31 +258,28 @@ export default function UserProfilePage() {
                            <div className="flex justify-between items-start border-b-2 border-slate-900 pb-8 mb-8 relative z-10">
                               <div className="space-y-2">
                                  <h2 className="text-3xl font-black uppercase tracking-tighter">OINZpay</h2>
-                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Official Banking Intelligence Report</p>
-                              </div>
-                              <div className="text-right space-y-1">
                                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Report Reference</p>
-                                 <p className="text-[14px] font-bold">OP-AUDIT-2291-0524</p>
-                                 <p className="text-[9px] font-medium text-slate-400">Generated: May 11, 2024 • 09:44 AM</p>
+                                 <p className="text-[14px] font-bold">OP-AUDIT-0000-0000</p>
+                                 <p className="text-[9px] font-medium text-slate-400">Generated: --- • ---</p>
                               </div>
                            </div>
                            <div className="grid grid-cols-2 gap-12 mb-12 relative z-10 font-sans text-slate-900">
                               <div className="space-y-6">
                                  <h6 className="text-[10px] font-black uppercase tracking-widest text-primary border-b border-slate-100 pb-2">Customer Details</h6>
                                  <div className="space-y-3">
-                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Full Name:</span> <span className="font-bold">{user.name}</span></div>
-                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Customer ID:</span> <span className="font-bold">USR-002291</span></div>
-                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">KYC Status:</span> <span className="font-bold text-emerald-600">Tier 3 Verified</span></div>
-                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Risk Assessment:</span> <span className="font-bold text-blue-600">Low (0.12)</span></div>
+                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Full Name:</span> <span className="font-bold">---</span></div>
+                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Customer ID:</span> <span className="font-bold">---</span></div>
+                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">KYC Status:</span> <span className="font-bold">---</span></div>
+                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Risk Assessment:</span> <span className="font-bold">---</span></div>
                                  </div>
                               </div>
                               <div className="space-y-6">
                                  <h6 className="text-[10px] font-black uppercase tracking-widest text-primary border-b border-slate-100 pb-2">Financial Snapshot</h6>
                                  <div className="space-y-3">
-                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Available Balance:</span> <span className="font-black">{formatCurrency(user.totalBalance)}</span></div>
-                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Investment Pool:</span> <span className="font-black">{formatCurrency(user.investments)}</span></div>
-                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">YTD Volume:</span> <span className="font-black">₦12,400,000</span></div>
-                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Trust Score:</span> <span className="font-bold text-emerald-600">High (98%)</span></div>
+                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Available Balance:</span> <span className="font-black">---</span></div>
+                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Investment Pool:</span> <span className="font-black">---</span></div>
+                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">YTD Volume:</span> <span className="font-black">---</span></div>
+                                    <div className="flex justify-between text-[12px]"><span className="text-slate-400">Trust Score:</span> <span className="font-bold">---</span></div>
                                  </div>
                               </div>
                            </div>
@@ -305,20 +296,9 @@ export default function UserProfilePage() {
                                     </tr>
                                  </thead>
                                  <tbody className="divide-y divide-slate-100">
-                                    {[
-                                       { d: 'May 10, 2024', r: 'TRX-9921-A', m: 'Agric Plan Maturity', a: '₦1,204,000', s: 'Settled' },
-                                       { d: 'May 09, 2024', r: 'TRX-8812-B', m: 'Withdrawal: ZENITH', a: '-₦100,000', s: 'Success' },
-                                       { d: 'May 08, 2024', r: 'TRX-4421-C', m: 'Airtime: 08012345678', a: '-₦2,500', s: 'Success' },
-                                       { d: 'May 07, 2024', r: 'TRX-1123-D', m: 'Wallet Fund: PAYSTACK', a: '₦50,000', s: 'Success' },
-                                    ].map((row, i) => (
-                                       <tr key={i}>
-                                          <td className="py-4 px-2 font-medium">{row.d}</td>
-                                          <td className="py-4 px-2 font-mono text-[9px] text-slate-500">{row.r}</td>
-                                          <td className="py-4 px-2 font-bold">{row.m}</td>
-                                          <td className="py-4 px-2 text-right font-black">{row.a}</td>
-                                          <td className="py-4 px-2 text-right font-bold text-emerald-600">{row.s}</td>
-                                       </tr>
-                                    ))}
+                                    <tr>
+                                       <td colSpan={5} className="py-12 text-center text-slate-400 italic">No recent ledger activity recorded.</td>
+                                    </tr>
                                  </tbody>
                               </table>
                            </div>
@@ -380,9 +360,9 @@ export default function UserProfilePage() {
                 </div>
               </div>
               <div className="flex items-center gap-4 text-muted-foreground text-xs font-bold">
-                <span className="flex items-center gap-1.5"><Smartphone size={14} /> iPhone 15 Pro • Lagos, NG</span>
+                <span className="flex items-center gap-1.5"><Smartphone size={14} /> --- • ---, ---</span>
                 <span className="opacity-30">•</span>
-                <span>USR-002291</span>
+                <span>---</span>
               </div>
             </div>
           </div>
@@ -463,11 +443,11 @@ export default function UserProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
                     <div className="space-y-1.5">
                       <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Full Legal Name</p>
-                      <p className="text-[15px] font-bold text-foreground">{user.name}</p>
+                      <p className="text-[15px] font-bold text-foreground">---</p>
                     </div>
                     <div className="space-y-1.5">
                       <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Primary Email</p>
-                      <p className="text-[15px] font-bold text-foreground">{user.email}</p>
+                      <p className="text-[15px] font-bold text-foreground">---</p>
                     </div>
                   </div>
                 </div>
@@ -516,7 +496,7 @@ export default function UserProfilePage() {
                       Internal Audit Notes
                    </h3>
                    <div className="space-y-4">
-                      {adminNotes.map((note) => (
+                      {adminNotes.length > 0 ? adminNotes.map((note) => (
                         <div key={note.id} className="p-5 bg-secondary/20 border border-border/10 rounded-[24px] space-y-2">
                            <div className="flex justify-between items-center">
                               <p className="text-[12px] font-black text-foreground">{note.admin}</p>
@@ -524,7 +504,11 @@ export default function UserProfilePage() {
                            </div>
                            <p className="text-[13px] font-medium text-muted-foreground leading-relaxed">{note.text}</p>
                         </div>
-                      ))}
+                      )) : (
+                        <div className="p-8 border-2 border-dashed border-border/20 rounded-[24px] text-center">
+                           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No internal notes for this customer.</p>
+                        </div>
+                      )}
                    </div>
                 </div>
               </motion.div>

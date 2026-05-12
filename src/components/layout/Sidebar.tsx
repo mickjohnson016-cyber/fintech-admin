@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   Users, ArrowLeftRight, Smartphone, PiggyBank, TrendingUp,
   BarChart3, Settings, LogOut, LayoutGrid, Zap, ShieldCheck,
-  CreditCard, PanelLeftClose, Menu
+  CreditCard, PanelLeftClose, Menu, MessageSquare
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
@@ -16,6 +16,7 @@ import { useBranding } from '@/context/BrandingContext';
 
 const corePlatform = [
   { name: 'Dashboard', icon: LayoutGrid, href: '/dashboard' },
+  { name: 'Issues Center', icon: MessageSquare, href: '/support/issues', isNew: true },
   { name: 'Users', icon: Users, href: '/users' },
   { name: 'Transactions', icon: ArrowLeftRight, href: '/transactions' },
   { name: 'Investments', icon: TrendingUp, href: '/investments' },
@@ -34,7 +35,7 @@ const systemSettings = [
 ];
 
 export default function Sidebar() {
-  const { sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed } = useLayout();
+  const { sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed, setIsProfileOpen } = useLayout();
   const { logo: brandingLogo } = useBranding();
   const [mounted, setMounted] = React.useState(false);
   const pathname = usePathname();
@@ -181,14 +182,14 @@ export default function Sidebar() {
             isCollapsed && "pointer-events-none"
           )}
         >
-          <div onClick={() => toast.success('Opening Profile Settings', { description: 'Navigating to personal account controls' })} className="flex items-center gap-4 bg-secondary rounded-[24px] border border-border p-3 px-4 group cursor-pointer hover:bg-card transition-all duration-300">
-            <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-border flex items-center justify-center font-black text-primary text-sm shadow-sm relative shrink-0">
-              MJ
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-muted rounded-full"></span>
+          <div onClick={() => setIsProfileOpen(true)} className="flex items-center gap-4 bg-secondary rounded-[24px] border border-border p-3 px-4 group cursor-pointer hover:bg-card transition-all duration-300">
+            <div className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center font-black text-muted-foreground/40 text-sm shadow-sm relative shrink-0">
+              NA
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-muted-foreground/30 border-2 border-muted rounded-full"></span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-black text-foreground truncate leading-none">Mick J.</p>
-              <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-widest">Administrator</p>
+              <p className="text-[13px] font-black text-foreground truncate leading-none">No Admin</p>
+              <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-widest text-muted-foreground/60">Administrator</p>
             </div>
           </div>
         </motion.div>

@@ -3,31 +3,21 @@
 import React, { useState } from 'react';
 import {
   Users, TrendingUp, CreditCard, ShoppingBag,
-  ArrowUp, ArrowDown, MoreVertical, Calendar, ChevronDown, RefreshCw
+  ArrowUp, Calendar, ChevronDown, RefreshCw,
+  BarChart3, LineChart as LineChartIcon, Database,
+  Download, FileText, Eye
 } from 'lucide-react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line
-} from 'recharts';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { transactions, chartData } from '@/lib/mock-data';
-import StatusBadge from '@/components/StatusBadge';
-import { ChartWrapper } from '@/components/charts/ChartWrapper';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-
-const barData = [
-  { name: 'Jan', value: 200 }, { name: 'Feb', value: 380 },
-  { name: 'Mar', value: 180 }, { name: 'Apr', value: 280 },
-  { name: 'May', value: 180 }, { name: 'Jun', value: 160 },
-  { name: 'Jul', value: 270 }, { name: 'Aug', value: 100 },
-  { name: 'Sep', value: 200 }, { name: 'Oct', value: 380 },
-  { name: 'Nov', value: 260 }, { name: 'Dec', value: 140 },
-];
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ActionMenu } from '@/components/ui/ActionMenu';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount).replace('NGN', '₦');
@@ -49,7 +39,7 @@ export default function DashboardPage() {
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="flex items-center gap-2">
           <div onClick={() => toast.info('Module Coming Soon', { description: 'The Date Range Picker is currently under development.' })} className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
             <Calendar size={14} className="text-primary" />
-            <span>MAY 7 - MAY 13</span>
+            <span>SELECT RANGE</span>
             <ChevronDown size={12} />
           </div>
           <Button onClick={() => toast.success('Data Refreshed', { description: 'Fetching latest platform metrics...' })} variant="ghost" size="icon" className="h-8 w-8 rounded-xl border border-border bg-card hover:bg-secondary"><RefreshCw size={14} className="text-muted-foreground" /></Button>
@@ -57,124 +47,97 @@ export default function DashboardPage() {
       </div>
 
       {/* ===== KPI CARDS — 4 COLUMNS ===== */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-
-        {/* Card 1 */}
-        <Card className="p-4 group relative overflow-hidden">
-          <div className="flex justify-between items-start mb-3">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:scale-110 transition-transform border border-primary/20">
-              <Users size={16} />
-            </div>
-            <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center gap-1">12.5% <ArrowUp size={10} /></span>
-          </div>
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Users</p>
-          <h3 className="text-xl font-black text-foreground tracking-tight mt-0.5">3,782</h3>
-          <div className="absolute bottom-0 left-0 h-1 bg-primary opacity-0 group-hover:opacity-100 transition-all w-full" />
-        </Card>
-
-        {/* Card 2 */}
-        <Card className="p-4 group relative overflow-hidden">
-          <div className="flex justify-between items-start mb-3">
-            <div className="p-2 rounded-lg bg-rose-500/10 text-rose-500 group-hover:scale-110 transition-transform border border-rose-500/20">
-              <ShoppingBag size={16} />
-            </div>
-            <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-rose-500/10 text-rose-500 flex items-center gap-1">9.05% <ArrowDown size={10} /></span>
-          </div>
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Transactions</p>
-          <h3 className="text-xl font-black text-foreground tracking-tight mt-0.5">5,359</h3>
-          <div className="absolute bottom-0 left-0 h-1 bg-rose-500 opacity-0 group-hover:opacity-100 transition-all w-full" />
-        </Card>
-
-        {/* Card 3 */}
-        <Card className="p-4 group relative overflow-hidden">
-          <div className="flex justify-between items-start mb-3">
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 group-hover:scale-110 transition-transform border border-emerald-500/20">
-              <TrendingUp size={16} />
-            </div>
-            <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center gap-1">18.7% <ArrowUp size={10} /></span>
-          </div>
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Today's Revenue</p>
-          <h3 className="text-xl font-black text-foreground tracking-tight mt-0.5">{formatCurrency(45800)}</h3>
-          <div className="absolute bottom-0 left-0 h-1 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-all w-full" />
-        </Card>
-
-        {/* Card 4 */}
-        <Card className="p-4 group relative overflow-hidden">
-          <div className="flex justify-between items-start mb-3">
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 group-hover:scale-110 transition-transform border border-indigo-500/20">
-              <CreditCard size={16} />
-            </div>
-            <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center gap-1">8.3% <ArrowUp size={10} /></span>
-          </div>
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Smart Savings</p>
-          <h3 className="text-xl font-black text-foreground tracking-tight mt-0.5">{formatCurrency(245000)}</h3>
-          <div className="absolute bottom-0 left-0 h-1 bg-indigo-500 opacity-0 group-hover:opacity-100 transition-all w-full" />
-        </Card>
-
-      </div>
+      <DashboardGrid cols={4}>
+        <AdaptiveMetricCard
+          label="Total Users"
+          value="0"
+          icon={Users}
+          trend="--"
+          color="text-primary"
+        />
+        <AdaptiveMetricCard
+          label="Total Transactions"
+          value="0"
+          icon={ShoppingBag}
+          trend="--"
+          color="text-rose-500"
+        />
+        <AdaptiveMetricCard
+          label="Today's Revenue"
+          value={formatCurrency(0)}
+          icon={TrendingUp}
+          trend="--"
+          color="text-emerald-500"
+        />
+        <AdaptiveMetricCard
+          label="Smart Savings"
+          value={formatCurrency(0)}
+          icon={CreditCard}
+          trend="--"
+          color="text-indigo-500"
+        />
+      </DashboardGrid>
 
       {/* ===== CHARTS — 2 COLUMNS SIDE BY SIDE ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-        {/* Monthly Sales Bar Chart */}
+        {/* Monthly Sales Bar Chart — Empty State */}
         <Card className="lg:col-span-8 p-5">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Monthly Sales Analytics</h3>
-            <button onClick={() => toast.info('Module Coming Soon', { description: 'The Analytics Menu is currently under development.' })} className="text-muted-foreground hover:text-foreground"><MoreVertical size={16} /></button>
+            <ActionMenu items={[
+              { label: 'Export CSV', icon: Download, onClick: () => toast.success('Export Started', { description: 'Sales analytics data export initiated.' }) },
+              { label: 'Refresh Data', icon: RefreshCw, onClick: () => toast.success('Refreshed', { description: 'Analytics data synced with latest records.' }) },
+              { label: 'View Full Report', icon: Eye, onClick: () => router.push('/reports'), dividerBefore: true },
+            ]} />
           </div>
-          <ChartWrapper height={250}>
-            <BarChart data={barData} barGap={8}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.05)" vertical={false} />
-              <XAxis dataKey="name" stroke="currentColor" className="text-muted-foreground" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} dy={10} />
-              <YAxis stroke="currentColor" className="text-muted-foreground" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} />
-              <Tooltip cursor={{ fill: 'hsl(var(--primary) / 0.05)' }} contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', color: 'hsl(var(--foreground))' }} itemStyle={{ color: 'hsl(var(--foreground))' }} />
-              <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={24} />
-            </BarChart>
-          </ChartWrapper>
+          <div className="min-h-[300px] flex items-center justify-center">
+            <EmptyState 
+              icon={BarChart3}
+              title="Awaiting Analytics Data"
+              description="Platform performance metrics will synchronize upon backend integration."
+            />
+          </div>
         </Card>
 
-        {/* Monthly Target Gauge */}
+        {/* Monthly Target Gauge — Empty State */}
         <Card className="lg:col-span-4 p-5 flex flex-col items-center">
           <div className="w-full flex justify-between items-center mb-1">
             <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Goal Status</h3>
-            <button onClick={() => toast.info('Module Coming Soon', { description: 'The Goal Settings is currently under development.' })} className="text-muted-foreground hover:text-foreground"><MoreVertical size={16} /></button>
+            <ActionMenu items={[
+              { label: 'Set Monthly Target', icon: TrendingUp, onClick: () => toast.success('Target Configuration', { description: 'Navigate to Settings to configure revenue targets.' }) },
+              { label: 'Export Goal Data', icon: Download, onClick: () => toast.success('Export Started', { description: 'Goal status data export initiated.' }) },
+              { label: 'View Reports', icon: FileText, onClick: () => router.push('/reports'), dividerBefore: true },
+            ]} />
           </div>
           <p className="w-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-6">Monthly Target Performance</p>
 
-          <div className="relative w-full">
-            <ChartWrapper height={180}>
-              <PieChart>
-                <Pie data={[{ value: 75.55 }, { value: 24.45 }]} cx="50%" cy="100%" startAngle={180} endAngle={0} innerRadius={60} outerRadius={80} paddingAngle={0} dataKey="value">
-                  <Cell fill="hsl(var(--primary))" stroke="none" />
-                  <Cell fill="hsl(var(--muted))" stroke="none" />
-                </Pie>
-              </PieChart>
-            </ChartWrapper>
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center pb-2">
-              <p className="text-3xl font-black text-foreground">75%</p>
-              <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full mt-1 inline-block">+10%</span>
-            </div>
+          <div className="min-h-[180px] w-full flex items-center justify-center">
+            <EmptyState 
+              compact
+              title="No targets initialized"
+            />
           </div>
 
           <div className="grid grid-cols-3 w-full mt-6 pt-5 border-t border-border gap-2">
             <div className="text-center">
               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Target</p>
-              <p className="text-xs font-black text-foreground mt-1">₦20K</p>
+              <p className="text-xs font-black text-foreground mt-1">--</p>
             </div>
             <div className="text-center border-x border-border px-2">
               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Revenue</p>
-              <p className="text-xs font-black text-foreground mt-1">₦15K</p>
+              <p className="text-xs font-black text-foreground mt-1">--</p>
             </div>
             <div className="text-center">
               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Daily</p>
-              <p className="text-xs font-black text-foreground mt-1">₦3K</p>
+              <p className="text-xs font-black text-foreground mt-1">--</p>
             </div>
           </div>
         </Card>
 
       </div>
 
-      {/* ===== STATISTICS SECTION ===== */}
+      {/* ===== STATISTICS SECTION — Empty State ===== */}
       <Card className="p-5">
         <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
           <div>
@@ -196,18 +159,16 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
-        <ChartWrapper height={250}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.05)" vertical={false} />
-            <XAxis dataKey="date" stroke="currentColor" className="text-muted-foreground" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} />
-            <YAxis stroke="currentColor" className="text-muted-foreground" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} />
-            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', color: 'hsl(var(--foreground))' }} itemStyle={{ color: 'hsl(var(--foreground))' }} />
-            <Line type="monotone" dataKey="volume" stroke="hsl(var(--primary))" strokeWidth={4} dot={{ r: 3, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--background))', strokeWidth: 2 }} activeDot={{ r: 5, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--background))', strokeWidth: 2 }} />
-          </LineChart>
-        </ChartWrapper>
+        <div className="min-h-[250px] flex items-center justify-center">
+          <EmptyState 
+            icon={LineChartIcon}
+            title="No volume data"
+            description="Connect backend to view statistics"
+          />
+        </div>
       </Card>
 
-      {/* ===== RECENT TRANSACTIONS TABLE ===== */}
+      {/* ===== RECENT TRANSACTIONS TABLE — Empty State ===== */}
       <Card className="overflow-hidden min-w-0 shadow-sm p-0">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-background">
           <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Transaction Ledger</h3>
@@ -224,29 +185,16 @@ export default function DashboardPage() {
                 <th className="px-5 py-3 text-right">Date & Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {transactions.map((txn) => (
-                <tr key={txn.id} onClick={() => router.push(`/transactions/${txn.id}`)} className="hover:bg-secondary transition-colors group cursor-pointer">
-                  <td className="px-5 py-2.5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[9px] font-black group-hover:bg-primary group-hover:text-white transition-all border border-border">
-                        {txn.sender[0]}
-                      </div>
-                      <span className="text-[12px] font-black text-foreground">{txn.sender}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-2.5">
-                    <span className="text-[9px] font-black text-muted-foreground uppercase bg-muted px-2 py-0.5 rounded-md border border-border">
-                      {txn.type}
-                    </span>
-                  </td>
-                  <td className="px-5 py-2.5 text-[12px] font-black text-foreground">{formatCurrency(txn.amount)}</td>
-                  <td className="px-5 py-2.5 text-center">
-                    <StatusBadge status={txn.status} />
-                  </td>
-                  <td className="px-5 py-2.5 text-right text-[10px] font-black text-muted-foreground uppercase tracking-tighter">{txn.date}</td>
-                </tr>
-              ))}
+            <tbody>
+              <tr>
+                <td colSpan={5} className="px-5 py-16 text-center">
+                  <EmptyState 
+                    icon={Database}
+                    title="Ledger is Empty"
+                    description="Recent transaction records will be securely logged here once processed."
+                  />
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

@@ -47,11 +47,7 @@ export default function TransactionControls() {
           >
             <div className="space-y-8">
               <div className="space-y-6">
-                {[
-                  { label: "Daily Transfer Limit", desc: "Maximum cumulative outgoing transfers per user.", value: "₦5,000,000", max: 10000000, current: 5000000 },
-                  { label: "Single Transaction Cap", desc: "Hard limit for any single transaction attempt.", value: "₦1,000,000", max: 5000000, current: 1000000 },
-                  { label: "Daily Bill Payment Limit", desc: "Airtime, Data, and Utility total per user.", value: "₦250,000", max: 1000000, current: 250000 },
-                ].map((limit, i) => (
+                {([] as any[]).map((limit: any, i: number) => (
                   <div key={i} className="space-y-5 p-6 bg-secondary/30 border border-border/20 rounded-[28px] hover:border-primary/20 hover:bg-secondary/40 transition-all group">
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                       <div className="space-y-1.5 flex-1 min-w-0">
@@ -158,17 +154,17 @@ export default function TransactionControls() {
                 <Activity size={14} />
                 Real-time Velocity
               </div>
-              <h3 className="text-3xl font-black text-foreground tracking-tighter">Normal</h3>
+              <h3 className="text-3xl font-black text-foreground tracking-tighter">--</h3>
               <p className="text-[13px] font-medium text-muted-foreground leading-relaxed">
-                Platform is currently processing 42 transactions per second. All within safety thresholds.
+                Platform transaction telemetry awaiting synchronization.
               </p>
             </div>
 
             <div className="space-y-6">
               {[
-                { label: "Successful", val: "99.8%", color: "text-emerald-500" },
-                { label: "Flagged", val: "0.15%", color: "text-amber-500" },
-                { label: "Failed", val: "0.05%", color: "text-red-500" },
+                { label: "Successful", val: "--%", color: "text-muted-foreground" },
+                { label: "Flagged", val: "--%", color: "text-muted-foreground" },
+                { label: "Failed", val: "--%", color: "text-muted-foreground" },
               ].map((stat, i) => (
                 <div key={i} className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</span>
@@ -178,8 +174,8 @@ export default function TransactionControls() {
             </div>
 
             <div className="h-24 w-full bg-secondary/30 rounded-2xl flex items-end gap-1 p-4">
-              {[40, 60, 45, 80, 55, 70, 90, 65, 50, 75, 85, 60].map((h, i) => (
-                <div key={i} className="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style={{ height: `${h}%` }} />
+              {[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((h, i) => (
+                <div key={i} className="flex-1 bg-primary/5 rounded-t-sm" style={{ height: `10%` }} />
               ))}
             </div>
           </div>
@@ -215,11 +211,7 @@ export default function TransactionControls() {
             icon={Coins}
           >
             <div className="space-y-4">
-              {[
-                { label: "Outward Transfer", fee: "₦10.00", type: "Flat" },
-                { label: "Bill Payments", fee: "1.5%", type: "Percentage" },
-                { label: "International", fee: "2.0%", type: "Percentage" },
-              ].map((fee, i) => (
+              {([] as any[]).map((fee, i) => (
                 <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 border border-border/10 rounded-2xl">
                   <div className="space-y-0.5">
                     <p className="text-[12px] font-black text-foreground">{fee.label}</p>

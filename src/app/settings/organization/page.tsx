@@ -172,11 +172,7 @@ export default function OrganizationSettings() {
             icon={ShieldCheck}
           >
             <div className="space-y-4">
-              {[
-                { name: "CBN PSSP License", id: "PSSP/2024/001", status: "Active", expiry: "Dec 2026", icon: BadgeCheck },
-                { name: "NDPR Compliance", id: "DATA-1120-X", status: "Verified", expiry: "Aug 2026", icon: ShieldCheck },
-                { name: "PCI DSS v4.0", id: "PCI-9921", status: "Active", expiry: "Nov 2026", icon: FileText },
-              ].map((license, i) => (
+              {([] as any[]).map((license: any, i: number) => (
                 <div key={i} className="p-5 bg-secondary/30 border border-border/20 rounded-[28px] flex items-center justify-between group hover:border-primary/30 transition-all">
                   <div className="flex items-center gap-5">
                     <div className="p-3 bg-background border border-border/40 rounded-2xl text-primary">
@@ -208,12 +204,7 @@ export default function OrganizationSettings() {
              </div>
              
              <div className="space-y-4">
-                {[
-                  { country: "Nigeria", status: "Primary", nodes: 4 },
-                  { country: "Kenya", status: "Active", nodes: 2 },
-                  { country: "Ghana", status: "Active", nodes: 2 },
-                  { country: "UK", status: "Settlement Only", nodes: 1 },
-                ].map((market, i) => (
+                {([] as any[]).map((market: any, i: number) => (
                   <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 border border-border/10 rounded-2xl">
                     <div className="flex items-center gap-3">
                        <Globe size={16} className="text-muted-foreground" />
@@ -236,12 +227,7 @@ export default function OrganizationSettings() {
             icon={Briefcase}
           >
             <div className="space-y-3">
-               {[
-                 { name: "Treasury & Finance", members: 12 },
-                 { name: "Risk & Compliance", members: 8 },
-                 { name: "Engineering & SRE", members: 24 },
-                 { name: "Customer Experience", members: 45 },
-               ].map((dept, i) => (
+               {([] as any[]).map((dept: any, i: number) => (
                  <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 border border-border/10 rounded-2xl group cursor-pointer hover:bg-secondary/50 transition-all">
                     <span className="text-[12px] font-black text-foreground">{dept.name}</span>
                     <div className="flex items-center gap-2">

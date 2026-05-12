@@ -95,15 +95,11 @@ export default function SecurityCenter() {
             title="Active Management Sessions" 
             description="Real-time view of all currently authenticated administrative sessions."
             icon={Monitor}
-            badge="4 Active"
+            badge="0 Active"
             badgeVariant="success"
           >
             <div className="space-y-4">
-              {[
-                { device: "MacBook Pro 16\"", location: "Lagos, Nigeria", ip: "102.89.2.44", status: "Current Session", icon: Monitor, current: true },
-                { device: "iPhone 15 Pro", location: "London, UK", ip: "212.58.244.71", status: "Active 12m ago", icon: Smartphone, current: false },
-                { device: "Windows Terminal", location: "San Francisco, US", ip: "172.217.164.142", status: "Active 2h ago", icon: Monitor, current: false },
-              ].map((session, i) => (
+              {([] as any[]).map((session, i) => (
                 <div key={i} className={cn(
                   "p-5 border rounded-[24px] flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-all group",
                   session.current ? "bg-primary/5 border-primary/20 shadow-lg shadow-primary/5" : "bg-secondary/30 border-border/20 hover:bg-secondary/50"
@@ -164,20 +160,20 @@ export default function SecurityCenter() {
                 Security Health Score
               </div>
               <div className="flex items-baseline gap-2">
-                <h3 className="text-5xl font-black text-foreground tracking-tighter">98</h3>
+                <h3 className="text-5xl font-black text-foreground tracking-tighter">0</h3>
                 <span className="text-lg font-bold text-muted-foreground">/100</span>
               </div>
               <p className="text-[13px] font-medium text-muted-foreground">
-                Your security posture is exceptional. Only 2 minor policy optimizations recommended.
+                Posture analysis required. System initialization in progress.
               </p>
             </div>
 
             <div className="space-y-4 pt-4 border-t border-border/20 relative z-10">
               {[
-                { label: "MFA Enforcement", status: "Optimal", color: "text-emerald-500" },
-                { label: "Root Access", status: "Restricted", color: "text-emerald-500" },
-                { label: "Audit Logging", status: "Active", color: "text-emerald-500" },
-                { label: "API Isolation", status: "Optimal", color: "text-emerald-500" },
+                { label: "MFA Enforcement", status: "--", color: "text-muted-foreground" },
+                { label: "Root Access", status: "--", color: "text-muted-foreground" },
+                { label: "Audit Logging", status: "--", color: "text-muted-foreground" },
+                { label: "API Isolation", status: "--", color: "text-muted-foreground" },
               ].map((item, i) => (
                 <div key={i} className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-muted-foreground uppercase">{item.label}</span>
@@ -194,11 +190,7 @@ export default function SecurityCenter() {
             icon={ShieldAlert}
           >
             <div className="space-y-6">
-              {[
-                { type: "Brute Force", count: "12 blocked", detail: "Mainly from CN/RU nodes", color: "bg-red-500" },
-                { type: "Credential Stuffing", count: "89 prevented", detail: "Last 24 hours", color: "bg-amber-500" },
-                { type: "Unusual API Load", count: "Normal", detail: "No spike detected", color: "bg-emerald-500" },
-              ].map((threat, i) => (
+              {([] as any[]).map((threat, i) => (
                 <div key={i} className="space-y-2">
                   <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-wider">
                     <span className="text-foreground">{threat.type}</span>
@@ -220,26 +212,6 @@ export default function SecurityCenter() {
             icon={Fingerprint}
           >
             <div className="space-y-4">
-              <div className="p-4 bg-secondary/50 border border-border/30 rounded-2xl space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-black uppercase text-foreground">Production_Key_01</span>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase">Exp: 12/26</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-background border border-border/20 rounded-xl px-3 py-2 text-[10px] font-mono text-muted-foreground overflow-hidden whitespace-nowrap opacity-60">
-                    pk_live_************************
-                  </div>
-                  <button 
-                    onClick={() => {
-                       navigator.clipboard.writeText('pk_live_f672389100ac23489112bc');
-                       toast.success('Production Key copied to clipboard');
-                    }}
-                    className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
-                  >
-                    <Eye size={14} />
-                  </button>
-                </div>
-              </div>
               <Button 
                 onClick={() => toast.success('New Secret Generated', { description: 'Provisioning new administrative API credentials...' })}
                 className="w-full rounded-2xl h-11 font-black text-[11px] uppercase tracking-[0.15em]"

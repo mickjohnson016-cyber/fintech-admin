@@ -18,36 +18,33 @@ import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { toast } from 'sonner';
 
 // 1. TIMELINE DATA
-const timeline = [
-  { id: 1, title: 'Transaction Initiated', time: 'May 07, 2024 • 10:24:02 AM', desc: 'Mobile App (iOS 17.4)', status: 'done' },
-  { id: 2, title: 'Risk Engine Scanned', time: 'May 07, 2024 • 10:24:05 AM', desc: 'Fraud Score: 0.02 (Low)', status: 'done' },
-  { id: 3, title: 'Settlement Processing', time: 'May 07, 2024 • 10:24:08 AM', desc: 'Communicating with Zenith Bank', status: 'done' },
-  { id: 4, title: 'Transaction Completed', time: 'May 07, 2024 • 10:24:12 AM', desc: 'Finalized and receipt generated', status: 'done' },
-];
+// Empty timeline — awaiting backend integration
+const timeline: any[] = [];
 
 export default function TransactionDetailsPage() {
   const params = useParams();
   const router = useRouter();
 
+  // Placeholder for backend integration
   const txn = {
     id: params.id,
-    amount: 500000,
-    fee: 50,
-    total: 500050,
-    status: 'Completed',
-    type: 'Bank Transfer (Withdrawal)',
-    date: 'May 07, 2024',
-    time: '10:24 AM',
-    reference: 'REF-84920485920',
-    sender: { name: 'Ngozi Okonjo', id: 'USR-2024-001', phone: '+234 801 234 5678', email: 'ngozi@example.com' },
-    receiver: { name: 'Zenith Bank PLC', account: '2030405060', branch: 'Lekki Main' },
+    amount: 0,
+    fee: 0,
+    total: 0,
+    status: 'Pending',
+    type: '---',
+    date: '---',
+    time: '---',
+    reference: '---',
+    sender: { name: '---', id: '---', phone: '---', email: '---' },
+    receiver: { name: '---', account: '---', branch: '---' },
     metadata: {
-      ip: '102.89.2.14',
-      location: 'Lagos, Nigeria',
-      device: 'iPhone 15 Pro Max',
-      os: 'iOS 17.4.1',
-      browser: 'OINZpay Mobile v4.2',
-      channel: 'API Gateway 4'
+      ip: '---',
+      location: '---',
+      device: '---',
+      os: '---',
+      browser: '---',
+      channel: '---'
     }
   };
 
@@ -202,7 +199,7 @@ export default function TransactionDetailsPage() {
               Processing Lifecycle
             </h3>
             <div className="space-y-8">
-              {timeline.map((step, i) => (
+              {timeline.length > 0 ? timeline.map((step, i) => (
                 <div key={step.id} className="relative flex gap-6">
                   {i !== timeline.length - 1 && (
                     <div className="absolute left-[11px] top-6 w-[2px] h-[calc(100%+32px)] bg-border" />
@@ -216,7 +213,11 @@ export default function TransactionDetailsPage() {
                     <p className="text-[11px] font-medium text-muted-foreground italic mt-1">{step.desc}</p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="p-8 border-2 border-dashed border-border/20 rounded-[24px] text-center">
+                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No processing lifecycle events recorded.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -237,16 +238,16 @@ export default function TransactionDetailsPage() {
             <div className="space-y-8 relative z-10">
               <div className="text-center py-4">
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2">Confidence Score</p>
-                <div className="text-5xl font-black text-foreground tracking-tighter">0.02</div>
+                <div className="text-5xl font-black text-foreground tracking-tighter">--</div>
                 <p className="text-[11px] font-bold text-emerald-500 dark:text-emerald-400 mt-2">Nominal / Low Risk</p>
               </div>
 
               <div className="space-y-4">
                 {[
-                  { label: 'Device Reputation', status: 'Clean', color: 'text-emerald-500 dark:text-emerald-400' },
-                  { label: 'IP Proxy Check', status: 'Residential', color: 'text-emerald-500 dark:text-emerald-400' },
-                  { label: 'Velocity Check', status: 'Passed', color: 'text-emerald-500 dark:text-emerald-400' },
-                  { label: 'AML Screening', status: 'No Match', color: 'text-emerald-500 dark:text-emerald-400' },
+                  { label: 'Device Reputation', status: '--', color: 'text-muted-foreground' },
+                  { label: 'IP Proxy Check', status: '--', color: 'text-muted-foreground' },
+                  { label: 'Velocity Check', status: '--', color: 'text-muted-foreground' },
+                  { label: 'AML Screening', status: '--', color: 'text-muted-foreground' },
                 ].map((r, i) => (
                   <div key={i} className="flex items-center justify-between text-[11px]">
                     <span className="font-bold text-muted-foreground">{r.label}</span>
@@ -296,14 +297,10 @@ export default function TransactionDetailsPage() {
           {/* Internal Memo */}
           <div className="bg-card border border-border rounded-[32px] p-8 shadow-sm">
             <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4">Compliance Notes</h4>
-            <div className="p-4 bg-background rounded-2xl border border-border">
+            <div className="p-4 border-2 border-dashed border-border/20 rounded-2xl text-center">
               <p className="text-[12px] font-medium text-muted-foreground leading-relaxed italic">
-                "Transaction matches recurring payroll pattern. Risk score updated following successful tier 3 KYC verification."
+                No internal compliance notes have been recorded for this transaction.
               </p>
-              <div className="mt-4 flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-black">AD</div>
-                <span className="text-[10px] font-black text-foreground uppercase tracking-widest">Admin David • May 07</span>
-              </div>
             </div>
             <button 
               onClick={() => toast("Coming Soon", { description: 'Compliance Memos feature is being finalized.' })}

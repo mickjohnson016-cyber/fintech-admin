@@ -47,89 +47,10 @@ import { useLayout } from '@/contexts/LayoutContext';
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 
-const initialNotifications = [
-  {
-    id: 1,
-    category: 'Users',
-    title: '12 new users joined today',
-    desc: 'Onboarding spike detected in Lagos region. Manual tier review recommended for 3 users.',
-    time: '2m ago',
-    icon: UserPlus,
-    severity: 'low',
-    priority: 'Normal',
-    unread: true,
-    action: 'View List',
-    link: '/users'
-  },
-  {
-    id: 2,
-    category: 'Compliance',
-    title: '3 KYC verifications pending',
-    desc: 'High-value account upgrades waiting for document verification (NIN/BVN).',
-    time: '14m ago',
-    icon: ShieldCheck,
-    severity: 'medium',
-    priority: 'High',
-    unread: true,
-    action: 'Review Queue',
-    link: '/compliance'
-  },
-  {
-    id: 3,
-    category: 'Security',
-    title: 'High-risk transaction detected',
-    desc: 'USR-8821 attempted ₦2.4M transfer from unknown device in Singapore.',
-    time: '5m ago',
-    icon: ShieldAlert,
-    severity: 'critical',
-    priority: 'Urgent',
-    unread: true,
-    action: 'Investigate',
-    link: '/compliance'
-  },
-  {
-    id: 4,
-    category: 'Investments',
-    title: '₦2.4M investment matured',
-    desc: 'Agric-Shield Plan #9921 has reached maturity. Payout authorization required.',
-    time: '1h ago',
-    icon: TrendingUp,
-    severity: 'info',
-    priority: 'Normal',
-    unread: false,
-    action: 'Approve Payout',
-    link: '/investments'
-  },
-  {
-    id: 5,
-    category: 'Users',
-    title: 'Suspicious IP access detected',
-    desc: 'Multiple failed login attempts for USR-0042 from 192.168.1.44 (VPN).',
-    time: '2h ago',
-    icon: Lock,
-    severity: 'high',
-    priority: 'High',
-    unread: true,
-    action: 'Lock Account',
-    link: '/users'
-  },
-  {
-    id: 6,
-    category: 'Transactions',
-    title: 'Failed airtime transactions spike',
-    desc: '15% increase in provider timeouts detected for MTN/Airtel networks.',
-    time: '12h ago',
-    icon: AlertTriangle,
-    severity: 'medium',
-    priority: 'Medium',
-    unread: false,
-    action: 'View Stats',
-    link: '/transactions'
-  },
-];
+const initialNotifications: any[] = [];
 
 export default function TopNavbar() {
-  const { setSidebarOpen, isCollapsed, setIsCollapsed } = useLayout();
+  const { setSidebarOpen, isCollapsed, setIsCollapsed, setIsProfileOpen } = useLayout();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -535,11 +456,14 @@ export default function TopNavbar() {
                               ))}
                             </div>
                           ) : (
-                            <div className="py-24 text-center space-y-4">
+                            <div className="py-24 text-center space-y-4 px-8">
                               <div className="size-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto border border-border/10">
                                 <CheckCircle2 size={24} className="text-muted-foreground/20" />
                               </div>
-                              <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">Operations Clear</p>
+                              <div>
+                                <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">No notifications available</p>
+                                <p className="text-[10px] font-medium text-muted-foreground/60 mt-2">Platform activity and alerts will appear here once connected.</p>
+                              </div>
                             </div>
                           )}
                         </>
@@ -576,18 +500,18 @@ export default function TopNavbar() {
         </div>
 
         <div
-          onClick={() => toast("Coming Soon", { description: 'Profile Management feature is being finalized.' })}
+          onClick={() => setIsProfileOpen(true)}
           className="flex items-center gap-3 group cursor-pointer hover:bg-card p-1.5 px-2 rounded-2xl transition-all"
         >
           <div className="flex flex-col items-end hidden sm:flex">
-            <span className="text-[12px] font-black text-foreground tracking-tight">Mick Jagger</span>
+            <span className="text-[12px] font-black text-foreground tracking-tight">No Admin</span>
             <div className="flex items-center gap-1.5">
-              <div className="size-1 bg-emerald-500 rounded-full shadow-[0_0_8px_#10B981]" />
+              <div className="size-1 bg-muted-foreground/30 rounded-full" />
               <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Global Admin</span>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 border border-primary/20 flex items-center justify-center font-black text-white text-xs shadow-lg shadow-primary/10 transition-transform group-hover:scale-105">
-            MJ
+          <div className="w-10 h-10 rounded-xl bg-secondary border border-border/40 flex items-center justify-center font-black text-muted-foreground/40 text-xs shadow-sm transition-transform group-hover:scale-105">
+            NA
           </div>
         </div>
       </div>

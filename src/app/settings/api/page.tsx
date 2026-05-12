@@ -50,11 +50,7 @@ export default function ApiSettings() {
             icon={Key}
           >
             <div className="space-y-4">
-              {[
-                { name: "Production_Core_Service", key: "sk_live_************************4a2x", type: "Secret", status: "Active", lastUsed: "2m ago" },
-                { name: "CI_CD_Deploy_Bot", key: "sk_live_************************9b1z", type: "Secret", status: "Active", lastUsed: "4h ago" },
-                { name: "Staging_Testing_Key", key: "sk_test_************************5f0w", type: "Test", status: "Revoked", lastUsed: "12d ago" },
-              ].map((key, i) => (
+              {([] as any[]).map((key, i) => (
                 <div key={i} className={cn(
                   "p-6 border rounded-[32px] flex items-center justify-between transition-all group",
                   key.status === "Active" ? "bg-secondary/30 border-border/20 hover:border-primary/20" : "bg-muted/30 border-border/10 opacity-60"
@@ -107,16 +103,13 @@ export default function ApiSettings() {
             icon={Webhook}
           >
             <div className="space-y-4">
-              {[
-                { url: "https://api.external-monitor.com/v1/webhooks", events: ["trans.success", "user.kyc.failed"], status: "Healthy" },
-                { url: "https://ops-bridge.oinzpay.internal/events", events: ["*"], status: "Degraded" },
-              ].map((webhook, i) => (
+              {([] as any[]).map((webhook, i) => (
                 <div key={i} className="p-6 bg-secondary/30 border border-border/20 rounded-[32px] space-y-4 group hover:border-primary/30 transition-all">
                    <div className="flex justify-between items-start">
                      <div className="space-y-1">
                         <p className="text-[14px] font-black text-foreground tracking-tight truncate max-w-md">{webhook.url}</p>
                         <div className="flex flex-wrap gap-2 pt-1">
-                          {webhook.events.map((event, j) => (
+                          {(webhook.events as any[]).map((event, j) => (
                             <span key={j} className="px-2 py-0.5 bg-background border border-border/40 rounded-lg text-[9px] font-black uppercase text-muted-foreground">{event}</span>
                           ))}
                         </div>
@@ -187,9 +180,9 @@ export default function ApiSettings() {
           >
             <div className="space-y-6">
               {[
-                { label: "Management API", usage: "1.2k/min", limit: "5k/min", status: "Healthy" },
-                { label: "User Core API", usage: "45k/min", limit: "100k/min", status: "Healthy" },
-                { label: "Webhook Engine", usage: "850/min", limit: "2k/min", status: "Healthy" },
+                { label: "Management API", usage: "0/min", limit: "5k/min", status: "Healthy" },
+                { label: "User Core API", usage: "0/min", limit: "100k/min", status: "Healthy" },
+                { label: "Webhook Engine", usage: "0/min", limit: "2k/min", status: "Healthy" },
               ].map((stat, i) => (
                 <div key={i} className="space-y-3">
                   <div className="flex justify-between items-end">

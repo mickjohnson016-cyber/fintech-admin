@@ -35,36 +35,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RoleModal, InviteModal } from '@/components/settings/AdminModals';
 import { executeExport } from '@/lib/exportUtils';
 
-const roles = [
-  { name: "Super Admin", count: 2, color: "bg-red-500", desc: "Full system access, all permissions." },
-  { name: "Compliance Officer", count: 3, color: "bg-blue-500", desc: "Access to KYC, AML, and reports." },
-  { name: "Finance Manager", count: 2, color: "bg-emerald-500", desc: "Treasury and settlement controls." },
-  { name: "Operations", count: 5, color: "bg-amber-500", desc: "Provider and transaction management." },
-  { name: "Support Agent", count: 8, color: "bg-purple-500", desc: "View only, customer issue resolution." },
-];
-
-const admins = [
-  { name: "Mick Jagger", email: "mick@oinzpay.com", role: "Super Admin", status: "Active", lastActive: "2m ago", avatar: "MJ" },
-  { name: "Sarah Kong", email: "sarah.k@oinzpay.com", role: "Compliance Officer", status: "Active", lastActive: "14m ago", avatar: "SK" },
-  { name: "David Olatunji", email: "david.o@oinzpay.com", role: "Finance Manager", status: "Active", lastActive: "1h ago", avatar: "DO" },
-  { name: "Jessica Smith", email: "jess@oinzpay.com", role: "Operations", status: "Offline", lastActive: "4h ago", avatar: "JS" },
-];
+const getAvatarPath = (avatarId: string) => {
+  const paths: Record<string, string> = {
+    'admin-m': '/assets/avatars/admin-m.png',
+    'admin-f': '/assets/avatars/admin-f.png',
+    'analyst': '/assets/avatars/analyst.png',
+    'compliance': '/assets/avatars/compliance.png',
+    'support': '/assets/avatars/support.png',
+    'engineering': '/assets/avatars/engineering.png',
+    'security': '/assets/avatars/security.png',
+    'generic': '/assets/avatars/generic.png',
+  };
+  return paths[avatarId] || '/assets/avatars/generic.png';
+};
 
 export default function AdminManagement() {
-  const [adminList, setAdminList] = useState([
-    { id: 'ADM-001', name: "Mick Jagger", email: "mick@oinzpay.com", role: "Super Admin", status: "Active", lastActive: "2m ago", avatar: "MJ" },
-    { id: 'ADM-002', name: "Sarah Kong", email: "sarah.k@oinzpay.com", role: "Compliance Officer", status: "Active", lastActive: "14m ago", avatar: "SK" },
-    { id: 'ADM-003', name: "David Olatunji", email: "david.o@oinzpay.com", role: "Finance Manager", status: "Active", lastActive: "1h ago", avatar: "DO" },
-    { id: 'ADM-004', name: "Jessica Smith", email: "jess@oinzpay.com", role: "Operations", status: "Offline", lastActive: "4h ago", avatar: "JS" },
-  ]);
-
-  const [roleList, setRoleList] = useState([
-    { id: 'ROLE-001', name: "Super Admin", count: 2, color: "bg-red-500", desc: "Full system access, all permissions." },
-    { id: 'ROLE-002', name: "Compliance Officer", count: 3, color: "bg-blue-500", desc: "Access to KYC, AML, and reports." },
-    { id: 'ROLE-003', name: "Finance Manager", count: 2, color: "bg-emerald-500", desc: "Treasury and settlement controls." },
-    { id: 'ROLE-004', name: "Operations", count: 5, color: "bg-amber-500", desc: "Provider and transaction management." },
-    { id: 'ROLE-005', name: "Support Agent", count: 8, color: "bg-purple-500", desc: "View only, customer issue resolution." },
-  ]);
+  const [adminList, setAdminList] = useState<any[]>([]);
+  const [roleList, setRoleList] = useState<any[]>([]);
 
   const [permissions, setPermissions] = useState([
     { label: "Transactions", items: ["View", "Create", "Approve", "Refund"], active: [0, 1, 2, 3] },
@@ -122,12 +109,13 @@ export default function AdminManagement() {
 
   // Admin Actions
   const handleInviteAdmin = (data: any) => {
+    const roleObj = roleList.find((r: any) => r.name === data.role);
     const newAdmin = {
       id: `ADM-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
       ...data,
       status: "Active",
       lastActive: "Just now",
-      avatar: data.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+      avatar: roleObj?.avatar || 'generic'
     };
     setAdminList(prev => [newAdmin, ...prev]);
     toast.success('Invitation Sent', { description: `A secure onboarding link has been dispatched to ${data.email}.` });
@@ -174,9 +162,15 @@ export default function AdminManagement() {
         {/* Role Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {roleList.map((role) => (
-            <div key={role.id} className="bg-card border border-border/40 rounded-[24px] p-5 hover:border-primary/30 hover:bg-secondary/20 transition-all group relative overflow-hidden">
-              <div className="flex items-start justify-between mb-3">
-                <div className={cn("size-2.5 rounded-full shadow-sm", role.color)} />
+            <div key={role.id} className="bg-card border border-border/40 rounded-[32px] p-6 hover:border-primary/30 hover:bg-secondary/20 transition-all group relative overflow-hidden shadow-sm">
+              <div className="flex items-start justify-between mb-4">
+                <div className="size-12 rounded-2xl overflow-hidden border border-border/20 shadow-inner bg-secondary/50 flex items-center justify-center p-1">
+                   <img 
+                      src={getAvatarPath(role.avatar)} 
+                      alt={role.name} 
+                      className="size-full object-cover rounded-xl" 
+                   />
+                </div>
                 <button
                   onClick={() => deleteRole(role.id, role.name)}
                   className="size-6 bg-secondary/50 rounded-lg flex items-center justify-center text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 transition-all"
@@ -244,7 +238,7 @@ export default function AdminManagement() {
 
             <div className="space-y-3">
               <AnimatePresence mode="popLayout">
-                {filteredAdmins.map((admin) => (
+                {filteredAdmins.length > 0 ? filteredAdmins.map((admin) => (
                   <motion.div
                     layout
                     initial={{ opacity: 0, scale: 0.98 }}
@@ -254,8 +248,15 @@ export default function AdminManagement() {
                     className="flex items-center justify-between p-4 bg-secondary/10 border border-border/5 rounded-[20px] hover:border-primary/20 hover:bg-secondary/20 transition-all group relative"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="size-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 flex items-center justify-center text-primary font-black text-sm shadow-inner shrink-0">
-                        {admin.avatar}
+                      <div className="size-12 rounded-2xl overflow-hidden border border-border/20 shadow-sm bg-secondary/30 flex items-center justify-center shrink-0 p-1">
+                         <img 
+                            src={getAvatarPath(admin.avatar)} 
+                            alt={admin.name} 
+                            className="size-full object-cover rounded-xl" 
+                            onError={(e) => {
+                               (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${admin.name}&background=random`;
+                            }}
+                         />
                       </div>
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
@@ -307,14 +308,19 @@ export default function AdminManagement() {
                       </div>
                     </div>
                   </motion.div>
-                ))}
+                )) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="py-20 text-center bg-secondary/5 border border-dashed border-border/10 rounded-[32px]"
+                  >
+                     <div className="flex flex-col items-center gap-3 opacity-30">
+                        <Users2 size={40} className="text-muted-foreground" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">No active administrators found</p>
+                     </div>
+                  </motion.div>
+                )}
               </AnimatePresence>
-              {filteredAdmins.length === 0 && (
-                <div className="py-12 text-center space-y-3 bg-secondary/5 rounded-[24px] border border-dashed border-border/40">
-                  <Search size={20} className="text-muted-foreground/20 mx-auto" />
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">No matching admins</p>
-                </div>
-              )}
             </div>
           </div>
         </SettingsCard>
@@ -461,6 +467,7 @@ export default function AdminManagement() {
         onClose={() => setIsInviteModalOpen(false)}
         roles={roleList}
         onInvite={handleInviteAdmin}
+        onCreateRole={() => setIsRoleModalOpen(true)}
       />
     </div>
   );

@@ -36,65 +36,8 @@ import { toast } from 'sonner';
 import { executeExport } from '@/lib/exportUtils';
 import { Loader2 } from 'lucide-react';
 
-// Mock User Data
-const mockUsers = [
-  {
-    id: "USR-88219",
-    name: "Tunde Ednut",
-    email: "tunde@gmail.com",
-    phone: "+234 810 123 4567",
-    accountNumber: "2098817721",
-    tier: "Tier 3",
-    kycStatus: "Verified",
-    balance: "₦1,420,500.00",
-    status: "active",
-    joinedDate: "Mar 12, 2024",
-    lastActive: "2m ago",
-    initials: "TE"
-  },
-  {
-    id: "USR-77312",
-    name: "Chidinma Ekile",
-    email: "chidinma.e@outlook.com",
-    phone: "+234 901 987 6543",
-    accountNumber: "3102298812",
-    tier: "Tier 2",
-    kycStatus: "Pending",
-    balance: "₦45,000.00",
-    status: "flagged",
-    joinedDate: "Apr 05, 2024",
-    lastActive: "1h ago",
-    initials: "CE"
-  },
-  {
-    id: "USR-99021",
-    name: "Ibrahim Musa",
-    email: "musa.ib@yahoo.com",
-    phone: "+234 703 444 5555",
-    accountNumber: "0091122334",
-    tier: "Tier 3",
-    kycStatus: "Verified",
-    balance: "₦8,900,200.50",
-    status: "active",
-    joinedDate: "Jan 20, 2024",
-    lastActive: "14m ago",
-    initials: "IM"
-  },
-  {
-    id: "USR-11203",
-    name: "Blessing Okoro",
-    email: "blessing.o@gmail.com",
-    phone: "+234 802 333 2222",
-    accountNumber: "4401129988",
-    tier: "Tier 1",
-    kycStatus: "Failed",
-    balance: "₦0.00",
-    status: "suspended",
-    joinedDate: "May 01, 2024",
-    lastActive: "2 days ago",
-    initials: "BO"
-  }
-];
+// Mock User Data - Removed for production-ready empty state
+const mockUsers: any[] = [];
 
 export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -189,7 +132,7 @@ export default function UserManagement() {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
+                {filteredUsers.length > 0 ? filteredUsers.map((user) => (
                   <tr 
                     key={user.id} 
                     onClick={() => setSelectedUser(user)}
@@ -237,7 +180,16 @@ export default function UserManagement() {
                       </button>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={5} className="py-20 text-center">
+                       <div className="flex flex-col items-center gap-3 opacity-30">
+                          <Users2 size={40} className="text-muted-foreground" />
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">No users created yet</p>
+                       </div>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

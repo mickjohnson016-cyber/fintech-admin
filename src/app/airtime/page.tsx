@@ -22,33 +22,23 @@ import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { toast } from 'sonner';
 import { useTableFilters } from '@/hooks/useTableFilters';
 import { executeExport } from '@/lib/exportUtils';
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 // 1. EXPANDED TELECOM MOCK DATA
 const telecomMetrics = [
-  { label: 'Recharge Volume', value: '₦12.4M', trend: '+8.2%', up: true, icon: Signal, color: 'text-primary', bg: 'bg-primary/10' },
-  { label: 'Success Rate', value: '94.8%', trend: '-1.2%', up: false, icon: BadgeCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  { label: 'Failed Recharges', value: '124', trend: 'Critical', up: false, icon: AlertTriangle, color: 'text-rose-600', bg: 'bg-rose-50' },
-  { label: 'Pending Vendor', value: '18', trend: 'High Priority', up: null, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-  { label: 'Top Network', value: 'MTN (42%)', trend: '₦5.2M Vol', up: true, icon: Radio, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-  { label: 'Total Commission', value: '₦342,000', trend: '+4.5%', up: true, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
+  { label: 'Recharge Volume', value: '₦0', trend: '--', up: null, icon: Signal, color: 'text-primary', bg: 'bg-primary/10' },
+  { label: 'Success Rate', value: '0%', trend: '--', up: null, icon: BadgeCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  { label: 'Failed Recharges', value: '0', trend: '--', up: null, icon: AlertTriangle, color: 'text-rose-600', bg: 'bg-rose-50' },
+  { label: 'Pending Vendor', value: '0', trend: '--', up: null, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+  { label: 'Top Network', value: '--', trend: '₦0 Vol', up: null, icon: Radio, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+  { label: 'Total Commission', value: '₦0', trend: '--', up: null, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
 ];
 
-const telecomAlerts = [
-  { id: 1, type: 'failed', title: 'Airtel Vendor Timeout', desc: 'API endpoint unresponsive', time: 'Just now', color: 'bg-rose-500' },
-  { id: 2, type: 'suspicious', title: 'High Frequency Recharge', desc: 'User USR-842: 15 recharges in 10m', time: '4 mins ago', color: 'bg-amber-500' },
-  { id: 3, type: 'downtime', title: 'Glo Network Degraded', desc: 'Data subscription delays reported', time: '12 mins ago', color: 'bg-rose-500' },
-  { id: 4, type: 'large', title: 'Large Airtime Purchase', desc: '₦50,000 to 0803 123 4567', time: '18 mins ago', color: 'bg-primary/100' },
-  { id: 5, type: 'reversal', title: 'Reversal Requested', desc: 'Failed data plan allocation', time: '24 mins ago', color: 'bg-purple-500' },
-];
+const telecomAlerts: any[] = [];
 
-const airtimeData = [
-  { id: 'REC-920401', user: 'Ngozi Okonjo', phone: '0803 123 4567', network: 'MTN', type: 'Airtime', amount: 5000, commission: 150, status: 'Completed', device: 'iPhone 15', channel: 'Mobile App', date: '10:24 AM' },
-  { id: 'REC-920402', user: 'Chukwudi Okafor', phone: '0708 999 8888', network: 'Airtel', type: 'Data (20GB)', amount: 10000, commission: 300, status: 'Failed', device: 'Samsung S24', channel: 'USSD', date: '10:15 AM' },
-  { id: 'REC-920403', user: 'Olumide Bakare', phone: '0805 111 2222', network: 'Glo', type: 'Airtime', amount: 1000, commission: 30, status: 'Pending', device: 'Web (Chrome)', channel: 'Web App', date: '10:12 AM' },
-  { id: 'REC-920404', user: 'Amina Yusuf', phone: '0909 333 4444', network: '9mobile', type: 'Data (1.5GB)', amount: 1200, commission: 36, status: 'Completed', device: 'iPhone 13', channel: 'Mobile App', date: '09:45 AM' },
-  { id: 'REC-920405', user: 'Ibrahim Danjuma', phone: '0810 555 6666', network: 'MTN', type: 'Airtime', amount: 20000, commission: 600, status: 'Completed', device: 'Web (Edge)', channel: 'Web App', date: '09:30 AM' },
-  { id: 'REC-920406', user: 'Blessing Udoh', phone: '0802 777 8888', network: 'Airtel', type: 'Airtime', amount: 500, commission: 15, status: 'Reversed', device: 'Infinix Hot 10', channel: 'Mobile App', date: '08:12 AM' },
-];
+const airtimeData: any[] = [];
 
 // 2. HELPER COMPONENTS
 const Badge = ({ status }: { status: string }) => {
@@ -145,27 +135,19 @@ export default function TelecomOperationsPage() {
       </div>
 
       {/* 4. OVERVIEW METRICS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <DashboardGrid cols={6}>
         {telecomMetrics.map((stat, i) => (
-          <Card key={i} className="p-5 group relative overflow-hidden">
-            <div className="flex justify-between items-start mb-3">
-              <div className={cn("p-2 rounded-xl group-hover:scale-110 transition-transform", stat.color, "bg-background border border-border")}>
-                <stat.icon size={18} />
-              </div>
-              {stat.trend && (
-                <div className={cn("text-[10px] font-black px-2 py-0.5 rounded-lg", stat.up === true ? "bg-emerald-500/10 text-emerald-500" : stat.up === false ? "bg-rose-500/10 text-rose-500" : "bg-amber-500/10 text-amber-500")}>
-                  {stat.trend}
-                </div>
-              )}
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
-              <h3 className="text-xl font-black text-foreground tracking-tight">{stat.value}</h3>
-            </div>
-            <div className="absolute bottom-0 left-0 h-1 bg-primary opacity-0 group-hover:opacity-100 transition-all w-full" />
-          </Card>
+          <AdaptiveMetricCard
+            key={i}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            trend={stat.trend !== '--' ? stat.trend : undefined}
+            trendUp={stat.up}
+            color={stat.color}
+          />
         ))}
-      </div>
+      </DashboardGrid>
 
       {/* 5. ADVANCED FILTER BAR */}
       <Card className="p-4 flex flex-col xl:flex-row items-center gap-4">
@@ -240,7 +222,7 @@ export default function TelecomOperationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredData.map((txn) => (
+                {filteredData.length > 0 ? filteredData.map((txn) => (
                   <tr key={txn.id} onClick={() => toast.success('Opening Audit Log', { description: `Record: ${txn.id}` })} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2">
@@ -291,7 +273,17 @@ export default function TelecomOperationsPage() {
                       </Button>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-20 text-center">
+                      <EmptyState 
+                        icon={Signal}
+                        title="No Recharges Found"
+                        description="Telecom transaction logs will synchronize upon backend activation."
+                      />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

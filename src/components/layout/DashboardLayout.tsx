@@ -4,6 +4,7 @@ import React from 'react';
 import { LayoutProvider } from '@/contexts/LayoutContext';
 import Sidebar from '@/components/layout/Sidebar';
 import TopNavbar from '@/components/layout/TopNavbar';
+import AdminProfileModal from '@/components/layout/AdminProfileModal';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -23,6 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </main>
         </div>
       </div>
+      <AdminProfileModal />
     </LayoutProvider>
   );
 }

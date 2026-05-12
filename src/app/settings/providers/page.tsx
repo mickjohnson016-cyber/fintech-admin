@@ -28,14 +28,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const providers = [
-  { name: "MTN Nigeria", icon: Phone, type: "Telco", latency: "112ms", uptime: "100%", status: "online", color: "text-amber-500", bg: "bg-amber-500/10" },
-  { name: "Airtel Africa", icon: Phone, type: "Telco", latency: "198ms", uptime: "99.9%", status: "online", color: "text-red-500", bg: "bg-red-500/10" },
-  { name: "Glo Mobile", icon: Phone, type: "Telco", latency: "145ms", uptime: "99.9%", status: "online", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  { name: "Multichoice (DSTV)", icon: Tv, type: "Cable TV", latency: "420ms", uptime: "99.8%", status: "online", color: "text-blue-500", bg: "bg-blue-500/10" },
-  { name: "BetKing API", icon: Gamepad2, type: "Betting", latency: "180ms", uptime: "100%", status: "online", color: "text-purple-500", bg: "bg-purple-500/10" },
-  { name: "EKEDC (Electric)", icon: Power, type: "Utility", latency: "1.4s", uptime: "97.2%", status: "degraded", color: "text-amber-500", bg: "bg-amber-500/10" },
-];
+const providers: any[] = [];
 
 export default function ProviderControls() {
   return (
@@ -146,7 +139,7 @@ export default function ProviderControls() {
                   <Activity size={14} />
                   Live Monitoring
                 </p>
-                <h3 className="text-3xl font-black text-foreground tracking-tighter">99.98%</h3>
+                <h3 className="text-3xl font-black text-foreground tracking-tighter">--%</h3>
                 <p className="text-[12px] font-medium text-muted-foreground">Global Aggregate Uptime</p>
               </div>
               <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-500">
@@ -156,9 +149,9 @@ export default function ProviderControls() {
 
             <div className="space-y-6">
               {[
-                { label: "Telco API Stack", uptime: "100%", status: "Operational" },
-                { label: "Utility Gateway", uptime: "98.4%", status: "Degraded" },
-                { label: "Betting Node", uptime: "99.9%", status: "Operational" },
+                { label: "Telco API Stack", uptime: "0%", status: "Offline" },
+                { label: "Utility Gateway", uptime: "0%", status: "Offline" },
+                { label: "Betting Node", uptime: "0%", status: "Offline" },
               ].map((stack, i) => (
                 <div key={i} className="space-y-3">
                   <div className="flex justify-between items-end">
@@ -186,10 +179,7 @@ export default function ProviderControls() {
             icon={AlertTriangle}
           >
             <div className="space-y-4">
-              {[
-                { title: "EKEDC API Timeout", time: "14m ago", status: "Investigating", color: "bg-amber-500" },
-                { title: "Glo Data Latency Spike", time: "2h ago", status: "Resolved", color: "bg-emerald-500" },
-              ].map((incident, i) => (
+              {([] as any[]).map((incident, i) => (
                 <div key={i} className="p-4 bg-secondary/30 border border-border/10 rounded-2xl flex items-center gap-4">
                   <div className={cn("size-2 rounded-full", incident.color)} />
                   <div className="flex-1">
@@ -216,10 +206,7 @@ export default function ProviderControls() {
             icon={Gauge}
           >
             <div className="space-y-4">
-              {[
-                { label: "Airtime Markup", value: "3.5%", target: "Base Cost" },
-                { label: "Data Commission", value: "₦50.00", target: "Per Transaction" },
-              ].map((rule, i) => (
+              {([] as any[]).map((rule, i) => (
                 <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 border border-border/10 rounded-2xl">
                   <div className="space-y-0.5">
                     <p className="text-[12px] font-black text-foreground">{rule.label}</p>

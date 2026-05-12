@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Shield, Lock, User, Mail, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Shield, Lock, User, Mail, CheckCircle2, AlertCircle, Clock, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,9 +11,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  maxWidth?: string;
 }
 
-const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg" }: ModalProps) => {
   if (!isOpen) return null;
 
   return (
@@ -30,15 +31,21 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-lg bg-card border border-border/50 rounded-[32px] shadow-2xl overflow-hidden"
+          className={cn(
+            "relative w-full bg-card border border-border/50 rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]",
+            maxWidth
+          )}
         >
-          <div className="flex items-center justify-between p-6 border-b border-border/10">
-            <h3 className="text-lg font-black tracking-tight">{title}</h3>
-            <button onClick={onClose} className="p-2 hover:bg-secondary rounded-xl transition-colors">
-              <X size={20} className="text-muted-foreground" />
+          <div className="flex items-center justify-between p-8 border-b border-border/10 bg-secondary/5">
+            <div className="space-y-1">
+              <h3 className="text-xl font-black tracking-tight text-foreground">{title}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Platform Administration</p>
+            </div>
+            <button onClick={onClose} className="p-3 hover:bg-secondary rounded-2xl transition-all group">
+              <X size={20} className="text-muted-foreground group-hover:text-foreground transition-colors" />
             </button>
           </div>
-          <div className="p-6 max-h-[70vh] overflow-y-auto scrollbar-hide">
+          <div className="p-8 md:p-10 overflow-y-auto no-scrollbar">
             {children}
           </div>
         </motion.div>
@@ -46,6 +53,17 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
     </AnimatePresence>
   );
 };
+
+const AVATAR_OPTIONS = [
+  { id: 'admin-m', name: 'Admin (M)', image: '/assets/avatars/admin-m.png' },
+  { id: 'admin-f', name: 'Admin (F)', image: '/assets/avatars/admin-f.png' },
+  { id: 'analyst', name: 'Analyst', image: '/assets/avatars/analyst.png' },
+  { id: 'compliance', name: 'Compliance', image: '/assets/avatars/compliance.png' },
+  { id: 'support', name: 'Support', image: '/assets/avatars/support.png' },
+  { id: 'engineering', name: 'Engineering', image: '/assets/avatars/engineering.png' },
+  { id: 'security', name: 'Security', image: '/assets/avatars/security.png' },
+  { id: 'generic', name: 'Professional', image: '/assets/avatars/generic.png' },
+];
 
 export const RoleModal = ({ 
   isOpen, 
@@ -58,11 +76,11 @@ export const RoleModal = ({
   role: any; 
   onSave: (data: any) => void;
 }) => {
-  const [formData, setFormData] = useState(role || { name: '', desc: '', color: 'bg-primary' });
+  const [formData, setFormData] = useState(role || { name: '', desc: '', avatar: 'admin-m' });
 
   useEffect(() => {
     if (role) setFormData(role);
-    else setFormData({ name: '', desc: '', color: 'bg-primary' });
+    else setFormData({ name: '', desc: '', avatar: 'admin-m' });
   }, [role]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -72,7 +90,7 @@ export const RoleModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={role ? "Edit Role" : "Create New Role"}>
+    <Modal isOpen={isOpen} onClose={onClose} title={role ? "Edit Role" : "Create New Role"} maxWidth="max-w-xl">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Role Name</label>
@@ -96,19 +114,33 @@ export const RoleModal = ({
           />
         </div>
         <div className="space-y-4">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Role Theme</label>
-          <div className="flex gap-3">
-            {['bg-red-500', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-purple-500', 'bg-primary'].map((color) => (
+          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Profile Avatar</label>
+          <div className="grid grid-cols-4 gap-3">
+            {AVATAR_OPTIONS.map((avatar) => (
               <button
-                key={color}
+                key={avatar.id}
                 type="button"
-                onClick={() => setFormData({ ...formData, color })}
+                onClick={() => setFormData({ ...formData, avatar: avatar.id })}
                 className={cn(
-                  "size-8 rounded-full border-2 transition-all",
-                  color,
-                  formData.color === color ? "border-foreground scale-110 shadow-lg" : "border-transparent opacity-60 hover:opacity-100"
+                  "flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all group",
+                  formData.avatar === avatar.id 
+                    ? "border-primary bg-primary/5 ring-4 ring-primary/5" 
+                    : "border-border/10 bg-secondary/20 hover:border-primary/30 hover:bg-secondary/40"
                 )}
-              />
+              >
+                <div className="size-10 rounded-xl overflow-hidden border border-border/20 shadow-inner flex items-center justify-center bg-background">
+                  {/* Fallback for missing images until they fully load or if they are missing */}
+                  <img 
+                    src={avatar.image} 
+                    alt={avatar.name} 
+                    className="size-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${avatar.name}&background=random`;
+                    }}
+                  />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-tighter text-muted-foreground group-hover:text-primary transition-colors">{avatar.name}</span>
+              </button>
             ))}
           </div>
         </div>
@@ -124,75 +156,227 @@ export const InviteModal = ({
   isOpen, 
   onClose, 
   roles,
-  onInvite 
+  onInvite,
+  onCreateRole
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
   roles: any[];
   onInvite: (data: any) => void;
+  onCreateRole: () => void;
 }) => {
-  const [formData, setFormData] = useState({ name: '', email: '', role: roles[0]?.name || '' });
+  const [formData, setFormData] = useState({ name: '', email: '', roleId: '' });
+  const [roleSearch, setRoleSearch] = useState("");
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+
+  const selectedRole = roles.find(r => r.id === formData.roleId);
+  const filteredRoles = roles.filter(r => 
+    r.name.toLowerCase().includes(roleSearch.toLowerCase())
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onInvite(formData);
+    if (!formData.roleId) return;
+    onInvite({ ...formData, role: selectedRole?.name });
     onClose();
-    setFormData({ name: '', email: '', role: roles[0]?.name || '' });
+    setFormData({ name: '', email: '', roleId: '' });
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Invite Administrator">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</label>
-          <div className="relative">
-            <User className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <input
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full bg-secondary/30 border border-border/20 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-bold outline-none focus:border-primary/40 transition-all"
-              placeholder="Full name"
-            />
+    <Modal isOpen={isOpen} onClose={onClose} title="Invite Administrator" maxWidth="max-w-2xl">
+      <div className="space-y-10">
+        {/* Live Preview Section */}
+        <div className="bg-secondary/20 border border-border/10 rounded-[32px] p-6 flex items-center gap-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-700">
+             <Shield size={100} />
+          </div>
+          <div className="size-20 rounded-[32px] bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-2xl shadow-inner relative z-10">
+            {formData.name ? getInitials(formData.name) : <User size={32} className="opacity-20" />}
+          </div>
+          <div className="space-y-1 relative z-10">
+            <h4 className="text-xl font-black text-foreground tracking-tight">
+              {formData.name || "New Administrator"}
+            </h4>
+            <p className="text-[12px] font-medium text-muted-foreground flex items-center gap-2">
+              {formData.email || "email@oinzpay.com"}
+              {selectedRole && (
+                <>
+                  <span className="size-1 bg-muted-foreground/30 rounded-full" />
+                  <span className="font-bold text-primary">{selectedRole.name}</span>
+                </>
+              )}
+            </p>
           </div>
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email Address</label>
-          <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <input
-              required
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full bg-secondary/30 border border-border/20 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-bold outline-none focus:border-primary/40 transition-all"
-              placeholder="email@oinzpay.com"
-            />
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Full Name</label>
+              <div className="relative group">
+                <User className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <input
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full h-14 bg-secondary/30 border border-border/20 rounded-2xl pl-14 pr-5 text-[13px] font-bold outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all"
+                  placeholder="e.g. David Okonjo"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Email Address</label>
+              <div className="relative group">
+                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <input
+                  required
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full h-14 bg-secondary/30 border border-border/20 rounded-2xl pl-14 pr-5 text-[13px] font-bold outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all"
+                  placeholder="david@oinzpay.com"
+                />
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Assign Role</label>
-          <select
-            value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-            className="w-full h-14 bg-secondary/30 border border-border/20 rounded-2xl px-4 text-[13px] font-bold outline-none focus:border-primary/40 transition-all appearance-none"
-          >
-            {roles.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
-          </select>
-        </div>
-        <div className="p-4 bg-primary/5 border border-primary/10 rounded-2xl space-y-2">
-          <div className="flex items-center gap-2">
-            <Shield size={14} className="text-primary" />
-            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Access Preview</span>
+
+          <div className="space-y-2 relative">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Assign System Role</label>
+            <div 
+              className={cn(
+                "relative group cursor-pointer",
+                !isRoleDropdownOpen && "z-0"
+              )}
+              onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+            >
+              <Shield className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className={cn(
+                "w-full h-14 bg-secondary/30 border border-border/20 rounded-2xl pl-14 pr-12 flex items-center text-[13px] font-bold transition-all",
+                isRoleDropdownOpen ? "border-primary/40 ring-4 ring-primary/5" : "hover:border-primary/20",
+                !formData.roleId && "text-muted-foreground/50"
+              )}>
+                {selectedRole ? selectedRole.name : "Select an access role..."}
+              </div>
+              <div className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground/30">
+                <Shield size={16} />
+              </div>
+
+              <AnimatePresence>
+                {isRoleDropdownOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/40 rounded-3xl shadow-2xl z-[110] overflow-hidden p-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="p-2 border-b border-border/10 mb-2">
+                       <input 
+                          autoFocus
+                          placeholder="Search roles..."
+                          className="w-full bg-secondary/50 border-none rounded-xl px-4 py-2 text-[12px] font-bold outline-none"
+                          value={roleSearch}
+                          onChange={(e) => setRoleSearch(e.target.value)}
+                       />
+                    </div>
+                    <div className="max-h-[200px] overflow-y-auto custom-scrollbar space-y-1">
+                      {filteredRoles.length > 0 ? filteredRoles.map(role => (
+                        <button
+                          key={role.id}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, roleId: role.id });
+                            setIsRoleDropdownOpen(false);
+                          }}
+                          className={cn(
+                            "w-full px-4 py-3 rounded-xl flex items-center justify-between text-[12px] font-bold transition-all",
+                            formData.roleId === role.id ? "bg-primary text-white" : "hover:bg-secondary text-foreground"
+                          )}
+                        >
+                          {role.name}
+                          {formData.roleId === role.id && <CheckCircle2 size={14} />}
+                        </button>
+                      )) : (
+                        <div className="py-8 text-center space-y-3">
+                           <AlertCircle size={24} className="mx-auto text-muted-foreground/30" />
+                           <div className="space-y-1 px-4">
+                              <p className="text-[11px] font-black uppercase text-muted-foreground/50">No roles found</p>
+                              <p className="text-[9px] font-medium text-muted-foreground/40 leading-tight">You must create a role before inviting admins.</p>
+                           </div>
+                           <button 
+                              type="button"
+                              onClick={() => { onCreateRole(); onClose(); }}
+                              className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
+                           >
+                              + Create New Role
+                           </button>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
-          <p className="text-[10px] font-medium text-primary/70 leading-relaxed">
-            Invitees will receive a secure link to set up their credentials. Default security policies will apply immediately.
-          </p>
-        </div>
-        <Button type="submit" className="w-full h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] bg-primary text-white shadow-xl shadow-primary/20">
-          Send Invitation
-        </Button>
-      </form>
+
+          <div className="p-6 bg-primary/5 border border-primary/10 rounded-[28px] grid grid-cols-2 gap-6 relative overflow-hidden">
+             <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                   <Lock className="size-3 text-primary" />
+                   <span className="text-[10px] font-black uppercase tracking-widest text-primary">Access Policy</span>
+                </div>
+                <div className="space-y-1.5">
+                   <div className="flex justify-between items-center text-[11px] font-medium">
+                      <span className="text-muted-foreground">Permissions</span>
+                      <span className="text-foreground font-black">Limited Scope</span>
+                   </div>
+                   <div className="flex justify-between items-center text-[11px] font-medium">
+                      <span className="text-muted-foreground">MFA Status</span>
+                      <span className="text-emerald-500 font-black">Required</span>
+                   </div>
+                </div>
+             </div>
+             <div className="space-y-3 border-l border-primary/10 pl-6">
+                <div className="flex items-center gap-2">
+                   <Clock className="size-3 text-primary" />
+                   <span className="text-[10px] font-black uppercase tracking-widest text-primary">Invitation Link</span>
+                </div>
+                <div className="space-y-1.5">
+                   <div className="flex justify-between items-center text-[11px] font-medium">
+                      <span className="text-muted-foreground">Expires In</span>
+                      <span className="text-foreground font-black">48 Hours</span>
+                   </div>
+                   <div className="flex justify-between items-center text-[11px] font-medium">
+                      <span className="text-muted-foreground">Auto-Revoke</span>
+                      <span className="text-amber-500 font-black">Active</span>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-border/10">
+            <Button 
+              type="button" 
+              onClick={onClose}
+              variant="outline"
+              className="flex-1 h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] border-border/40 hover:bg-secondary"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={!formData.name || !formData.email || !formData.roleId}
+              className="flex-[2] h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] bg-primary text-white shadow-xl shadow-primary/20 disabled:opacity-50"
+            >
+              Send Invitation
+            </Button>
+          </div>
+        </form>
+      </div>
     </Modal>
   );
 };

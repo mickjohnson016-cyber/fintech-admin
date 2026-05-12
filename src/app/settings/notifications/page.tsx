@@ -149,12 +149,7 @@ export default function NotificationSettings() {
             icon={Send}
           >
             <div className="space-y-4">
-              {[
-                { name: "Welcome Email", type: "Email", lastEdited: "2d ago" },
-                { name: "Transaction OTP", type: "SMS", lastEdited: "14d ago" },
-                { name: "Investment Maturation", type: "Push", lastEdited: "1m ago" },
-                { name: "KYC Rejection", type: "Email", lastEdited: "5d ago" },
-              ].map((template, i) => (
+              {([] as any[]).map((template: any, i: number) => (
                 <div key={i} className="p-5 bg-secondary/30 border border-border/10 rounded-[28px] flex items-center justify-between group hover:border-primary/30 transition-all">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-background border border-border/40 rounded-2xl text-muted-foreground group-hover:text-primary transition-colors">
@@ -234,9 +229,9 @@ export default function NotificationSettings() {
           >
             <div className="space-y-6">
               {[
-                { label: "Email Success", rate: "99.2%", status: "Healthy" },
-                { label: "SMS Delivery", rate: "94.5%", status: "Degraded" },
-                { label: "Push Delivery", rate: "99.9%", status: "Healthy" },
+                { label: "Email Success", rate: "0%", status: "Healthy" },
+                { label: "SMS Delivery", rate: "0%", status: "Healthy" },
+                { label: "Push Delivery", rate: "0%", status: "Healthy" },
               ].map((stat, i) => (
                 <div key={i} className="space-y-2">
                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-wider">

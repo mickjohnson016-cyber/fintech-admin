@@ -42,40 +42,27 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { executeExport } from '@/lib/exportUtils';
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 
 // --- MOCK DATA ---
 
 const complianceStats = [
-  { label: "Flagged Accounts", value: "142", trend: "+12.5%", status: "critical", icon: ShieldAlert },
-  { label: "Pending KYC", value: "2,845", trend: "-5.2%", status: "active", icon: Users },
-  { label: "Fraud Alerts", value: "24", trend: "Steady", status: "warning", icon: AlertTriangle },
-  { label: "Blocked IP Range", value: "18", trend: "+2", status: "active", icon: Zap },
+  { label: "Flagged Accounts", value: "0", trend: "--", status: "critical", icon: ShieldAlert },
+  { label: "Pending KYC", value: "0", trend: "--", status: "active", icon: Users },
+  { label: "Fraud Alerts", value: "0", trend: "--", status: "warning", icon: AlertTriangle },
+  { label: "Blocked IP Range", value: "0", trend: "--", status: "active", icon: Zap },
 ];
 
-const kycQueue = [
-  { id: "KYC-0091", name: "Ahmed Musa", level: "Tier 3", docs: "NIN, Utility", time: "2m ago", score: 12, status: "Pending", initials: "AM" },
-  { id: "KYC-0082", name: "Blessing Okon", level: "Tier 2", docs: "Passport", time: "14m ago", score: 45, status: "Flagged", initials: "BO" },
-  { id: "KYC-0075", name: "David Olatunji", level: "Tier 3", docs: "BVN, License", time: "1h ago", score: 8, status: "Pending", initials: "DO" },
-  { id: "KYC-0064", name: "Jessica Smith", level: "Tier 1", docs: "BVN", time: "4h ago", score: 92, status: "Critical", initials: "JS" },
-];
+const kycQueue: any[] = [];
 
-const fraudFeed = [
-  { type: "Velocity Spike", user: "USR-9921", amount: "₦2.4M", severity: "High", time: "Just now", desc: "Multiple transfers to new beneficiaries within 10 mins." },
-  { type: "Location Mismatch", user: "USR-1120", amount: "₦15,000", severity: "Med", time: "5m ago", desc: "Login from Lagos, Transaction initiated from London VPN." },
-  { type: "Device Collision", user: "USR-4402", amount: "N/A", severity: "Low", time: "12m ago", desc: "Account accessed from device linked to 3 other banned accounts." },
-];
+const fraudFeed: any[] = [];
 
-const amlAlerts = [
-  { title: "Layering Detection", score: 88, accounts: 4, volume: "₦12.5M", status: "Active Investigation" },
-  { title: "Structured Deposits", score: 72, accounts: 1, volume: "₦4.8M", status: "Manual Review" },
-];
+const amlAlerts: any[] = [];
 
-const auditLogs = [
-  { admin: "Mick Jagger", action: "Revoked Global Freeze", target: "Platform", time: "2m ago", ip: "192.168.1.1" },
-  { admin: "Sarah Kong", action: "Approved KYC Tier 3", target: "USR-8821", time: "15m ago", ip: "192.168.1.42" },
-  { admin: "System", action: "Auto-Flagged Transaction", target: "TXN-9902", time: "1h ago", ip: "Internal" },
-];
+const auditLogs: any[] = [];
 
 export default function ComplianceOperations() {
   const [selectedCase, setSelectedCase] = useState<any>(null);
@@ -93,34 +80,21 @@ export default function ComplianceOperations() {
       />
 
       {/* 1. STATS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <DashboardGrid cols={4}>
         {complianceStats.map((stat, i) => (
-          <div key={i} className="bg-card border border-border/40 rounded-[32px] p-6 relative overflow-hidden group hover:bg-secondary/20 transition-all">
-            <div className="flex justify-between items-start mb-5 relative z-10">
-              <div className={cn(
-                "p-4 rounded-2xl",
-                stat.status === "critical" ? "bg-red-500/10 text-red-500" : stat.status === "warning" ? "bg-amber-500/10 text-amber-500" : "bg-primary/10 text-primary"
-              )}>
-                <stat.icon size={22} />
-              </div>
-              <span className={cn(
-                "text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-tighter",
-                stat.trend.startsWith('+') ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
-              )}>
-                {stat.trend}
-              </span>
-            </div>
-            <div className="space-y-1 relative z-10">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{stat.label}</p>
-              <h3 className="text-3xl font-black text-foreground tracking-tight">{stat.value}</h3>
-            </div>
-            <div className={cn(
-              "absolute -bottom-1 left-0 w-full h-1 opacity-0 group-hover:opacity-100 transition-all",
-              stat.status === "critical" ? "bg-red-500 shadow-[0_0_15px_#EF4444]" : "bg-primary shadow-[0_0_15px_#3B82F6]"
-            )} />
-          </div>
+          <AdaptiveMetricCard
+            key={i}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            trend={stat.trend !== '--' ? stat.trend : undefined}
+            color={
+              stat.status === "critical" ? "text-red-500" : 
+              stat.status === "warning" ? "text-amber-500" : "text-primary"
+            }
+          />
         ))}
-      </div>
+      </DashboardGrid>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
 
@@ -163,7 +137,7 @@ export default function ComplianceOperations() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/10">
-                  {kycQueue.map((item) => (
+                  {kycQueue.length > 0 ? kycQueue.map((item) => (
                     <tr key={item.id} className="group hover:bg-secondary/30 transition-all cursor-pointer" onClick={() => setSelectedCase(item)}>
                       <td className="px-8 py-5">
                         <div className="flex items-center gap-4">
@@ -211,7 +185,17 @@ export default function ComplianceOperations() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan={5} className="px-8 py-20 text-center">
+                        <EmptyState 
+                          icon={Fingerprint}
+                          title="KYC queue is clear"
+                          description="No records found in this category"
+                        />
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -242,7 +226,7 @@ export default function ComplianceOperations() {
             </div>
 
             <div className="space-y-4 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-0.5 before:bg-border/20">
-              {fraudFeed.map((alert, i) => (
+              {fraudFeed.length > 0 ? fraudFeed.map((alert, i) => (
                 <div key={i} className="flex gap-6 relative z-10 group">
                   <div className={cn(
                     "size-10 rounded-xl flex items-center justify-center border transition-all group-hover:scale-110 shadow-lg",
@@ -276,7 +260,13 @@ export default function ComplianceOperations() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <EmptyState 
+                  icon={Activity}
+                  title="No risk markers detected"
+                  description="Live fraud detection engine is currently scanning platform traffic."
+                />
+              )}
             </div>
           </div>
         </div>
@@ -295,7 +285,7 @@ export default function ComplianceOperations() {
             </div>
 
             <div className="space-y-4 relative z-10">
-              {amlAlerts.map((alert, i) => (
+              {amlAlerts.length > 0 ? amlAlerts.map((alert, i) => (
                 <div key={i} className="p-6 bg-secondary/30 border border-border/20 rounded-[28px] space-y-4 hover:border-primary/40 transition-all">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
@@ -331,7 +321,12 @@ export default function ComplianceOperations() {
                     {isAnalyzing ? <Loader2 size={14} className="animate-spin" /> : "Analyze Clusters"}
                   </button>
                 </div>
-              ))}
+              )) : (
+                <EmptyState 
+                  compact
+                  title="No active AML investigations"
+                />
+              )}
             </div>
           </div>
 
@@ -342,7 +337,7 @@ export default function ComplianceOperations() {
               <button onClick={() => toast.success('Refreshing Logs', { description: 'Syncing latest administrative actions...' })} className="p-2 text-muted-foreground hover:text-primary transition-all"><History size={18} /></button>
             </div>
             <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-border/20">
-              {auditLogs.map((log, i) => (
+              {auditLogs.length > 0 ? auditLogs.map((log, i) => (
                 <div key={i} className="flex gap-4 relative z-10">
                   <div className="size-6 rounded-full bg-background border border-border flex items-center justify-center -ml-[1px]">
                     <div className="size-1.5 bg-primary rounded-full" />
@@ -358,7 +353,9 @@ export default function ComplianceOperations() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="py-6 text-center italic text-muted-foreground/40 text-[11px]">No activity recorded.</div>
+              )}
             </div>
             <Button 
               onClick={() => setIsAuditModalOpen(true)}
@@ -413,19 +410,19 @@ export default function ComplianceOperations() {
 
               <div className="flex-1 overflow-y-auto p-8 no-scrollbar space-y-10">
                 {/* Section: Risk Summary */}
-                <div className="grid grid-cols-3 gap-4">
+                <DashboardGrid cols={3}>
                   {[
                     { label: "Fraud Score", value: "92/100", icon: AlertTriangle, color: "text-red-500" },
                     { label: "Device Health", value: "Flagged", icon: Smartphone, color: "text-amber-500" },
                     { label: "Sanctions", value: "Clean", icon: ShieldCheck, color: "text-emerald-500" },
                   ].map((metric, i) => (
-                    <div key={i} className="p-5 bg-secondary/20 border border-border/10 rounded-3xl space-y-2">
+                    <div key={i} className="p-5 bg-secondary/20 border border-border/10 rounded-3xl space-y-2 min-w-0">
                       <metric.icon size={18} className={metric.color} />
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{metric.label}</p>
-                      <p className="text-[15px] font-black text-foreground">{metric.value}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 truncate">{metric.label}</p>
+                      <p className="text-[15px] font-black text-foreground truncate">{metric.value}</p>
                     </div>
                   ))}
-                </div>
+                </DashboardGrid>
 
                 {/* Section: Behavioral Analytics */}
                 <div className="space-y-4">
@@ -635,11 +632,7 @@ export default function ComplianceOperations() {
                     ))}
                   </div>
                    <Button 
-                    onClick={() => executeExport({ fileName: 'AuditLogs', data: [
-                      { admin: "Mick Jagger", role: "Super Admin", action: "Modified Global Rate Limit", target: "Platform", time: "2m ago", ip: "192.168.1.1", severity: "Medium" },
-                      { admin: "Sarah Kong", role: "Compliance", action: "Approved KYC Tier 3", target: "USR-8821", time: "15m ago", ip: "192.168.1.42", severity: "Low" },
-                      { admin: "System", role: "Automated", action: "Banned Account: Fraud Detection", target: "USR-0042", time: "1h ago", ip: "Internal", severity: "High" },
-                    ], format: 'CSV' })}
+                    onClick={() => executeExport({ fileName: 'AuditLogs', data: [], format: 'CSV' })}
                     variant="outline" 
                     className="h-10 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border-border/40"
                   >
@@ -647,49 +640,11 @@ export default function ComplianceOperations() {
                   </Button>
                 </div>
 
-                <div className="space-y-3">
-                  {[
-                    { admin: "Mick Jagger", role: "Super Admin", action: "Modified Global Rate Limit", target: "Platform", time: "2m ago", ip: "192.168.1.1", severity: "Medium" },
-                    { admin: "Sarah Kong", role: "Compliance", action: "Approved KYC Tier 3", target: "USR-8821", time: "15m ago", ip: "192.168.1.42", severity: "Low" },
-                    { admin: "System", role: "Automated", action: "Banned Account: Fraud Detection", target: "USR-0042", time: "1h ago", ip: "Internal", severity: "High" },
-                    { admin: "Jessica White", role: "Ops", action: "Exported Transaction Ledger (CSV)", target: "Platform", time: "3h ago", ip: "10.0.0.54", severity: "Low" },
-                    { admin: "Mick Jagger", role: "Super Admin", action: "Updated Role: Junior Compliance", target: "USR-9021", time: "5h ago", ip: "192.168.1.1", severity: "Medium" },
-                  ].map((log, i) => (
-                    <div key={i} className="flex items-center justify-between p-6 bg-secondary/10 border border-border/10 rounded-3xl hover:bg-secondary/20 transition-all group">
-                      <div className="flex items-center gap-6">
-                        <div className="size-10 rounded-xl bg-background border border-border flex items-center justify-center text-foreground font-black text-xs">
-                          {log.admin.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-[14px] font-black text-foreground">{log.admin}</p>
-                            <span className="text-[9px] font-black text-muted-foreground/40 uppercase bg-muted/50 px-1.5 py-0.5 rounded-md">{log.role}</span>
-                          </div>
-                          <p className="text-[12px] font-medium text-muted-foreground mt-0.5">{log.action}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-12 text-right">
-                        <div>
-                          <p className="text-[11px] font-black text-foreground">{log.target}</p>
-                          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Target Node</p>
-                        </div>
-                        <div>
-                          <p className="text-[11px] font-black text-foreground">{log.ip}</p>
-                          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">IP Address</p>
-                        </div>
-                        <div className="w-24">
-                          <span className={cn(
-                            "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
-                            log.severity === "High" ? "bg-red-500/10 text-red-500" : log.severity === "Medium" ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
-                          )}>
-                            {log.severity}
-                          </span>
-                        </div>
-                        <p className="text-[10px] font-black text-muted-foreground/30 uppercase w-16">{log.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                   <EmptyState 
+                    icon={History}
+                    title="No audit logs available"
+                    description="Platform governance trail will appear here"
+                   />
               </div>
             </motion.div>
           </div>

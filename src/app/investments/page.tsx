@@ -18,7 +18,8 @@ import {
   BadgeCheck,
   AlertCircle,
   ExternalLink,
-  MoreVertical,
+  Eye,
+  Copy,
   ArrowRight,
   ShieldCheck,
   Clock,
@@ -35,6 +36,10 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 import { Button } from "@/components/ui/button";
+import { executeExport } from '@/lib/exportUtils';
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from "@/lib/utils";
 import { investments } from '@/lib/mock-data';
 import { ChartWrapper } from '@/components/charts/ChartWrapper';
@@ -43,50 +48,26 @@ import { motion } from 'framer-motion';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { toast } from 'sonner';
 import { useTableFilters } from '@/hooks/useTableFilters';
+import { ActionMenu } from '@/components/ui/ActionMenu';
 
 // 1. MOCK DATA FOR TABLE
-const tableData = [
-  { name: 'Ngozi Okonjo', id: 'INV-001245', plan: 'Fixed Plan', amount: 5000000, roi: '12.5%', status: 'Active', risk: 'Low', end: 'May 2025' },
-  { name: 'Chukwudi Okafor', id: 'INV-001246', plan: 'Agric Plan', amount: 200000, roi: '10.0%', status: 'Matured', risk: 'Low', end: 'Nov 2024' },
-  { name: 'Amina Yusuf', id: 'INV-001247', plan: 'Estate Plan', amount: 1500000, roi: '15.0%', status: 'Pending', risk: 'Med', end: 'May 2026' },
-];
+const tableData: any[] = [];
 
 // 1. MOCK DATA FOR ANALYTICS
-const activityData = [
-  { date: 'May 20', investments: 400, maturities: 240, roi: 120, withdrawals: 80 },
-  { date: 'May 24', investments: 600, maturities: 380, roi: 210, withdrawals: 140 },
-  { date: 'May 27', investments: 500, maturities: 450, roi: 180, withdrawals: 100 },
-  { date: 'Jun 1', investments: 800, maturities: 310, roi: 340, withdrawals: 210 },
-  { date: 'Jun 5', investments: 700, maturities: 520, roi: 290, withdrawals: 180 },
-  { date: 'Jun 10', investments: 900, maturities: 440, roi: 410, withdrawals: 260 },
-  { date: 'Jun 14', investments: 850, maturities: 610, roi: 380, withdrawals: 230 },
-  { date: 'Jun 17', investments: 1100, maturities: 580, roi: 450, withdrawals: 310 },
-  { date: 'Jun 20', investments: 1000, maturities: 720, roi: 420, withdrawals: 290 },
-];
+const activityData: any[] = [];
 
-const statusBreakdown = [
-  { name: 'Active', value: 8942, color: '#2979FF', percentage: '63.0%' },
-  { name: 'Matured', value: 2450, color: '#10B981', percentage: '17.2%' },
-  { name: 'Pending', value: 1420, color: '#F59E0B', percentage: '10.0%' },
-  { name: 'Frozen', value: 680, color: '#6366F1', percentage: '4.8%' },
-  { name: 'Under Review', value: 712, color: '#FF5630', percentage: '5.0%' },
-];
+const statusBreakdown: any[] = [];
 
 const kpiData = [
-  { title: 'Active Investments', value: '14,204', trend: '+12.4%', trendUp: true, desc: 'vs last 30 days', icon: Activity, color: 'text-primary', bg: 'bg-primary/10', link: 'View All' },
-  { title: 'Total Investment Volume', value: '₦12.8B', trend: '+18.7%', trendUp: true, desc: 'vs last 30 days', icon: Briefcase, color: 'text-emerald-500', bg: 'bg-emerald-50', link: 'View Analytics' },
-  { title: 'Pending Maturities', value: '₦420M', trend: '12 due today', trendUp: null, desc: 'Critical liquidity', icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50', link: 'View Maturities' },
-  { title: 'ROI Liability', value: '₦1.4B', trend: '+5.2%', trendUp: true, desc: 'vs last 30 days', icon: Layers, color: 'text-purple-500', bg: 'bg-purple-50', link: 'View ROI Report' },
-  { title: 'Suspicious Activity', value: '12 Flags', trend: 'High Priority', trendUp: false, desc: 'Immediate review', icon: ShieldAlert, color: 'text-rose-500', bg: 'bg-rose-50', link: 'Review Flags' },
-  { title: 'Active Investors', value: '8,942', trend: '+420 last 30 days', trendUp: true, desc: 'Growth index', icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50', link: 'View Investors' },
+  { label: 'Active Investments', value: '0', trend: '--', trendUp: null, desc: 'Awaiting sync', icon: Activity, color: 'text-primary' },
+  { label: 'Total Investment Volume', value: '₦0', trend: '--', trendUp: null, desc: 'Awaiting sync', icon: Briefcase, color: 'text-emerald-500' },
+  { label: 'Pending Maturities', value: '0', trend: '0 due today', trendUp: null, desc: 'Awaiting sync', icon: Clock, color: 'text-amber-500' },
+  { label: 'ROI Liability', value: '₦0', trend: '--', trendUp: null, desc: 'Awaiting sync', icon: Layers, color: 'text-purple-500' },
+  { label: 'Suspicious Activity', value: '0', trend: '--', trendUp: null, desc: 'Awaiting sync', icon: ShieldAlert, color: 'text-rose-500' },
+  { label: 'Active Investors', value: '0', trend: '--', trendUp: null, desc: 'Awaiting sync', icon: Users, color: 'text-indigo-500' },
 ];
 
-const operationalAlerts = [
-  { id: 1, title: '12 investments pending maturity today', time: '09:20 AM', icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50' },
-  { id: 2, title: '3 high-risk accounts flagged', time: '09:15 AM', icon: ShieldAlert, color: 'text-rose-500', bg: 'bg-rose-50' },
-  { id: 3, title: '₦240M ROI payout due tomorrow', time: '09:10 AM', icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-50' },
-  { id: 4, title: '5 failed KYC-linked investments', time: '09:05 AM', icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
-];
+const operationalAlerts: any[] = [];
 
 const quickActions = [
   { title: 'Search Investor', icon: Search },
@@ -148,45 +129,35 @@ export default function InvestmentsPage() {
           <Button onClick={() => toast.success('Advanced Filters', { description: 'Opening forensic filter panel...' })} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Filter size={14} /> Filters
           </Button>
-          <Button onClick={() => toast.success('Export CSV Initiated', { description: 'Generating Investments Ledger CSV...' })} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
-            <Download size={14} /> Export
-          </Button>
-          <Button onClick={() => toast.success('Report Generation Initiated', { description: 'Generating Investment Performance Report (PDF)...' })} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all border-none">
+          <Button 
+            onClick={() => executeExport({ 
+              fileName: 'InvestmentPerformance', 
+              data: [], 
+              format: 'PDF' 
+            })} 
+            size="sm" 
+            className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all border-none"
+          >
             Generate Report <ChevronDown size={14} />
           </Button>
         </div>
       </div>
 
       {/* 4. KPI CARDS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
+      <DashboardGrid cols={6}>
         {kpiData.map((kpi, i) => (
-          <Card key={i} className="p-5 group relative overflow-hidden">
-            <div className="flex justify-between items-start mb-3">
-              <div className={cn("p-2 rounded-xl group-hover:scale-110 transition-transform", kpi.color, "bg-background border border-border")}>
-                <kpi.icon size={18} />
-              </div>
-              {kpi.trendUp !== null && (
-                <div className={cn("flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded-lg", kpi.trendUp ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500")}>
-                  {kpi.trendUp ? <ArrowUpRight size={9} /> : <ArrowDownRight size={9} />}
-                  {kpi.trend}
-                </div>
-              )}
-            </div>
-            <div className="space-y-0.5 mb-3">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{kpi.title}</p>
-              <h3 className="text-xl font-black text-foreground tracking-tight">{kpi.value}</h3>
-              <p className="text-[9px] font-bold text-muted-foreground italic">
-                {kpi.trendUp !== null ? <span className="text-primary mr-1">◆</span> : <span className="text-amber-500 mr-1">◆</span>}
-                {kpi.desc}
-              </p>
-            </div>
-            <div onClick={() => toast.success(`Navigating...`, { description: `Moving to ${kpi.link} section.` })} className="pt-3 border-t border-border flex items-center justify-between group-hover:text-primary transition-colors cursor-pointer">
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">{kpi.link}</span>
-              <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform text-muted-foreground group-hover:text-primary" />
-            </div>
-          </Card>
+          <AdaptiveMetricCard
+            key={i}
+            label={kpi.label}
+            value={kpi.value}
+            icon={kpi.icon}
+            trend={kpi.trend}
+            trendUp={kpi.trendUp}
+            description={kpi.desc}
+            color={kpi.color}
+          />
         ))}
-      </div>
+      </DashboardGrid>
 
       {/* 5. ANALYTICS & CONTENT SECTION (FULL WIDTH) */}
       <div className="w-full space-y-6">
@@ -229,44 +200,59 @@ export default function InvestmentsPage() {
               </div>
             </div>
 
-            <ChartWrapper height={280}>
-              <AreaChart data={activityData}>
-                <defs>
-                  <linearGradient id="colorInv" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorMat" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.05)" vertical={false} />
-                <XAxis dataKey="date" stroke="#64748B" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} dy={8} />
-                <YAxis stroke="#64748B" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tickFormatter={(v) => v === 0 ? '' : `₦${v}M`} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', color: 'hsl(var(--foreground))' }} 
-                  itemStyle={{ fontWeight: 800, fontSize: '11px', color: 'hsl(var(--foreground))' }}
+            {activityData.length > 0 ? (
+              <ChartWrapper height={320} className="min-h-[320px]">
+                <AreaChart data={activityData}>
+                  <defs>
+                    <linearGradient id="colorInv" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorMat" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.05)" vertical={false} />
+                  <XAxis dataKey="date" stroke="#64748B" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} dy={8} />
+                  <YAxis stroke="#64748B" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tickFormatter={(v) => v === 0 ? '' : `₦${v}M`} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', color: 'hsl(var(--foreground))' }} 
+                    itemStyle={{ fontWeight: 800, fontSize: '11px', color: 'hsl(var(--foreground))' }}
+                  />
+                  <Area type="monotone" dataKey="investments" stroke="#3B82F6" strokeWidth={3} fill="url(#colorInv)" />
+                  <Area type="monotone" dataKey="maturities" stroke="#10B981" strokeWidth={3} fill="url(#colorMat)" />
+                </AreaChart>
+              </ChartWrapper>
+            ) : (
+              <div className="h-[320px] flex items-center justify-center">
+                <EmptyState 
+                  icon={TrendingUp}
+                  title="Awaiting Performance Data"
+                  description="Market metrics and investor activity will appear once connected."
                 />
-                <Area type="monotone" dataKey="investments" stroke="#3B82F6" strokeWidth={3} fill="url(#colorInv)" />
-                <Area type="monotone" dataKey="maturities" stroke="#10B981" strokeWidth={3} fill="url(#colorMat)" />
-              </AreaChart>
-            </ChartWrapper>
+              </div>
+            )}
 
-            <div className="mt-6 pt-6 border-t border-border grid grid-cols-4 gap-2">
+            <div className="mt-6 pt-6 border-t border-border grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: 'Total Invested', value: '₦12.8B', trend: '+18%', up: true },
-                { label: 'Total Matured', value: '₦8.4B', trend: '+15%', up: true },
-                { label: 'Total ROI', value: '₦1.2B', trend: '+8%', up: true },
-                { label: 'Total Withdr.', value: '₦2.6B', trend: '-11%', up: false },
-              ].map((m, i) => (
-                <div key={i} className="space-y-0.5">
-                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest truncate">{m.label}</p>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[13px] font-black text-foreground tracking-tight">{m.value}</span>
-                    <span className={cn("text-[8px] font-black flex items-center", m.up ? "text-emerald-500" : "text-rose-500")}>
-                      {m.trend}
-                    </span>
+                { label: 'Total Invested', value: '₦0', trend: '0%', up: null },
+                { label: 'Total Matured', value: '₦0', trend: '0%', up: null },
+                { label: 'Total ROI', value: '₦0', trend: '0%', up: null },
+                { label: 'Active Yield', value: '0.0%', trend: '0%', up: null },
+              ].map((stat, i) => (
+                <div key={i} className="space-y-1">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-black text-foreground">{stat.value}</span>
+                    {stat.trend !== '0%' && (
+                      <span className={cn(
+                        "text-[9px] font-black px-1.5 py-0.5 rounded-lg",
+                        stat.up ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+                      )}>
+                        {stat.trend}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -283,22 +269,31 @@ export default function InvestmentsPage() {
             </div>
             
             <div className="flex-1 w-full relative mb-6">
-              <ChartWrapper height={200}>
-                <PieChart>
-                  <Pie data={statusBreakdown} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none">
-                    {statusBreakdown.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', color: 'hsl(var(--foreground))' }} />
-                </PieChart>
-              </ChartWrapper>
+              {statusBreakdown.length > 0 ? (
+                <ChartWrapper height={200}>
+                  <PieChart>
+                    <Pie data={statusBreakdown} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none">
+                      {statusBreakdown.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', color: 'hsl(var(--foreground))' }} />
+                  </PieChart>
+                </ChartWrapper>
+              ) : (
+                <div className="h-[200px] flex items-center justify-center">
+                  <EmptyState 
+                    compact
+                    title="No status data"
+                  />
+                </div>
+              )}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-black text-foreground">14.2K</span>
+                <span className="text-2xl font-black text-foreground">0</span>
                 <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-0.5">Total</span>
               </div>
             </div>
 
             <div className="space-y-2.5">
-              {statusBreakdown.map((item, i) => (
+              {statusBreakdown.length > 0 ? statusBreakdown.map((item, i) => (
                 <div key={i} className="flex items-center justify-between group">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
@@ -309,7 +304,9 @@ export default function InvestmentsPage() {
                     <span className="text-[10px] font-bold text-muted-foreground min-w-[35px] text-right">{item.percentage}</span>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-[10px] font-black text-center text-muted-foreground/30 uppercase tracking-widest py-4">No mix data</p>
+              )}
             </div>
           </Card>
         </div>
@@ -360,13 +357,13 @@ export default function InvestmentsPage() {
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
-                {filteredData.map((row, i) => (
+               <tbody className="divide-y divide-border">
+                {filteredData.length > 0 ? filteredData.map((row, i) => (
                   <tr key={i} onClick={() => toast.success('Opening Investment Details', { description: `Record: ${row.id}` })} className="hover:bg-secondary transition-all cursor-pointer border-b border-border last:border-0">
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-3">
                         <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-black text-[9px] shrink-0 border border-border">
-                          {row.name.split(' ').map(n => n[0]).join('')}
+                          {row.name.split(' ').map((n: string) => n[0]).join('')}
                         </div>
                         <span className="text-[12px] font-black text-foreground truncate max-w-[150px]">{row.name}</span>
                       </div>
@@ -379,10 +376,25 @@ export default function InvestmentsPage() {
                     <td className="px-4 py-2.5 text-center"><Badge className={cn("text-[8px] border", row.risk === 'Low' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20')}>{row.risk}</Badge></td>
                     <td className="px-4 py-2.5 text-right text-[11px] font-bold text-muted-foreground">{row.end}</td>
                     <td className="px-4 py-2.5 text-right shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <Button onClick={() => toast.success('Investment Details', { description: `Inspecting Record: ${row.id}` })} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
+                      <ActionMenu triggerSize={14} items={[
+                        { label: 'View Portfolio', icon: Eye, onClick: () => toast.success('Opening Portfolio', { description: `Loading investment details for ${row.id}` }) },
+                        { label: 'Copy Record ID', icon: Copy, onClick: () => { navigator.clipboard.writeText(row.id); toast.success('Copied', { description: row.id }); } },
+                        { label: 'Export Report', icon: Download, onClick: () => toast.success('Export Started', { description: `Investment report for ${row.name} initiated.` }), dividerBefore: true },
+                        { label: 'Freeze Account', icon: ShieldAlert, onClick: () => toast.warning('Account Frozen', { description: `Investment ${row.id} has been suspended for review.` }), variant: 'danger', dividerBefore: true },
+                      ]} />
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={9} className="px-4 py-20 text-center">
+                      <EmptyState 
+                        icon={TrendingUp}
+                        title="No matching investments"
+                        description="Refine your search or filters"
+                      />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

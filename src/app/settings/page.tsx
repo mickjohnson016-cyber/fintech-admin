@@ -31,6 +31,9 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 const container = {
   hidden: { opacity: 0 },
@@ -59,40 +62,24 @@ export default function SettingsOverview() {
         />
 
         {/* KPI Grid */}
-        <motion.div 
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
-        >
+        <DashboardGrid cols={4}>
           {[
-            { label: "Platform Status", value: "Operational", sub: "All systems green", icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10", trend: "+99.99%" },
-            { label: "Security Health", value: "98/100", sub: "Optimized", icon: Shield, color: "text-blue-500", bg: "bg-blue-500/10", trend: "+2.4%" },
-            { label: "Compliance Score", value: "A+", sub: "Audit Ready", icon: ShieldCheck, color: "text-indigo-500", bg: "bg-indigo-500/10", trend: "Steady" },
-            { label: "Active Nodes", value: "48", sub: "8 Regions Active", icon: Cpu, color: "text-amber-500", bg: "bg-amber-500/10", trend: "Healthy" },
+            { label: "Platform Status", value: "Offline", sub: "Awaiting Sync", icon: Activity, color: "text-muted-foreground", bg: "bg-muted", trend: "--" },
+            { label: "Security Health", value: "0/100", sub: "Initializing", icon: Shield, color: "text-muted-foreground", bg: "bg-muted", trend: "--" },
+            { label: "Compliance Score", value: "--", sub: "Not Audited", icon: ShieldCheck, color: "text-muted-foreground", bg: "bg-muted", trend: "--" },
+            { label: "Active Nodes", value: "0", sub: "No Regions Active", icon: Cpu, color: "text-muted-foreground", bg: "bg-muted", trend: "--" },
           ].map((kpi, i) => (
-            <motion.div 
-              key={i} 
-              variants={item}
-              className="bg-card border border-border/40 rounded-[24px] p-5 hover:bg-secondary/20 hover:shadow-xl transition-all group"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className={cn("p-3 rounded-xl transition-transform group-hover:scale-110 shadow-inner shrink-0", kpi.bg, kpi.color)}>
-                  <kpi.icon size={20} />
-                </div>
-                <div className="flex flex-col items-end">
-                  <ArrowUpRight size={14} className="text-muted-foreground/30 group-hover:text-primary transition-colors" />
-                  <span className="text-[10px] font-black text-emerald-500 mt-1">{kpi.trend}</span>
-                </div>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground/50">{kpi.label}</p>
-                <h3 className="text-2xl font-black text-foreground tracking-tight">{kpi.value}</h3>
-                <p className="text-[11px] font-medium text-muted-foreground/70">{kpi.sub}</p>
-              </div>
-            </motion.div>
+            <AdaptiveMetricCard
+              key={i}
+              label={kpi.label}
+              value={kpi.value}
+              icon={kpi.icon}
+              trend={kpi.trend !== '--' ? kpi.trend : undefined}
+              description={kpi.sub}
+              color={kpi.color}
+            />
           ))}
-        </motion.div>
+        </DashboardGrid>
 
         {/* Operational Connectivity & Governance Section */}
         <div className="space-y-8">
@@ -103,50 +90,21 @@ export default function SettingsOverview() {
             badge="Healthy"
             badgeVariant="success"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {[
-                { name: "MTN Nigeria", type: "Airtime/Data", latency: "112ms", uptime: "100%", status: "online", load: 24 },
-                { name: "Airtel Africa", type: "Airtime/Data", latency: "198ms", uptime: "99.9%", status: "online", load: 38 },
-                { name: "Glo Mobile", type: "Airtime/Data", latency: "145ms", uptime: "99.9%", status: "online", load: 12 },
-                { name: "Flutterwave", type: "Gateway", latency: "420ms", uptime: "99.8%", status: "online", load: 64 },
-                { name: "Paystack", type: "Gateway", latency: "365ms", uptime: "100%", status: "online", load: 58 },
-                { name: "9mobile", type: "Airtime/Data", latency: "1.4s", uptime: "97.2%", status: "degraded", load: 5 },
-              ].map((provider, i) => (
+            <DashboardGrid cols={3}>
+              {([] as any[]).length > 0 ? ([] as any[]).map((provider: any, i: number) => (
                 <div key={i} className="p-4 bg-secondary/20 border border-border/10 rounded-[20px] hover:bg-secondary/40 hover:border-primary/20 transition-all group min-w-0 overflow-hidden">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={cn(
-                        "size-2 rounded-full shrink-0",
-                        provider.status === "online" ? "bg-emerald-500 shadow-[0_0_8px_#10B981]" : "bg-amber-500 shadow-[0_0_8px_#F59E0B]"
-                      )} />
-                      <div className="min-w-0">
-                        <p className="text-[12px] font-black text-foreground truncate">{provider.name}</p>
-                        <p className="text-[9px] font-bold text-muted-foreground/60 uppercase truncate">{provider.type}</p>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-[11px] font-black text-foreground">{provider.latency}</p>
-                      <p className="text-[8px] font-bold text-muted-foreground/40 uppercase">{provider.uptime}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-center text-[8px] font-black uppercase text-muted-foreground/40">
-                      <span>API Load</span>
-                      <span>{provider.load}%</span>
-                    </div>
-                    <div className="h-1 w-full bg-muted/20 rounded-full overflow-hidden">
-                      <div 
-                        className={cn(
-                          "h-full rounded-full transition-all duration-1000",
-                          provider.load > 60 ? "bg-amber-500" : "bg-primary"
-                        )} 
-                        style={{ width: `${provider.load}%` }} 
-                      />
-                    </div>
-                  </div>
+                  {/* ... provider logic ... */}
                 </div>
-              ))}
-            </div>
+              )) : (
+                <div className="col-span-full">
+                  <EmptyState 
+                    compact
+                    title="No connectivity logs"
+                    description="Real-time provider latency and uptime logs will appear here."
+                  />
+                </div>
+              )}
+            </DashboardGrid>
           </SettingsCard>
 
           {/* Integrated Bottom Audit & Governance Section */}
@@ -172,30 +130,17 @@ export default function SettingsOverview() {
               </div>
 
               <div className="space-y-5">
-                {[
-                  { user: "Sarah K.", action: "Updated KYC Policy v2.4", time: "2m ago", type: "compliance", icon: ShieldCheck },
-                  { user: "Mick J.", action: "Revoked API Key: Flutter-Prod", time: "45m ago", type: "security", icon: LockIcon },
-                  { user: "System", action: "Automatic Backup Complete", time: "2h ago", type: "ops", icon: RefreshCcw },
-                  { user: "Admin", action: "Login: Lagos, Nigeria", time: "4h ago", type: "admin", icon: Eye },
-                ].map((log, i) => (
+                {([] as any[]).length > 0 ? ([] as any[]).map((log: any, i: number) => (
                   <div key={i} className="flex items-center justify-between group cursor-pointer hover:translate-x-1 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className={cn(
-                        "size-8 rounded-lg flex items-center justify-center border",
-                        log.type === "security" ? "bg-red-500/5 border-red-500/10 text-red-500" : 
-                        log.type === "compliance" ? "bg-primary/5 border-primary/10 text-primary" : 
-                        "bg-muted/5 border-border/10 text-muted-foreground"
-                      )}>
-                        <log.icon size={14} />
-                      </div>
-                      <div>
-                        <p className="text-[12px] font-black text-foreground tracking-tight">{log.user}</p>
-                        <p className="text-[10px] font-medium text-muted-foreground">{log.action}</p>
-                      </div>
-                    </div>
-                    <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">{log.time}</span>
+                    {/* ... log logic ... */}
                   </div>
-                ))}
+                )) : (
+                   <EmptyState 
+                    compact
+                    title="No recent activity"
+                    description="Live operational trails will appear here."
+                   />
+                )}
               </div>
             </div>
 
@@ -219,9 +164,9 @@ export default function SettingsOverview() {
                   </div>
                   <div className="space-y-4">
                     {[
-                      { label: "Identity Control", score: 100, color: "bg-emerald-500" },
-                      { label: "Network Shield", score: 92, color: "bg-primary" },
-                      { label: "Data Encryption", score: 100, color: "bg-emerald-500" },
+                      { label: "Identity Control", score: 0, color: "bg-muted" },
+                      { label: "Network Shield", score: 0, color: "bg-muted" },
+                      { label: "Data Encryption", score: 0, color: "bg-muted" },
                     ].map((item, i) => (
                       <div key={i} className="space-y-1.5">
                         <div className="flex justify-between items-center text-[11px] font-bold">
@@ -242,11 +187,7 @@ export default function SettingsOverview() {
                     <div className="size-1.5 bg-amber-500 rounded-full animate-pulse" />
                   </div>
                   <div className="space-y-3">
-                    {[
-                      { id: "REV-9021", type: "Treasury", time: "14m" },
-                      { id: "LIM-4402", type: "Threshold", time: "1h" },
-                      { id: "ADM-1120", type: "Onboarding", time: "3h" },
-                    ].map((req, i) => (
+                    {([] as any[]).length > 0 ? ([] as any[]).map((req: any, i: number) => (
                       <div key={i} className="flex items-center justify-between p-2.5 bg-secondary/20 rounded-xl hover:bg-secondary/40 transition-all cursor-pointer group">
                         <div className="min-w-0">
                           <p className="text-[11px] font-black text-foreground">{req.id}</p>
@@ -254,7 +195,11 @@ export default function SettingsOverview() {
                         </div>
                         <span className="text-[9px] font-black text-muted-foreground/40 uppercase">{req.time}</span>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="py-8 text-center opacity-30">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Queue Empty</p>
+                      </div>
+                    )}
                     <button 
                       onClick={() => setIsGovernanceModalOpen(true)}
                       className="w-full py-2 bg-primary text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-primary/90 transition-all"
@@ -300,11 +245,7 @@ export default function SettingsOverview() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-8 no-scrollbar space-y-4">
-                {[
-                  { id: "REV-9021", type: "Treasury Allocation", requester: "Mick J.", desc: "Approval for ₦25M liquidity move to main float.", priority: "High" },
-                  { id: "LIM-4402", type: "Threshold Change", requester: "Sarah K.", desc: "Increase daily withdrawal limit for Tier 3 from ₦5M to ₦10M.", priority: "Medium" },
-                  { id: "ADM-1120", type: "Admin Onboarding", requester: "System", desc: "Grant 'Compliance Auditor' role to new user USR-842.", priority: "Low" },
-                ].map((req, i) => (
+                {([] as any[]).length > 0 ? ([] as any[]).map((req: any, i: number) => (
                   <div key={i} className="p-6 bg-secondary/20 border border-border/10 rounded-3xl space-y-4 group hover:border-primary/30 transition-all">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
@@ -336,11 +277,15 @@ export default function SettingsOverview() {
                       </Button>
                     </div>
                   </div>
-                ))}
+                )) : (
+                   <div className="py-20 text-center">
+                      <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground opacity-30">Governance queue is clear</p>
+                   </div>
+                )}
               </div>
 
               <div className="p-8 border-t border-border/10 bg-secondary/5 flex items-center justify-between">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">3 Items Pending Review</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">0 Items Pending Review</p>
                 <div className="flex items-center gap-1">
                   <div className="size-2 bg-emerald-500 rounded-full" />
                   <span className="text-[10px] font-black text-foreground uppercase tracking-widest">All Services Syncing</span>

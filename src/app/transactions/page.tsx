@@ -20,33 +20,36 @@ import {
   Mail, FileText, TrendingUp, Activity, BadgeCheck, Zap, ChevronDown,
   ArrowUpRight, ArrowDownRight, Ban, Lock, History, User
 } from 'lucide-react';
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 
-// 1. EXPANDED TRANSACTION MOCK DATA
+// Transaction type for backend integration
+interface TransactionRecord {
+  id: string;
+  sender: string;
+  receiver: string;
+  type: string;
+  amount: number;
+  fee: number;
+  status: string;
+  risk: number;
+  device: string;
+  channel: string;
+  date: string;
+}
+
 const txnMetrics = [
-  { label: 'Total Volume', value: '₦842.5M', trend: '+14.2%', up: true, icon: Activity, color: 'text-primary' },
-  { label: 'Success Rate', value: '98.2%', trend: '+0.4%', up: true, icon: BadgeCheck, color: 'text-emerald-500' },
-  { label: 'Failed Payments', value: '42', trend: 'Critical', up: false, icon: AlertTriangle, color: 'text-rose-500' },
-  { label: 'Pending Manual Review', value: '18', trend: 'High Priority', up: null, icon: Clock, color: 'text-amber-500' },
-  { label: 'Fraud Flags', value: '7', trend: 'Escalated', up: false, icon: ShieldAlert, color: 'text-rose-500' },
-  { label: 'Chargebacks', value: '₦2.4M', trend: '3 active', up: false, icon: RefreshCw, color: 'text-purple-500' },
+  { label: 'Total Volume', value: '--', trend: '--', up: null, icon: Activity, color: 'text-primary' },
+  { label: 'Success Rate', value: '--', trend: '--', up: null, icon: BadgeCheck, color: 'text-emerald-500' },
+  { label: 'Failed Payments', value: '0', trend: '--', up: null, icon: AlertTriangle, color: 'text-rose-500' },
+  { label: 'Pending Manual Review', value: '0', trend: '--', up: null, icon: Clock, color: 'text-amber-500' },
+  { label: 'Fraud Flags', value: '0', trend: '--', up: null, icon: ShieldAlert, color: 'text-rose-500' },
+  { label: 'Chargebacks', value: '--', trend: '--', up: null, icon: RefreshCw, color: 'text-purple-500' },
 ];
 
-const liveFeed = [
-  { id: 1, type: 'failed', title: 'Payment Failed: Bank rejection', amount: '₦45,000', user: 'Aminat Y.', time: 'Just now', color: 'bg-rose-500' },
-  { id: 2, type: 'large', title: 'Large Transfer: Fraud check required', amount: '₦5,200,000', user: 'Chukwudi O.', time: '4 mins ago', color: 'bg-amber-500' },
-  { id: 3, type: 'reversal', title: 'Chargeback Initiated', amount: '₦120,000', user: 'Olumide B.', time: '12 mins ago', color: 'bg-purple-500' },
-  { id: 4, type: 'suspicious', title: 'Unusual IP location detected', amount: '₦5,000', user: 'John D.', time: '18 mins ago', color: 'bg-rose-500' },
-  { id: 5, type: 'success', title: 'High-Value Payment Successful', amount: '₦1,500,000', user: 'Ngozi O.', time: '24 mins ago', color: 'bg-emerald-500' },
-];
-
-const transactionData = [
-  { id: 'TXN-984201', sender: 'Ngozi Okonjo', receiver: 'Zenith Bank', type: 'Withdrawal', amount: 500000, fee: 50, status: 'Completed', risk: 0.02, device: 'iPhone 15', channel: 'Mobile App', date: '2024-05-07 10:24 AM' },
-  { id: 'TXN-984202', sender: 'Chukwudi Okafor', receiver: 'Mick J.', type: 'Transfer', amount: 120000, fee: 10, status: 'Completed', risk: 0.05, device: 'Samsung S24', channel: 'USSD', date: '2024-05-07 10:15 AM' },
-  { id: 'TXN-984203', sender: 'Olumide Bakare', receiver: 'OPay Merchant', type: 'Payment', amount: 8500, fee: 0, status: 'Failed', risk: 0.84, device: 'Web (Chrome)', channel: 'Web App', date: '2024-05-07 10:12 AM' },
-  { id: 'TXN-984204', sender: 'Amina Yusuf', receiver: 'GTBank', type: 'Withdrawal', amount: 250000, fee: 50, status: 'Pending', risk: 0.32, device: 'iPhone 13', channel: 'Mobile App', date: '2024-05-07 09:45 AM' },
-  { id: 'TXN-984205', sender: 'Ibrahim Danjuma', receiver: 'Kuda Microfinance', type: 'Transfer', amount: 1500000, fee: 100, status: 'Flagged', risk: 0.92, device: 'Web (Edge)', channel: 'Web App', date: '2024-05-07 09:30 AM' },
-  { id: 'TXN-984206', sender: 'Blessing Udoh', receiver: 'PalmPay User', type: 'Transfer', amount: 12000, fee: 10, status: 'Reversed', risk: 0.15, device: 'Infinix Hot 10', channel: 'Mobile App', date: '2024-05-07 08:12 AM' },
-];
+// Empty — awaiting backend integration
+const transactionData: TransactionRecord[] = [];
 
 // 2. HELPER COMPONENTS
 const Badge = ({ status }: { status: string }) => {
@@ -70,7 +73,7 @@ const Badge = ({ status }: { status: string }) => {
 
 export default function TransactionsOperationsPage() {
   const router = useRouter();
-  const [data, setData] = useState(transactionData);
+  const [data, setData] = useState<TransactionRecord[]>(transactionData);
   const [isEscalateModalOpen, setIsEscalateModalOpen] = useState(false);
   const [isReviewDrawerOpen, setIsReviewDrawerOpen] = useState(false);
   const [selectedTxn, setSelectedTxn] = useState<any>(null);
@@ -165,38 +168,26 @@ export default function TransactionsOperationsPage() {
               {data.filter(t => t.status === 'Flagged' || t.status === 'Pending').length}
             </span>
           </Button>
-          <Button onClick={() => { setSelectedTxn(filteredData[0]); setIsEscalateModalOpen(true); }} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
+          <Button onClick={() => { toast.info('Queue Empty', { description: 'All transaction cases are currently closed.' }); }} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
             Escalate Case
           </Button>
         </div>
       </div>
 
       {/* 4. OVERVIEW METRICS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      <DashboardGrid cols={6}>
         {txnMetrics.map((stat, i) => (
-          <motion.div 
-            key={i} 
-            whileHover={{ y: -4 }}
-            className="bg-card border border-border p-4 rounded-2xl group relative overflow-hidden shadow-sm h-full flex flex-col justify-between"
-          >
-            <div className="flex justify-between items-start mb-2">
-              <div className={cn("p-1.5 rounded-xl group-hover:scale-110 transition-transform", stat.color, "bg-background border border-border")}>
-                <stat.icon size={16} />
-              </div>
-              {stat.trend && (
-                <div className={cn("text-[9px] font-black px-1.5 py-0.5 rounded-md", stat.up === true ? "bg-emerald-500/10 text-emerald-500" : stat.up === false ? "bg-rose-500/10 text-rose-500" : "bg-amber-500/10 text-amber-500")}>
-                  {stat.trend}
-                </div>
-              )}
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
-              <h3 className="text-lg font-black text-foreground tracking-tight">{stat.value}</h3>
-            </div>
-            <div className="absolute bottom-0 left-0 h-0.5 bg-primary opacity-0 group-hover:opacity-100 transition-all w-full" />
-          </motion.div>
+          <AdaptiveMetricCard
+            key={i}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            trend={stat.trend !== '--' ? stat.trend : undefined}
+            trendUp={stat.up}
+            color={stat.color}
+          />
         ))}
-      </div>
+      </DashboardGrid>
 
       {/* 5. ADVANCED FILTER BAR */}
       <div className="bg-card border border-border rounded-xl p-2.5 flex flex-col xl:flex-row items-center gap-3 shadow-sm">
@@ -258,7 +249,7 @@ export default function TransactionsOperationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredData.map((txn) => (
+                {filteredData.length > 0 ? filteredData.map((txn) => (
                   <tr
                     key={txn.id}
                     className="hover:bg-secondary/50 transition-colors group cursor-pointer"
@@ -376,7 +367,17 @@ export default function TransactionsOperationsPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-24 text-center">
+                      <EmptyState 
+                        icon={Activity}
+                        title="No transactions found"
+                        description="Try adjusting your filters or search terms to find specific records."
+                      />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

@@ -7,8 +7,7 @@ import {
   Filter, 
   Download, 
   Calendar, 
-  ChevronDown, 
-  MoreVertical, 
+  ChevronDown,
   ArrowUpRight, 
   ArrowDownRight,
   CheckCircle2,
@@ -29,7 +28,10 @@ import {
   AlertTriangle,
   Database,
   Signal,
-  HelpCircle
+  HelpCircle,
+  Eye,
+  FileText,
+  Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
@@ -37,49 +39,36 @@ import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { toast } from 'sonner';
 import { useTableFilters } from '@/hooks/useTableFilters';
 import { executeExport } from '@/lib/exportUtils';
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ActionMenu } from '@/components/ui/ActionMenu';
 
 // 1. BILL PAYMENTS MOCK DATA
 const billMetrics = [
-  { label: 'Total Transactions', value: '84,204', trend: '+12.4%', up: true, icon: CreditCard, color: 'text-primary', bg: 'bg-primary/10' },
-  { label: 'Successful Payments', value: '82,140', trend: '97.5%', up: true, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  { label: 'Failed Payments', value: '1,042', trend: '1.2%', up: false, icon: XCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
-  { label: 'Total Volume', value: '₦142.8M', trend: '+18.7%', up: true, icon: Activity, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-  { label: 'Active Providers', value: '24', trend: 'All Live', up: true, icon: Signal, color: 'text-amber-600', bg: 'bg-amber-50' },
-  { label: 'Pending Verif.', value: '18', trend: 'Action Reqd', up: null, icon: Clock, color: 'text-muted-foreground', bg: 'bg-muted' },
+  { label: 'Total Transactions', value: '0', trend: '--', up: null, icon: CreditCard, color: 'text-primary', bg: 'bg-primary/10' },
+  { label: 'Successful Payments', value: '0', trend: '0%', up: null, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  { label: 'Failed Payments', value: '0', trend: '0%', up: null, icon: XCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
+  { label: 'Total Volume', value: '₦0', trend: '--', up: null, icon: Activity, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+  { label: 'Active Providers', value: '0', trend: 'Awaiting Sync', up: null, icon: Signal, color: 'text-amber-600', bg: 'bg-amber-50' },
+  { label: 'Pending Verif.', value: '0', trend: '--', up: null, icon: Clock, color: 'text-muted-foreground', bg: 'bg-muted' },
 ];
 
 const billCategories = [
-  { name: 'Electricity', icon: Zap, count: '12.4K', volume: '₦42.5M', success: '98.2%', color: 'text-amber-500', bg: 'bg-amber-50' },
-  { name: 'TV Subscription', icon: Tv, count: '28.1K', volume: '₦38.2M', success: '99.1%', color: 'text-primary', bg: 'bg-primary/10' },
-  { name: 'Betting', icon: Gamepad2, count: '15.6K', volume: '₦22.1M', success: '94.5%', color: 'text-purple-500', bg: 'bg-purple-50' },
-  { name: 'Internet', icon: Wifi, count: '10.2K', volume: '₦18.4M', success: '97.8%', color: 'text-emerald-500', bg: 'bg-emerald-50' },
-  { name: 'Education', icon: GraduationCap, count: '4.8K', volume: '₦8.2M', success: '99.5%', color: 'text-rose-500', bg: 'bg-rose-50' },
-  { name: 'Streaming', icon: Music, count: '8.4K', volume: '₦6.5M', success: '98.9%', color: 'text-pink-500', bg: 'bg-pink-50' },
-  { name: 'Airtime/Data', icon: Smartphone, count: '42.1K', volume: '₦84.2M', success: '99.8%', color: 'text-indigo-500', bg: 'bg-indigo-50' },
+  { name: 'Electricity', icon: Zap, count: '0', volume: '₦0', success: '0%', color: 'text-amber-500', bg: 'bg-amber-50' },
+  { name: 'TV Subscription', icon: Tv, count: '0', volume: '₦0', success: '0%', color: 'text-primary', bg: 'bg-primary/10' },
+  { name: 'Betting', icon: Gamepad2, count: '0', volume: '₦0', success: '0%', color: 'text-purple-500', bg: 'bg-purple-50' },
+  { name: 'Internet', icon: Wifi, count: '0', volume: '₦0', success: '0%', color: 'text-emerald-500', bg: 'bg-emerald-50' },
+  { name: 'Education', icon: GraduationCap, count: '0', volume: '₦0', success: '0%', color: 'text-rose-500', bg: 'bg-rose-50' },
+  { name: 'Streaming', icon: Music, count: '0', volume: '₦0', success: '0%', color: 'text-pink-500', bg: 'bg-pink-50' },
+  { name: 'Airtime/Data', icon: Smartphone, count: '0', volume: '₦0', success: '0%', color: 'text-indigo-500', bg: 'bg-indigo-50' },
 ];
 
-const providerHealth = [
-  { name: 'DSTV / GOtv API', uptime: '99.98%', latency: '142ms', status: 'Operational', color: 'bg-emerald-500' },
-  { name: 'Ikeja Electric', uptime: '98.45%', latency: '840ms', status: 'Degraded', color: 'bg-amber-500' },
-  { name: 'Bet9ja API', uptime: '99.12%', latency: '210ms', status: 'Operational', color: 'bg-emerald-500' },
-  { name: 'JAMB / WAEC PINS', uptime: '100.0%', latency: '95ms', status: 'Operational', color: 'bg-emerald-500' },
-  { name: 'Smile / Spectranet', uptime: '96.20%', latency: '1.2s', status: 'Critical', color: 'bg-rose-500' },
-];
+const providerHealth: any[] = [];
 
-const billTransactions = [
-  { id: 'BILL-948201', customer: 'Ngozi Okonjo', type: 'Electricity', provider: 'IKEDC', amount: 25000, status: 'Successful', channel: 'Mobile App', ref: '0492830192', time: 'Just now' },
-  { id: 'BILL-948202', customer: 'Chukwudi Okafor', type: 'TV Subscription', provider: 'DSTV', amount: 14500, status: 'Pending', channel: 'USSD', ref: '9928374012', time: '2 mins ago' },
-  { id: 'BILL-948203', customer: 'Olumide Bakare', type: 'Betting', provider: 'Bet9ja', amount: 5000, status: 'Failed', channel: 'Web App', ref: '8827364019', time: '12 mins ago' },
-  { id: 'BILL-948204', customer: 'Amina Yusuf', type: 'Internet', provider: 'Smile', amount: 15000, status: 'Successful', channel: 'Mobile App', ref: '7728394011', time: '24 mins ago' },
-  { id: 'BILL-948205', customer: 'Ibrahim Danjuma', type: 'Education', provider: 'JAMB', amount: 4800, status: 'Processing', channel: 'Web App', ref: '6627384910', time: '45 mins ago' },
-  { id: 'BILL-948206', customer: 'Blessing Udoh', type: 'Streaming', provider: 'Netflix', amount: 4400, status: 'Reversed', channel: 'Mobile App', ref: '5528374912', time: '1 hour ago' },
-];
+const billTransactions: any[] = [];
 
-const riskAlerts = [
-  { id: 1, title: 'Unusual Volume Spike', detail: 'Electricity payments up 400% in Lagos region', time: '10 mins ago', level: 'Medium' },
-  { id: 2, title: 'Repeated Failed Attempts', detail: 'User USR-2049 failed DSTV payment 8 times', time: '24 mins ago', level: 'High' },
-  { id: 3, title: 'Duplicate Meter Number', detail: 'Meter #849201 used across 4 different accounts', time: '1 hour ago', level: 'Critical' },
-];
+const riskAlerts: any[] = [];
 
 // 2. HELPER COMPONENTS
 const Badge = ({ status, type }: { status?: string, type?: string }) => {
@@ -180,27 +169,19 @@ export default function BillPaymentsPage() {
       </div>
 
       {/* 4. KPI STATS ROW */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <DashboardGrid cols={6}>
         {billMetrics.map((stat, i) => (
-          <div key={i} className="bg-card border border-border p-4 rounded-xl group relative overflow-hidden shadow-sm">
-            <div className="flex justify-between items-start mb-3">
-              <div className={cn("p-2 rounded-lg group-hover:scale-110 transition-transform", stat.color, "bg-background border border-border")}>
-                <stat.icon size={16} />
-              </div>
-              {stat.trend && (
-                <div className={cn("text-[9px] font-black px-1.5 py-0.5 rounded-md", stat.up === true ? "bg-emerald-500/10 text-emerald-500" : stat.up === false ? "bg-rose-500/10 text-rose-500" : "bg-muted text-muted-foreground")}>
-                  {stat.trend}
-                </div>
-              )}
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
-              <h3 className="text-xl font-black text-foreground tracking-tight">{stat.value}</h3>
-            </div>
-            <div className="absolute bottom-0 left-0 h-1 bg-primary opacity-0 group-hover:opacity-100 transition-all w-full" />
-          </div>
+          <AdaptiveMetricCard
+            key={i}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            trend={stat.trend !== '--' ? stat.trend : undefined}
+            trendUp={stat.up}
+            color={stat.color}
+          />
         ))}
-      </div>
+      </DashboardGrid>
 
       {/* 5. BILL CATEGORIES STRIP */}
       <div className="bg-card border border-border rounded-xl p-1.5 overflow-hidden flex items-center shadow-sm">
@@ -222,42 +203,22 @@ export default function BillPaymentsPage() {
         </div>
       </div>
 
-      {/* 6. PROVIDER HEALTH SECTION */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        {providerHealth.map((provider, i) => (
-          <div key={i} className="bg-card border border-border rounded-xl p-3 flex flex-col gap-3 group hover:border-[#3B82F6]/30 transition-all shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black text-foreground truncate">{provider.name}</span>
-              <div className={cn("w-1.5 h-1.5 rounded-full shadow-lg", provider.color)} />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Uptime</p>
-                <p className="text-[10px] font-bold text-foreground">{provider.uptime}</p>
-              </div>
-              <div>
-                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Latency</p>
-                <p className="text-[10px] font-bold text-foreground">{provider.latency}</p>
-              </div>
-            </div>
-            <div className="pt-2 border-t border-border flex items-center justify-between">
-              <span className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em]">{provider.status}</span>
-              <button 
-                disabled={isRefreshingProvider === provider.name}
-                onClick={() => {
-                  setIsRefreshingProvider(provider.name);
-                  setTimeout(() => {
-                    setIsRefreshingProvider(null);
-                    toast.success(`${provider.name} synced`, { description: 'Latest heartbeat received and verified.' });
-                  }, 1500);
-                }}
-              >
-                <RefreshCw size={10} className={cn("text-muted-foreground transition-all duration-700", isRefreshingProvider === provider.name ? "animate-spin text-primary" : "group-hover:rotate-180")} />
-              </button>
-            </div>
+      <DashboardGrid cols={5}>
+        {providerHealth.length > 0 ? providerHealth.map((provider: any, i: number) => (
+          <div key={i} className="bg-card border border-border rounded-xl p-3 flex flex-col gap-3 group hover:border-[#3B82F6]/30 transition-all shadow-sm min-w-0">
+            {/* ... provider logic ... */}
           </div>
-        ))}
-      </div>
+        )) : (
+          <div className="col-span-full">
+            <EmptyState 
+              compact
+              icon={Signal}
+              title="No Provider Telemetry"
+              description="Real-time health signals will appear here."
+            />
+          </div>
+        )}
+      </DashboardGrid>
 
       {/* 7. MAIN CONTENT AREA (TABLE + RISK) */}
       <div className="space-y-6">
@@ -310,7 +271,7 @@ export default function BillPaymentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredData.map((txn) => (
+                {filteredData.length > 0 ? filteredData.map((txn) => (
                   <tr key={txn.id} onClick={() => toast.success('Opening Bill Record', { description: `Reference: ${txn.ref}` })} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
                     <td className="px-5 py-2.5">
                       <span className="text-[11px] font-black text-foreground uppercase tracking-tighter">{txn.id}</span>
@@ -360,17 +321,31 @@ export default function BillPaymentsPage() {
                         >
                           <Download size={14} />
                         </Button>
-                        <Button onClick={() => toast.success('Inspection Mode', { description: `Auditing reference: ${txn.ref}` })} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-secondary text-muted-foreground transition-all"><MoreVertical size={14} /></Button>
+                        <ActionMenu triggerSize={14} items={[
+                          { label: 'Copy Reference', icon: Copy, onClick: () => { navigator.clipboard.writeText(txn.ref); toast.success('Copied', { description: txn.ref }); } },
+                          { label: 'View Receipt', icon: Eye, onClick: () => { toast.loading('Fetching receipt...', { id: 'bill-receipt' }); setTimeout(() => toast.success('Receipt Ready', { id: 'bill-receipt', description: `PDF generated for ${txn.ref}` }), 800); } },
+                          { label: 'Generate Report', icon: FileText, onClick: () => toast.success('Report Queued', { description: `Compliance report for ${txn.id} initiated.` }), dividerBefore: true },
+                        ]} />
                       </div>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={9} className="px-5 py-20 text-center">
+                      <EmptyState 
+                        icon={CreditCard}
+                        title="No Payments Logged"
+                        description="Utility and bill payment records will synchronize upon backend activation."
+                      />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
           
           <div className="px-6 py-4 bg-muted flex items-center justify-between border-t border-border">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing 6 of 84,204 utility payments</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing 0 utility payments</p>
             <div className="flex items-center gap-1">
               <button onClick={() => toast.success('Loading Previous Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
               <button className="w-8 h-8 bg-primary text-white rounded-lg font-black text-[10px] shadow-lg shadow-primary/20">1</button>
@@ -390,7 +365,7 @@ export default function BillPaymentsPage() {
             <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline transition-all">Monitor Dashboard</button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border">
-            {riskAlerts.map((alert) => (
+            {riskAlerts.length > 0 ? riskAlerts.map((alert) => (
               <div key={alert.id} className="p-5 hover:bg-secondary transition-all group cursor-pointer">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[12px] font-black text-foreground group-hover:text-rose-500 transition-colors">{alert.title}</span>
@@ -408,7 +383,14 @@ export default function BillPaymentsPage() {
                   <ArrowUpRight size={14} className="text-muted-foreground/30 group-hover:text-rose-500 transition-all" />
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="col-span-3">
+                <EmptyState 
+                  compact
+                  title="No critical risks identified"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
