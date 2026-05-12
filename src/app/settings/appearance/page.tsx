@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
+import { toast } from 'sonner';
 
 const themes = [
   { id: 'light', name: 'Standard Light', icon: Sun, color: 'bg-white' },
@@ -86,7 +87,7 @@ export default function AppearanceSettings() {
                 description="Reduce padding and text size to show more data at once."
                 icon={Layers}
               >
-                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Compact Mode Active' : 'Standard Spacing Restored', 'Re-adjusting interface density...')} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => toast.success(checked ? 'Compact Mode Active' : 'Standard Spacing Restored', { description: 'Re-adjusting interface density...' })} />
               </SettingsField>
 
               <SettingsField 
@@ -94,7 +95,7 @@ export default function AppearanceSettings() {
                 description="Keep the navigation sidebar collapsed for a more focused workspace."
                 icon={ChevronRight}
               >
-                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Collapsed Navigation' : 'Expanded Navigation', 'Updating sidebar persistence behavior...')} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => toast.success(checked ? 'Collapsed Navigation' : 'Expanded Navigation', { description: 'Updating sidebar persistence behavior...' })} />
               </SettingsField>
 
               <SettingsField 
@@ -102,7 +103,7 @@ export default function AppearanceSettings() {
                 description="Toggle charts and graphical indicators across dashboard views."
                 icon={Zap}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Charts Enabled' : 'Charts Hidden', 'Updating dashboard rendering engine...')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Charts Enabled' : 'Charts Hidden', { description: 'Updating dashboard rendering engine...' })} />
               </SettingsField>
             </div>
           </SettingsCard>
@@ -119,7 +120,7 @@ export default function AppearanceSettings() {
                 description="Disable all non-essential UI animations and transitions."
                 icon={Monitor}
               >
-                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Motion Reduced' : 'Motion Enabled', 'Updating accessibility preferences...')} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => toast.success(checked ? 'Motion Reduced' : 'Motion Enabled', { description: 'Updating accessibility preferences...' })} />
               </SettingsField>
 
               <SettingsField 
@@ -127,7 +128,7 @@ export default function AppearanceSettings() {
                 description="Enable frosted glass and backdrop blur effects on surfaces."
                 icon={Layers}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Blur Effects Enabled' : 'Blur Effects Disabled', 'Updating visual depth settings...')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Blur Effects Enabled' : 'Blur Effects Disabled', { description: 'Updating visual depth settings...' })} />
               </SettingsField>
 
               <SettingsField 
@@ -135,7 +136,7 @@ export default function AppearanceSettings() {
                 description="Show glowing indicators on active elements and cards."
                 icon={Sparkles}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Glow Effects Enabled' : 'Glow Effects Disabled', 'Updating premium aesthetic filters...')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Glow Effects Enabled' : 'Glow Effects Disabled', { description: 'Updating premium aesthetic filters...' })} />
               </SettingsField>
             </div>
           </SettingsCard>
@@ -159,7 +160,7 @@ export default function AppearanceSettings() {
                   <p className="text-[14px] font-mono font-bold text-foreground">JetBrains Mono</p>
                 </div>
               </div>
-              <Button onClick={() => toastActions.showActionToast('Font Manager', 'Opening typography and weight distribution panel...')} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
+              <Button onClick={() => toast.success('Font Manager', { description: 'Opening typography and weight distribution panel...' })} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
                 Manage Font Weights
               </Button>
             </div>
@@ -177,7 +178,7 @@ export default function AppearanceSettings() {
              </div>
 
              <div className="space-y-4 relative z-10">
-                <button onClick={() => toastActions.showActionToast('Interaction Active', 'Micro-interaction feedback triggered successfully.')} className="w-full py-3 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                <button onClick={() => toast.success('Interaction Active', { description: 'Micro-interaction feedback triggered successfully.' })} className="w-full py-3 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                   Hover Me
                 </button>
                 <div className="flex gap-3">

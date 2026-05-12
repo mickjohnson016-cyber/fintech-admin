@@ -32,7 +32,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { toastActions } from '@/lib/toastActions';
+import { toast } from 'sonner';
 import { useTableFilters } from '@/hooks/useTableFilters';
 import { useRouter } from 'next/navigation';
 
@@ -190,13 +190,13 @@ export default function SavingsOperationsPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => toastActions.triggerExport('CSV', 'SavingsLedger', filteredData)} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toast.success('Export CSV Initiated', { description: 'Generating Savings Ledger CSV...' })} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Download size={14} /> Export CSV
           </Button>
-          <Button onClick={() => toastActions.triggerExport('PDF', 'SavingsGrowthReport', filteredData)} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toast.success('Report Generation Initiated', { description: 'Generating Savings Growth Report (PDF)...' })} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <FileText size={14} /> Generate Report
           </Button>
-          <Button onClick={() => toastActions.showActionToast('Savings Policy Editor', 'Opening global savings rules and interest yield configuration...')} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
+          <Button onClick={() => toast.success('Savings Policy Editor', { description: 'Opening global savings rules and interest yield configuration...' })} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
             System Config
           </Button>
         </div>
@@ -348,7 +348,7 @@ export default function SavingsOperationsPage() {
                         <Badge status={plan.status} />
                       </td>
                       <td className="px-4 py-2.5 text-right shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <Button onClick={() => toastActions.showActionToast('Savings Plan Details', `Inspecting account: ${plan.id}`)} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
+                        <Button onClick={() => toast.success('Savings Plan Details', { description: `Inspecting account: ${plan.id}` })} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
                       </td>
                     </tr>
                   );
@@ -360,10 +360,10 @@ export default function SavingsOperationsPage() {
           <div className="px-6 py-4 bg-muted flex items-center justify-between border-t border-border">
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing 5 of 142,402 savings plans</p>
             <div className="flex items-center gap-1">
-              <button onClick={() => toastActions.showActionToast('Loading Previous Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
+              <button onClick={() => toast.success('Loading Previous Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
               <button className="w-8 h-8 bg-primary text-white rounded-lg font-black text-[10px]">1</button>
-              <button onClick={() => toastActions.showActionToast('Loading Page 2')} className="w-8 h-8 bg-card border border-border text-muted-foreground rounded-lg font-black text-[10px] hover:bg-secondary transition-all">2</button>
-              <button onClick={() => toastActions.showActionToast('Loading Next Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Next</button>
+              <button onClick={() => toast.success('Loading Page 2')} className="w-8 h-8 bg-card border border-border text-muted-foreground rounded-lg font-black text-[10px] hover:bg-secondary transition-all">2</button>
+              <button onClick={() => toast.success('Loading Next Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Next</button>
             </div>
           </div>
         </div>

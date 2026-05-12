@@ -44,8 +44,8 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { exportUserStatement } from '@/lib/exportUserStatement';
+import { executeExport } from '@/lib/exportUtils';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { toastActions } from '@/lib/toastActions';
 import { useTableFilters } from '@/hooks/useTableFilters';
 import { useRouter } from 'next/navigation';
 
@@ -203,10 +203,14 @@ export default function UsersPage() {
           <p className="text-[13px] font-medium text-muted-foreground">Manage platform users, investigate risk levels, and govern retail accounts.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button onClick={() => toastActions.triggerExport('CSV', 'customer-directory-2026', users)} variant="outline" className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest bg-card border-border/40 hover:bg-secondary flex items-center gap-2">
+          <Button 
+            onClick={() => executeExport({ fileName: 'CustomerDirectory', data: users, format: 'CSV' })}
+            variant="outline" 
+            className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest bg-card border-border/40 hover:bg-secondary flex items-center gap-2"
+          >
             <Download size={14} /> Export Report
           </Button>
-          <Button onClick={() => toastActions.showActionToast('Onboarding Wizard', 'Initializing new account creation flow...')} className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20 flex items-center gap-2">
+          <Button onClick={() => toast.success('Onboarding Wizard', { description: 'Initializing new account creation flow...' })} className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20 flex items-center gap-2">
             <Plus size={14} /> New Manual Account
           </Button>
         </div>
@@ -273,7 +277,7 @@ export default function UsersPage() {
             <option value="Frozen">Frozen</option>
             <option value="Limited">Limited</option>
           </select>
-          <Button onClick={() => toastActions.showActionToast('Filter Suite', 'Applying advanced behavioral segmenting...')} variant="ghost" className="h-9 w-9 p-0 rounded-xl border border-border/20 hover:bg-secondary">
+          <Button onClick={() => toast.success('Filter Suite', { description: 'Applying advanced behavioral segmenting...' })} variant="ghost" className="h-9 w-9 p-0 rounded-xl border border-border/20 hover:bg-secondary">
             <Filter size={14} className="text-muted-foreground" />
           </Button>
         </div>
@@ -392,7 +396,13 @@ export default function UsersPage() {
                     </div>
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <button className="p-2.5 text-muted-foreground hover:text-primary transition-all rounded-xl hover:bg-primary/5">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast.info("User Options", { description: `Opening management suite for ${user.id}` });
+                      }}
+                      className="p-2.5 text-muted-foreground hover:text-primary transition-all rounded-xl hover:bg-primary/5"
+                    >
                       <MoreVertical size={18} />
                     </button>
                   </td>
@@ -405,8 +415,8 @@ export default function UsersPage() {
         <div className="p-4 bg-secondary/5 border-t border-border/10 flex items-center justify-between px-8">
           <p className="text-[11px] font-bold text-muted-foreground uppercase">Showing 5 of 142,402 Customers</p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="h-9 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 opacity-50">Previous</Button>
-            <Button variant="outline" size="sm" className="h-9 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40">Next Page</Button>
+            <Button onClick={() => toast.info('Pagination', { description: 'Loading previous customer segment...' })} variant="outline" size="sm" className="h-9 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 opacity-50">Previous</Button>
+            <Button onClick={() => toast.info('Pagination', { description: 'Loading next customer segment...' })} variant="outline" size="sm" className="h-9 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40">Next Page</Button>
           </div>
         </div>
       </div>
@@ -576,15 +586,15 @@ export default function UsersPage() {
               {/* Action Toolbar */}
               <div className="p-8 border-t border-border/20 bg-secondary/10 grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Button onClick={() => toastActions.confirmAction('Freeze Account', () => toastActions.showActionToast('Account Frozen', `${selectedUser.name}'s wallet and cards have been suspended.`))} className="w-full h-12 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-red-500/20 flex items-center justify-center gap-2">
+                  <Button onClick={() => toast.error('Account Frozen', { description: `${selectedUser.name}'s wallet and cards have been suspended.` })} className="w-full h-12 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-red-500/20 flex items-center justify-center gap-2">
                     <LockIcon size={14} /> Freeze Account
                   </Button>
-                  <Button onClick={() => toastActions.confirmAction('Suspend Access', () => toastActions.showActionToast('Access Revoked', 'Administrative access revoked for this profile.'))} variant="outline" className="w-full h-12 border-red-500/20 text-red-500 hover:bg-red-500/5 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2">
+                  <Button onClick={() => toast.error('Access Revoked', { description: 'Administrative access revoked for this profile.' })} variant="outline" className="w-full h-12 border-red-500/20 text-red-500 hover:bg-red-500/5 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2">
                     <UserX size={14} /> Suspend Access
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  <Button onClick={() => toastActions.showActionToast('Tier Upgrade Initiated', 'Evaluating account for Tier 4 eligibility...')} className="w-full h-12 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
+                  <Button onClick={() => toast.success('Tier Upgrade Initiated', { description: 'Evaluating account for Tier 4 eligibility...' })} className="w-full h-12 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
                     <UserCheck size={14} /> Upgrade Tier
                   </Button>
                   <Button

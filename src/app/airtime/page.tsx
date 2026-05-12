@@ -19,8 +19,9 @@ import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { toastActions } from '@/lib/toastActions';
+import { toast } from 'sonner';
 import { useTableFilters } from '@/hooks/useTableFilters';
+import { executeExport } from '@/lib/exportUtils';
 
 // 1. EXPANDED TELECOM MOCK DATA
 const telecomMetrics = [
@@ -126,13 +127,18 @@ export default function TelecomOperationsPage() {
         </motion.div>
         
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => toastActions.triggerExport('CSV', 'TelecomRecharges')} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button 
+            onClick={() => executeExport({ fileName: 'TelecomRecharges', data: filteredData, format: 'CSV' })}
+            variant="outline" 
+            size="sm" 
+            className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground"
+          >
             <Download size={14} /> Export CSV
           </Button>
-          <Button onClick={() => toastActions.confirmAction('Retry All Failed', () => toastActions.showActionToast('Bulk Retry Initiated', '124 failed recharges have been queued for processing.'))} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toast.success('Bulk Retry Initiated', { description: '124 failed recharges have been queued for processing.' })} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <RefreshCw size={14} /> Retry Failed
           </Button>
-          <Button onClick={() => toastActions.showActionToast('Vendor Bridge', 'Connecting to real-time telecom gateway pool...')} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
+          <Button onClick={() => toast.success('Vendor Bridge', { description: 'Connecting to real-time telecom gateway pool...' })} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 transition-all border-none">
             Open Vendor Queue
           </Button>
         </motion.div>
@@ -215,7 +221,7 @@ export default function TelecomOperationsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button onClick={() => toastActions.confirmAction('Bulk Retry', () => toastActions.showActionToast('Retrying...', 'Resubmitting failed telecom transactions.'))} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/10 transition-all">Bulk Re-try</Button>
+              <Button onClick={() => toast.success('Bulk Retry Initiated', { description: 'Resubmitting failed telecom transactions.' })} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/10 transition-all">Bulk Re-try</Button>
             </div>
           </div>
           
@@ -235,7 +241,7 @@ export default function TelecomOperationsPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredData.map((txn) => (
-                  <tr key={txn.id} onClick={() => toastActions.showActionToast('Opening Audit Log', `Record: ${txn.id}`)} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
+                  <tr key={txn.id} onClick={() => toast.success('Opening Audit Log', { description: `Record: ${txn.id}` })} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] font-black font-mono text-primary truncate max-w-[100px]">{txn.id}</span>

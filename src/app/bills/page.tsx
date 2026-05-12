@@ -34,8 +34,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { toastActions } from '@/lib/toastActions';
+import { toast } from 'sonner';
 import { useTableFilters } from '@/hooks/useTableFilters';
+import { executeExport } from '@/lib/exportUtils';
 
 // 1. BILL PAYMENTS MOCK DATA
 const billMetrics = [
@@ -120,6 +121,9 @@ const Badge = ({ status, type }: { status?: string, type?: string }) => {
 export default function BillPaymentsPage() {
   const [activeTab, setActiveTab] = useState('All Payments');
   
+  const [selectedProvider, setSelectedProvider] = useState<any>(null);
+  const [isRefreshingProvider, setIsRefreshingProvider] = useState<string | null>(null);
+
   const {
     searchTerm,
     setSearchTerm,
@@ -156,15 +160,20 @@ export default function BillPaymentsPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
-          <div onClick={() => toastActions.showActionToast('Calendar Picker', 'Selecting billing operational window...')} className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
+          <div onClick={() => toast.success('Calendar Picker', { description: 'Selecting billing operational window...' })} className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
             <Calendar size={14} className="text-primary" />
             <span>MAY 7 - MAY 13</span>
             <ChevronDown size={12} />
           </div>
-          <Button onClick={() => toastActions.triggerExport('CSV', 'BillPaymentsLedger', filteredData)} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button 
+            onClick={() => executeExport({ fileName: 'BillPayments', data: filteredData, format: 'CSV' })}
+            variant="outline" 
+            size="sm" 
+            className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground"
+          >
             <Download size={14} /> Export CSV
           </Button>
-          <Button onClick={() => toastActions.showActionToast('Audit Logs', 'Opening global billing audit trail...')} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all border-none">
+          <Button onClick={() => toast.success('Audit Logs', { description: 'Opening global billing audit trail...' })} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all border-none">
             <BadgeCheck size={16} /> Audit Logs
           </Button>
         </div>
@@ -233,8 +242,17 @@ export default function BillPaymentsPage() {
             </div>
             <div className="pt-2 border-t border-border flex items-center justify-between">
               <span className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em]">{provider.status}</span>
-              <button onClick={() => toastActions.showActionToast(`Refreshing ${provider.name}...`)}>
-                <RefreshCw size={10} className="text-muted-foreground group-hover:rotate-180 transition-transform duration-700" />
+              <button 
+                disabled={isRefreshingProvider === provider.name}
+                onClick={() => {
+                  setIsRefreshingProvider(provider.name);
+                  setTimeout(() => {
+                    setIsRefreshingProvider(null);
+                    toast.success(`${provider.name} synced`, { description: 'Latest heartbeat received and verified.' });
+                  }, 1500);
+                }}
+              >
+                <RefreshCw size={10} className={cn("text-muted-foreground transition-all duration-700", isRefreshingProvider === provider.name ? "animate-spin text-primary" : "group-hover:rotate-180")} />
               </button>
             </div>
           </div>
@@ -293,7 +311,7 @@ export default function BillPaymentsPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredData.map((txn) => (
-                  <tr key={txn.id} onClick={() => toastActions.showActionToast('Opening Bill Record', `Reference: ${txn.ref}`)} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
+                  <tr key={txn.id} onClick={() => toast.success('Opening Bill Record', { description: `Reference: ${txn.ref}` })} className="hover:bg-secondary transition-colors group border-b border-border last:border-0 cursor-pointer">
                     <td className="px-5 py-2.5">
                       <span className="text-[11px] font-black text-foreground uppercase tracking-tighter">{txn.id}</span>
                     </td>
@@ -328,7 +346,22 @@ export default function BillPaymentsPage() {
                     </td>
                     <td className="px-5 py-2.5 text-right text-[10px] font-black text-muted-foreground uppercase tracking-tighter">{txn.time}</td>
                     <td className="px-5 py-2.5 text-right shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <Button onClick={() => toastActions.showActionToast('Bill Record Details', `Inspecting reference: ${txn.ref}`)} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button 
+                          onClick={() => {
+                            toast.loading('Fetching receipt...', { id: 'receipt-load' });
+                            setTimeout(() => {
+                              toast.success('Receipt Generated', { id: 'receipt-load', description: `Record ${txn.id} ready for download.` });
+                            }, 1000);
+                          }}
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
+                        >
+                          <Download size={14} />
+                        </Button>
+                        <Button onClick={() => toast.success('Inspection Mode', { description: `Auditing reference: ${txn.ref}` })} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-secondary text-muted-foreground transition-all"><MoreVertical size={14} /></Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -339,10 +372,10 @@ export default function BillPaymentsPage() {
           <div className="px-6 py-4 bg-muted flex items-center justify-between border-t border-border">
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing 6 of 84,204 utility payments</p>
             <div className="flex items-center gap-1">
-              <button onClick={() => toastActions.showActionToast('Loading Previous Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
+              <button onClick={() => toast.success('Loading Previous Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
               <button className="w-8 h-8 bg-primary text-white rounded-lg font-black text-[10px] shadow-lg shadow-primary/20">1</button>
-              <button onClick={() => toastActions.showActionToast('Loading Page 2')} className="w-8 h-8 bg-card border border-border text-muted-foreground rounded-lg font-black text-[10px] hover:bg-secondary transition-all">2</button>
-              <button onClick={() => toastActions.showActionToast('Loading Next Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Next</button>
+              <button onClick={() => toast.success('Loading Page 2')} className="w-8 h-8 bg-card border border-border text-muted-foreground rounded-lg font-black text-[10px] hover:bg-secondary transition-all">2</button>
+              <button onClick={() => toast.success('Loading Next Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Next</button>
             </div>
           </div>
         </div>

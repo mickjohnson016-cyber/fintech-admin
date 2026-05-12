@@ -25,13 +25,15 @@ import {
   UserX,
   History,
   CheckCircle2,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { toastActions } from '@/lib/toastActions';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RoleModal, InviteModal } from '@/components/settings/AdminModals';
+import { executeExport } from '@/lib/exportUtils';
 
 const roles = [
   { name: "Super Admin", count: 2, color: "bg-red-500", desc: "Full system access, all permissions." },
@@ -78,6 +80,13 @@ export default function AdminManagement() {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<any>(null);
+  
+  // Security & Governance states
+  const [governanceRole, setGovernanceRole] = useState("Super Admin");
+  const [autoRevokeEnabled, setAutoRevokeEnabled] = useState(true);
+  const [multiApprovalEnabled, setMultiApprovalEnabled] = useState(true);
+  const [regionalScopeEnabled, setRegionalScopeEnabled] = useState(false);
+  const [isAuditRunning, setIsAuditRunning] = useState(false);
 
   // Filtered Admins
   const filteredAdmins = useMemo(() => {
@@ -93,7 +102,7 @@ export default function AdminManagement() {
   const handleSaveRole = (data: any) => {
     if (selectedRole) {
       setRoleList(prev => prev.map(r => r.id === selectedRole.id ? { ...r, ...data } : r));
-      toastActions.showActionToast('Role Updated', `Configuration for "${data.name}" has been synchronized.`);
+      toast.success('Role Updated', { description: `Configuration for "${data.name}" has been synchronized.` });
     } else {
       const newRole = {
         ...data,
@@ -101,16 +110,14 @@ export default function AdminManagement() {
         count: 0
       };
       setRoleList(prev => [...prev, newRole]);
-      toastActions.showActionToast('Role Created', `New access scope "${data.name}" is now active.`);
+      toast.success('Role Created', { description: `New access scope "${data.name}" is now active.` });
     }
     setSelectedRole(null);
   };
 
   const deleteRole = (id: string, name: string) => {
-    toastActions.confirmAction(`Delete Role: ${name}`, () => {
-      setRoleList(prev => prev.filter(r => r.id !== id));
-      toastActions.showActionToast('Role Deleted', `${name} has been purged from system definitions.`);
-    });
+    setRoleList(prev => prev.filter(r => r.id !== id));
+    toast.error('Role Deleted', { description: `${name} has been purged from system definitions.` });
   };
 
   // Admin Actions
@@ -123,21 +130,19 @@ export default function AdminManagement() {
       avatar: data.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
     };
     setAdminList(prev => [newAdmin, ...prev]);
-    toastActions.showActionToast('Invitation Sent', `A secure onboarding link has been dispatched to ${data.email}.`);
+    toast.success('Invitation Sent', { description: `A secure onboarding link has been dispatched to ${data.email}.` });
   };
 
   const deleteAdmin = (id: string, name: string) => {
-    toastActions.confirmAction(`Revoke Access: ${name}`, () => {
-      setAdminList(prev => prev.filter(a => a.id !== id));
-      toastActions.showActionToast('Account Revoked', `${name}'s administrative privileges have been terminated.`);
-    });
+    setAdminList(prev => prev.filter(a => a.id !== id));
+    toast.error('Account Revoked', { description: `${name}'s administrative privileges have been terminated.` });
   };
 
   const toggleAdminStatus = (id: string) => {
     setAdminList(prev => prev.map(a => {
       if (a.id === id) {
         const newStatus = a.status === "Active" ? "Offline" : "Active";
-        toastActions.showActionToast('Status Toggled', `${a.name} is now ${newStatus}.`);
+        toast.success('Status Toggled', { description: `${a.name} is now ${newStatus}.` });
         return { ...a, status: newStatus };
       }
       return a;
@@ -155,7 +160,7 @@ export default function AdminManagement() {
     }
 
     setPermissions(newPermissions);
-    toastActions.showActionToast('Policy Updated', `Granular permission changed in ${newPermissions[scopeIndex].label} scope.`);
+    toast.success('Policy Updated', { description: `Granular permission changed in ${newPermissions[scopeIndex].label} scope.` });
   };
 
   return (
@@ -289,7 +294,7 @@ export default function AdminManagement() {
                               <button onClick={() => { toggleAdminStatus(admin.id); setActiveMenu(null); }} className="w-full px-3 py-2 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground flex items-center gap-2.5">
                                 <Activity size={14} /> Status
                               </button>
-                              <button onClick={() => { toastActions.showActionToast('Password Reset', `Security token dispatched to ${admin.email}.`); setActiveMenu(null); }} className="w-full px-3 py-2 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground flex items-center gap-2.5">
+                              <button onClick={() => { toast.success('Password Reset', { description: `Security token dispatched to ${admin.email}.` }); setActiveMenu(null); }} className="w-full px-3 py-2 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground flex items-center gap-2.5">
                                 <Key size={14} /> Credentials
                               </button>
                               <div className="h-[1px] bg-border/10 my-1" />
@@ -335,14 +340,17 @@ export default function AdminManagement() {
               </div>
               <div className="space-y-1">
                 {[
-                  { id: 'pol-1', label: "Auto-Revoke", desc: "Revoke after 90d inactivity", icon: Activity, active: true },
-                  { id: 'pol-2', label: "Multi-Approval", desc: "Two admins for sensitive changes", icon: Shield, active: true },
-                  { id: 'pol-3', label: "Regional Scope", desc: "Restrict by geography", icon: Globe, active: false },
+                  { id: 'pol-1', label: "Auto-Revoke", desc: "Revoke after 90d inactivity", icon: Activity, active: autoRevokeEnabled, setter: setAutoRevokeEnabled },
+                  { id: 'pol-2', label: "Multi-Approval", desc: "Two admins for sensitive changes", icon: Shield, active: multiApprovalEnabled, setter: setMultiApprovalEnabled },
+                  { id: 'pol-3', label: "Regional Scope", desc: "Restrict by geography", icon: Globe, active: regionalScopeEnabled, setter: setRegionalScopeEnabled },
                 ].map((policy) => (
                   <button
                     key={policy.id}
-                    onClick={() => toastActions.showActionToast('Policy Toggle', `Directive "${policy.label}" has been updated.`)}
-                    className="w-full flex items-center justify-between py-3 px-2 hover:bg-secondary/30 rounded-xl transition-all group"
+                    onClick={() => {
+                      policy.setter(!policy.active);
+                      toast.success(policy.active ? `${policy.label} disabled` : `${policy.label} enabled`);
+                    }}
+                    className="w-full flex items-center justify-between py-3 px-2 hover:bg-secondary/40 rounded-xl transition-all group cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
                       <div className={cn("size-8 rounded-lg flex items-center justify-center border transition-all", policy.active ? "bg-primary/5 border-primary/20 text-primary" : "bg-muted/10 border-border/10 text-muted-foreground/40")}>
@@ -367,8 +375,15 @@ export default function AdminManagement() {
             {/* Policy Matrix */}
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-border/40 pb-3">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">Policy Matrix: Super Admin</h4>
-                <button onClick={() => toastActions.showActionToast('Switch Context', 'Loading role scope...')} className="text-[10px] font-black text-primary uppercase flex items-center gap-1 hover:underline transition-all">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">Policy Matrix: {governanceRole.toUpperCase()}</h4>
+                <button 
+                  onClick={() => {
+                    const nextRole = governanceRole === "Super Admin" ? "Compliance Officer" : "Super Admin";
+                    setGovernanceRole(nextRole);
+                    toast.success("Policy role switched", { description: `Viewing ${nextRole} policy matrix` });
+                  }} 
+                  className="text-[10px] font-black text-primary uppercase flex items-center gap-1 hover:underline transition-all"
+                >
                   Switch Role <ChevronRight size={12} />
                 </button>
               </div>
@@ -394,12 +409,39 @@ export default function AdminManagement() {
               </div>
 
               <div className="pt-6 flex items-center gap-4">
-                <Button onClick={() => toastActions.triggerExport('JSON', 'RBAC_Policy', roleList)} variant="outline" className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 hover:bg-secondary px-6">
+                <Button 
+                  onClick={() => executeExport({ 
+                    fileName: 'RBAC_Policy_Matrix', 
+                    data: permissions, 
+                    format: 'PDF' 
+                  })} 
+                  variant="outline" 
+                  className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 hover:bg-secondary px-6"
+                >
                   Export Policy
                 </Button>
-                <div className="flex gap-2 items-center bg-primary/5 border border-primary/10 rounded-xl px-3 py-2">
-                  <Activity size={14} className="text-primary" />
-                  <span className="text-[9px] font-black text-primary uppercase tracking-widest">Audit Active</span>
+                <div 
+                  onClick={() => {
+                    setIsAuditRunning(true);
+                    toast.success("Audit session started", { description: "Live governance monitoring enabled" });
+                    setTimeout(() => setIsAuditRunning(false), 3000);
+                  }}
+                  className={cn(
+                    "flex gap-2 items-center rounded-xl px-3 py-2 cursor-pointer transition-all border",
+                    isAuditRunning ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-primary/5 border-primary/10 text-primary hover:bg-primary/10"
+                  )}
+                >
+                  {isAuditRunning ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span className="text-[9px] font-black uppercase tracking-widest">Audit Running...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Activity size={14} />
+                      <span className="text-[9px] font-black uppercase tracking-widest">Audit Active</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

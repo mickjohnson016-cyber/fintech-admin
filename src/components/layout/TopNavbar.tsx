@@ -45,7 +45,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { useLayout } from '@/contexts/LayoutContext';
 import { Button } from "@/components/ui/button";
-import { toastActions } from '@/lib/toastActions';
 import { useRouter } from 'next/navigation';
 
 const initialNotifications = [
@@ -157,7 +156,7 @@ export default function TopNavbar() {
         e.preventDefault();
         const searchInput = document.getElementById('global-search-input');
         if (searchInput) searchInput.focus();
-        toastActions.showActionToast('Search activated', 'Command palette ready');
+        toast.success('Search activated', { description: 'Command palette ready' });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -167,7 +166,7 @@ export default function TopNavbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    toastActions.showActionToast(`Searching for "${searchQuery}"...`);
+    toast.success(`Searching for "${searchQuery}"...`);
     // In a real app, this might navigate to a results page or filter a list
   };
 
@@ -496,7 +495,7 @@ export default function TopNavbar() {
                                       {/* Micro Actions */}
                                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
                                         <button
-                                          onClick={(e) => { e.stopPropagation(); toastActions.showComingSoon('Case Assignment'); }}
+                                          onClick={(e) => { e.stopPropagation(); toast("Coming Soon", { description: 'Case Assignment feature is being finalized.' }); }}
                                           className="h-6 px-2 bg-background border border-border/40 rounded-md text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all"
                                         >
                                           Assign
@@ -577,7 +576,7 @@ export default function TopNavbar() {
         </div>
 
         <div
-          onClick={() => toastActions.showComingSoon('Profile Management')}
+          onClick={() => toast("Coming Soon", { description: 'Profile Management feature is being finalized.' })}
           className="flex items-center gap-3 group cursor-pointer hover:bg-card p-1.5 px-2 rounded-2xl transition-all"
         >
           <div className="flex flex-col items-end hidden sm:flex">

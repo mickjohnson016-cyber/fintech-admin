@@ -17,7 +17,7 @@ import { ChartWrapper } from '@/components/charts/ChartWrapper';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { toastActions } from '@/lib/toastActions';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 const barData = [
@@ -47,12 +47,12 @@ export default function DashboardPage() {
           <p className="text-muted-foreground font-bold text-[11px] uppercase tracking-widest mt-0.5">Platform Performance & Operations Overview</p>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="flex items-center gap-2">
-          <div onClick={() => toastActions.showComingSoon('Date Range Picker')} className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
+          <div onClick={() => toast.info('Module Coming Soon', { description: 'The Date Range Picker is currently under development.' })} className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
             <Calendar size={14} className="text-primary" />
             <span>MAY 7 - MAY 13</span>
             <ChevronDown size={12} />
           </div>
-          <Button onClick={() => toastActions.showActionToast('Data Refreshed', 'Fetching latest platform metrics...')} variant="ghost" size="icon" className="h-8 w-8 rounded-xl border border-border bg-card hover:bg-secondary"><RefreshCw size={14} className="text-muted-foreground" /></Button>
+          <Button onClick={() => toast.success('Data Refreshed', { description: 'Fetching latest platform metrics...' })} variant="ghost" size="icon" className="h-8 w-8 rounded-xl border border-border bg-card hover:bg-secondary"><RefreshCw size={14} className="text-muted-foreground" /></Button>
         </motion.div>
       </div>
 
@@ -120,7 +120,7 @@ export default function DashboardPage() {
         <Card className="lg:col-span-8 p-5">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Monthly Sales Analytics</h3>
-            <button onClick={() => toastActions.showComingSoon('Analytics Menu')} className="text-muted-foreground hover:text-foreground"><MoreVertical size={16} /></button>
+            <button onClick={() => toast.info('Module Coming Soon', { description: 'The Analytics Menu is currently under development.' })} className="text-muted-foreground hover:text-foreground"><MoreVertical size={16} /></button>
           </div>
           <ChartWrapper height={250}>
             <BarChart data={barData} barGap={8}>
@@ -137,7 +137,7 @@ export default function DashboardPage() {
         <Card className="lg:col-span-4 p-5 flex flex-col items-center">
           <div className="w-full flex justify-between items-center mb-1">
             <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Goal Status</h3>
-            <button onClick={() => toastActions.showComingSoon('Goal Settings')} className="text-muted-foreground hover:text-foreground"><MoreVertical size={16} /></button>
+            <button onClick={() => toast.info('Module Coming Soon', { description: 'The Goal Settings is currently under development.' })} className="text-muted-foreground hover:text-foreground"><MoreVertical size={16} /></button>
           </div>
           <p className="w-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-6">Monthly Target Performance</p>
 

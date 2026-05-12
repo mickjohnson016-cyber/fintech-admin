@@ -21,14 +21,18 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { toastActions } from '@/lib/toastActions';
 import { useState, useRef, useEffect } from 'react';
 import { useBranding } from '@/context/BrandingContext';
 import { toast } from 'sonner';
+import { DepartmentModal, JurisdictionModal } from '@/components/settings/OrgModals';
 
 export default function OrganizationSettings() {
   const { logo, updateLogo, resetLogo, isDefault } = useBranding();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Modal states
+  const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
+  const [isJurisModalOpen, setIsJurisModalOpen] = useState(false);
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -185,7 +189,7 @@ export default function OrganizationSettings() {
                   </div>
                   <div className="flex items-center gap-4">
                      <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-black uppercase rounded-full">{license.status}</span>
-                     <button onClick={() => toastActions.showActionToast('License Verification', `Verifying regulatory standing for ${license.name} with external authority...`)} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
+                     <button onClick={() => toast.success('License Verification', { description: `Verifying regulatory standing for ${license.name} with external authority...` })} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
                         <ExternalLink size={16} />
                      </button>
                   </div>
@@ -220,7 +224,7 @@ export default function OrganizationSettings() {
                 ))}
              </div>
              
-             <Button onClick={() => toastActions.showActionToast('Jurisdiction Manager', 'Opening global expansion and regional compliance panel...')} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
+             <Button onClick={() => setIsJurisModalOpen(true)} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
                 Manage Jurisdictions
              </Button>
           </div>
@@ -246,13 +250,23 @@ export default function OrganizationSettings() {
                     </div>
                  </div>
                ))}
-               <Button onClick={() => toastActions.showActionToast('Departmental Controls', 'Opening organogram and staff allocation management...')} variant="ghost" className="w-full text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary">
+               <Button onClick={() => setIsDeptModalOpen(true)} variant="ghost" className="w-full text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary">
                  Manage Departments
                </Button>
             </div>
           </SettingsCard>
         </div>
       </div>
+
+      <DepartmentModal 
+        isOpen={isDeptModalOpen} 
+        onClose={() => setIsDeptModalOpen(false)} 
+      />
+      
+      <JurisdictionModal 
+        isOpen={isJurisModalOpen} 
+        onClose={() => setIsJurisModalOpen(false)} 
+      />
     </div>
   );
 }

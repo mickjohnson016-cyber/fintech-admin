@@ -1,11 +1,11 @@
 import * as React from "react"
-import { motion } from "framer-motion"
+import { HTMLMotionProps, motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
+  HTMLMotionProps<"div">
 >(({ className, ...props }, ref) => (
   <motion.div
     whileHover={{ y: -2 }}

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from 'sonner';
 
 export default function DangerZone() {
   return (
@@ -46,7 +47,7 @@ export default function DangerZone() {
                 description="Immediately invalidate all active admin sessions and API keys. Use only in case of a major security breach."
                 icon={Ban}
               >
-                <Button onClick={() => toastActions.confirmAction('Revoke ALL Administrative Access', () => toastActions.showActionToast('Total Revocation Executed', 'All admin sessions and keys have been invalidated.'))} variant="outline" className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-red-500/20 text-red-500 hover:bg-red-500/10">
+                 <Button onClick={() => toast.error('Total Revocation Executed', { description: 'All admin sessions and keys have been invalidated.' })} variant="outline" className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-red-500/20 text-red-500 hover:bg-red-500/10">
                    Revoke All
                 </Button>
               </SettingsField>
@@ -56,7 +57,7 @@ export default function DangerZone() {
                 description="Wipe all custom AML rules and revert to platform defaults. This will impact fraud detection immediately."
                 icon={RotateCcw}
               >
-                <Button onClick={() => toastActions.confirmAction('Reset AML Defaults', () => toastActions.showActionToast('AML Reset Complete', 'All custom risk rules have been purged.'))} variant="outline" className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-amber-500/20 text-amber-500 hover:bg-amber-500/10">
+                 <Button onClick={() => toast.success('AML Reset Complete', { description: 'All custom risk rules have been purged.' })} variant="outline" className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-amber-500/20 text-amber-500 hover:bg-amber-500/10">
                    Reset Defaults
                 </Button>
               </SettingsField>
@@ -66,7 +67,7 @@ export default function DangerZone() {
                 description="Flush all cached provider responses. May cause temporary latency spikes as data is refetched."
                 icon={Zap}
               >
-                <Button onClick={() => toastActions.showActionToast('Cache Cleared', 'Platform cache has been successfully flushed.')} variant="outline" className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 text-muted-foreground">
+                 <Button onClick={() => toast.success('Cache Cleared', { description: 'Platform cache has been successfully flushed.' })} variant="outline" className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 text-muted-foreground">
                    Clear Cache
                 </Button>
               </SettingsField>
@@ -76,7 +77,7 @@ export default function DangerZone() {
                 description="Move all audit logs older than 2 years to offline storage. They will no longer be searchable in the dashboard."
                 icon={History}
               >
-                <Button onClick={() => toastActions.confirmAction('Archive Audit Logs', () => toastActions.showActionToast('Archiving Initiated', 'Moving 2.4GB of log data to cold storage...'))} variant="outline" className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 text-muted-foreground">
+                 <Button onClick={() => toast.success('Archiving Initiated', { description: 'Moving 2.4GB of log data to cold storage...' })} variant="outline" className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 text-muted-foreground">
                    Archive Logs
                 </Button>
               </SettingsField>
@@ -100,7 +101,7 @@ export default function DangerZone() {
                          <p className="text-[12px] font-medium text-muted-foreground">Immediately stop all transactions, withdrawals, and bill payments across OINZpay.</p>
                       </div>
                    </div>
-                   <Button onClick={() => toastActions.confirmAction('GLOBAL PLATFORM FREEZE', () => toastActions.showActionToast('PLATFORM FROZEN', 'All financial services have been suspended immediately.'))} className="w-full h-12 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] shadow-xl shadow-red-500/20">
+                    <Button onClick={() => toast.error('PLATFORM FROZEN', { description: 'All financial services have been suspended immediately.' })} className="w-full h-12 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] shadow-xl shadow-red-500/20">
                       Initiate Global Freeze
                    </Button>
                 </div>
@@ -115,7 +116,7 @@ export default function DangerZone() {
                          <p className="text-[12px] font-medium text-muted-foreground">Force all administrative users to reset their passwords on next login.</p>
                       </div>
                    </div>
-                   <Button onClick={() => toastActions.confirmAction('Force Administrative Password Reset', () => toastActions.showActionToast('Reset Enforced', 'All 12 admins will be prompted for new credentials.'))} variant="outline" className="w-full h-12 border-amber-500/40 text-amber-500 hover:bg-amber-500/5 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em]">
+                    <Button onClick={() => toast.success('Reset Enforced', { description: 'All 12 admins will be prompted for new credentials.' })} variant="outline" className="w-full h-12 border-amber-500/40 text-amber-500 hover:bg-amber-500/5 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em]">
                       Force Reset for 12 Admins
                    </Button>
                 </div>
@@ -167,7 +168,7 @@ export default function DangerZone() {
                     <p className="text-[11px] font-black uppercase text-foreground">Staging Environment</p>
                     <span className="text-[9px] font-bold text-muted-foreground uppercase">Inactive</span>
                   </div>
-                  <Button onClick={() => toastActions.confirmAction('Wipe Staging Database', () => toastActions.showActionToast('Staging Wiped', 'Test database has been truncated.'))} variant="outline" className="w-full h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-red-500/20 text-red-500 hover:bg-red-500/10">
+                   <Button onClick={() => toast.error('Staging Wiped', { description: 'Test database has been truncated.' })} variant="outline" className="w-full h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-red-500/20 text-red-500 hover:bg-red-500/10">
                      Wipe Staging DB
                   </Button>
                </div>
@@ -184,10 +185,10 @@ export default function DangerZone() {
             icon={Key}
           >
             <div className="space-y-3">
-               <Button onClick={() => toastActions.confirmAction('Revoke SDK Keys', () => toastActions.showActionToast('SDK Keys Invalidated'))} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 text-muted-foreground hover:text-red-500">
+                <Button onClick={() => toast.error('SDK Keys Invalidated')} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 text-muted-foreground hover:text-red-500">
                  Revoke Mobile SDK Keys
                </Button>
-               <Button onClick={() => toastActions.confirmAction('Revoke Node Keys', () => toastActions.showActionToast('Internal Node Keys Invalidated'))} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 text-muted-foreground hover:text-red-500">
+                <Button onClick={() => toast.error('Internal Node Keys Invalidated')} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40 text-muted-foreground hover:text-red-500">
                  Revoke Internal Node Keys
                </Button>
             </div>

@@ -100,7 +100,7 @@ export const executeExport = async ({ fileName, data, format }: ExportOptions) =
             autoTable(doc, {
               startY: 35,
               head: headers,
-              body: body,
+              body: body as any,
               theme: 'striped',
               headStyles: { fillColor: [37, 99, 235] },
               styles: { fontSize: 8 },

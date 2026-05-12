@@ -41,7 +41,7 @@ import { ChartWrapper } from '@/components/charts/ChartWrapper';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { toastActions } from '@/lib/toastActions';
+import { toast } from 'sonner';
 import { useTableFilters } from '@/hooks/useTableFilters';
 
 // 1. MOCK DATA FOR TABLE
@@ -141,17 +141,17 @@ export default function InvestmentsPage() {
         </motion.div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button onClick={() => toastActions.showActionToast('Calendar Picker', 'Opening operational date range selector...')} className="flex items-center gap-3 px-3 py-2 bg-card border border-border rounded-xl text-xs font-bold text-muted-foreground hover:bg-secondary shadow-sm transition-all">
+          <button onClick={() => toast.success('Calendar Picker', { description: 'Opening operational date range selector...' })} className="flex items-center gap-3 px-3 py-2 bg-card border border-border rounded-xl text-xs font-bold text-muted-foreground hover:bg-secondary shadow-sm transition-all">
             <span className="text-muted-foreground">May 20, 2025 - Jun 20, 2025</span>
             <Calendar size={14} className="text-muted-foreground" />
           </button>
-          <Button onClick={() => toastActions.showActionToast('Advanced Filters', 'Opening forensic filter panel...')} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toast.success('Advanced Filters', { description: 'Opening forensic filter panel...' })} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Filter size={14} /> Filters
           </Button>
-          <Button onClick={() => toastActions.triggerExport('CSV', 'InvestmentsLedger', filteredData)} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toast.success('Export CSV Initiated', { description: 'Generating Investments Ledger CSV...' })} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Download size={14} /> Export
           </Button>
-          <Button onClick={() => toastActions.triggerExport('PDF', 'InvestmentPerformanceReport', filteredData)} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all border-none">
+          <Button onClick={() => toast.success('Report Generation Initiated', { description: 'Generating Investment Performance Report (PDF)...' })} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all border-none">
             Generate Report <ChevronDown size={14} />
           </Button>
         </div>
@@ -180,7 +180,7 @@ export default function InvestmentsPage() {
                 {kpi.desc}
               </p>
             </div>
-            <div onClick={() => toastActions.showActionToast(`Navigating to ${kpi.link}...`)} className="pt-3 border-t border-border flex items-center justify-between group-hover:text-primary transition-colors cursor-pointer">
+            <div onClick={() => toast.success(`Navigating...`, { description: `Moving to ${kpi.link} section.` })} className="pt-3 border-t border-border flex items-center justify-between group-hover:text-primary transition-colors cursor-pointer">
               <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">{kpi.link}</span>
               <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform text-muted-foreground group-hover:text-primary" />
             </div>
@@ -341,7 +341,7 @@ export default function InvestmentsPage() {
                 <option value="Matured">Matured</option>
                 <option value="Pending">Pending</option>
               </select>
-              <Button onClick={() => toastActions.triggerExport('CSV', 'RecentInvestments')} variant="ghost" size="icon" className="h-8 w-8 bg-muted border border-border text-muted-foreground hover:text-primary rounded-xl"><Download size={16} /></Button>
+              <Button onClick={() => toast.success('Export CSV Initiated', { description: 'Generating Recent Investments CSV...' })} variant="ghost" size="icon" className="h-8 w-8 bg-muted border border-border text-muted-foreground hover:text-primary rounded-xl"><Download size={16} /></Button>
             </div>
           </div>
 
@@ -362,7 +362,7 @@ export default function InvestmentsPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredData.map((row, i) => (
-                  <tr key={i} onClick={() => toastActions.showActionToast('Opening Investment Details', `Record: ${row.id}`)} className="hover:bg-secondary transition-all cursor-pointer border-b border-border last:border-0">
+                  <tr key={i} onClick={() => toast.success('Opening Investment Details', { description: `Record: ${row.id}` })} className="hover:bg-secondary transition-all cursor-pointer border-b border-border last:border-0">
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-3">
                         <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-black text-[9px] shrink-0 border border-border">
@@ -379,7 +379,7 @@ export default function InvestmentsPage() {
                     <td className="px-4 py-2.5 text-center"><Badge className={cn("text-[8px] border", row.risk === 'Low' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20')}>{row.risk}</Badge></td>
                     <td className="px-4 py-2.5 text-right text-[11px] font-bold text-muted-foreground">{row.end}</td>
                     <td className="px-4 py-2.5 text-right shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <Button onClick={() => toastActions.showActionToast('Investment Details', `Inspecting Record: ${row.id}`)} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
+                      <Button onClick={() => toast.success('Investment Details', { description: `Inspecting Record: ${row.id}` })} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"><MoreVertical size={14} /></Button>
                     </td>
                   </tr>
                 ))}

@@ -25,8 +25,8 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { toastActions } from '@/lib/toastActions';
 
 export default function TransactionControls() {
   return (
@@ -84,7 +84,7 @@ export default function TransactionControls() {
                 description="Flag users attempting more than 10 transactions within a 5-minute window."
                 icon={Activity}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Velocity Monitoring Enabled' : 'Velocity Checks Disabled', 'Platform-wide fraud detection policy updated.')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Velocity Monitoring Enabled' : 'Velocity Checks Disabled', { description: 'Platform-wide fraud detection policy updated.' })} />
               </SettingsField>
 
               <SettingsField
@@ -92,7 +92,7 @@ export default function TransactionControls() {
                 description="Automatically freeze accounts flagged by the AML scoring system (Score > 85)."
                 icon={Ban}
               >
-                <Switch defaultChecked={false} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Auto-Freeze Active' : 'Auto-Freeze Disabled', 'Risk mitigation protocol updated.')} />
+                <Switch defaultChecked={false} onCheckedChange={(checked) => toast.success(checked ? 'Auto-Freeze Active' : 'Auto-Freeze Disabled', { description: 'Risk mitigation protocol updated.' })} />
               </SettingsField>
 
               <SettingsField
@@ -100,7 +100,7 @@ export default function TransactionControls() {
                 description="Cross-reference all recipients against international and local sanction lists."
                 icon={ShieldCheck}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Sanction Screening Enabled' : 'Sanction Screening Disabled', 'Compliance verification rules updated.')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Sanction Screening Enabled' : 'Sanction Screening Disabled', { description: 'Compliance verification rules updated.' })} />
               </SettingsField>
 
               <SettingsField
@@ -144,7 +144,7 @@ export default function TransactionControls() {
                 description="Instantly refund users if provider API returns a terminal failure code."
                 icon={History}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Auto-Refunds Active' : 'Auto-Refunds Disabled', 'Platform refund policy updated.')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Auto-Refunds Active' : 'Auto-Refunds Disabled', { description: 'Platform refund policy updated.' })} />
               </SettingsField>
             </div>
           </SettingsCard>
@@ -192,14 +192,14 @@ export default function TransactionControls() {
           >
             <div className="flex flex-col gap-3">
               <Button
-                onClick={() => toastActions.confirmAction('Global Transaction Freeze', () => toastActions.showActionToast('Freeze Executed', 'Platform-wide transaction processing has been halted.'))}
+                onClick={() => toast.error('Freeze Executed', { description: 'Platform-wide transaction processing has been halted.' })}
                 variant="outline" className="w-full h-auto py-3 px-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border-red-500/20 text-red-500 hover:bg-red-500/10 flex items-center justify-start gap-3 whitespace-normal text-left"
               >
                 <Ban size={18} className="shrink-0" />
                 <span>Global Transaction Freeze</span>
               </Button>
               <Button
-                onClick={() => toastActions.showActionToast('Strict AML Mode Enabled', 'All transactions will undergo secondary verification')}
+                onClick={() => toast.warning('Strict AML Mode Enabled', { description: 'All transactions will undergo secondary verification' })}
                 variant="outline" className="w-full h-auto py-3 px-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border-amber-500/20 text-amber-500 hover:bg-amber-500/10 flex items-center justify-start gap-3 whitespace-normal text-left"
               >
                 <ShieldAlert size={18} className="shrink-0" />
@@ -232,7 +232,7 @@ export default function TransactionControls() {
                 </div>
               ))}
               <Button
-                onClick={() => toastActions.showActionToast('Configuration Mode', 'Opening dynamic fee scheduler...')}
+                onClick={() => toast.success('Configuration Mode', { description: 'Opening dynamic fee scheduler...' })}
                 className="w-full h-11 rounded-2xl font-black text-[11px] uppercase tracking-widest"
               >
                 Edit Fee Schedule

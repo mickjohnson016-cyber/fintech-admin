@@ -25,8 +25,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from 'sonner';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { toastActions } from '@/lib/toastActions';
 
 export default function SecurityCenter() {
   return (
@@ -51,7 +51,7 @@ export default function SecurityCenter() {
                 description="Enforce 2FA for all administrative accounts via Authenticator app or YubiKey."
                 icon={Smartphone}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'MFA Policy Enforced' : 'MFA Policy Relaxed', 'Updating administrative access protocol...')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'MFA Policy Enforced' : 'MFA Policy Relaxed', { description: 'Updating administrative access protocol...' })} />
               </SettingsField>
 
               <SettingsField 
@@ -59,7 +59,7 @@ export default function SecurityCenter() {
                 description="Minimum 12 characters, including special symbols and rotational requirements."
                 icon={Key}
               >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toastActions.showActionToast(checked ? 'Password Policy Enforced' : 'Password Policy Relaxed', 'Updating credential complexity requirements...')} />
+                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Password Policy Enforced' : 'Password Policy Relaxed', { description: 'Updating credential complexity requirements...' })} />
               </SettingsField>
 
               <SettingsField 
@@ -81,7 +81,7 @@ export default function SecurityCenter() {
                 icon={Globe}
               >
                 <Button 
-                  onClick={() => toastActions.showActionToast('IP Access Control', 'Opening firewall configuration for authorized zones...')}
+                  onClick={() => toast.success('IP Access Control', { description: 'Opening firewall configuration for authorized zones...' })}
                   variant="outline" size="sm" className="rounded-xl font-black text-[10px] uppercase tracking-widest h-9"
                 >
                   Configure IPs
@@ -132,7 +132,7 @@ export default function SecurityCenter() {
                   </div>
                   {!session.current && (
                     <button 
-                      onClick={() => toastActions.confirmAction('Revoke Session', () => toastActions.showActionToast('Session Revoked', `Access from ${session.ip} has been terminated.`))}
+                      onClick={() => toast.success('Session Revoked', { description: `Access from ${session.ip} has been terminated.` })}
                       className="sm:w-auto w-full p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest shrink-0"
                     >
                       <LogOut size={14} />
@@ -142,7 +142,7 @@ export default function SecurityCenter() {
                 </div>
               ))}
               <button 
-                onClick={() => toastActions.confirmAction('Revoke All Other Sessions', () => toastActions.showActionToast('Cleanup Executed', 'All sessions except your current one have been invalidated.'))}
+                onClick={() => toast.success('Cleanup Executed', { description: 'All sessions except your current one have been invalidated.' })}
                 className="w-full py-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-red-500 transition-colors"
               >
                 Revoke All Other Sessions
@@ -230,7 +230,10 @@ export default function SecurityCenter() {
                     pk_live_************************
                   </div>
                   <button 
-                    onClick={() => toastActions.copyToClipboard('pk_live_f672389100ac23489112bc', 'Production Key')}
+                    onClick={() => {
+                       navigator.clipboard.writeText('pk_live_f672389100ac23489112bc');
+                       toast.success('Production Key copied to clipboard');
+                    }}
                     className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
                   >
                     <Eye size={14} />
@@ -238,7 +241,7 @@ export default function SecurityCenter() {
                 </div>
               </div>
               <Button 
-                onClick={() => toastActions.confirmAction('Generate New Management Key', () => toastActions.showActionToast('New Secret Generated', 'Provisioning new administrative API credentials...'))}
+                onClick={() => toast.success('New Secret Generated', { description: 'Provisioning new administrative API credentials...' })}
                 className="w-full rounded-2xl h-11 font-black text-[11px] uppercase tracking-[0.15em]"
               >
                 Generate New Key

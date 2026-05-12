@@ -39,7 +39,8 @@ import { ChartWrapper } from '@/components/charts/ChartWrapper';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { toastActions } from '@/lib/toastActions';
+import { executeExport } from '@/lib/exportUtils';
+import { toast } from 'sonner';
 
 // 1. MOCK ANALYTICS DATA
 const performanceMetrics = [
@@ -77,6 +78,8 @@ const providerLatency = [
 ];
 
 export default function AnalyticsPage() {
+  const [activeMetric, setActiveMetric] = useState('Revenue');
+
   return (
     <div className="w-full space-y-4 animate-in fade-in duration-700 pb-10">
       <Breadcrumbs />
@@ -91,15 +94,28 @@ export default function AnalyticsPage() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="flex flex-wrap items-center gap-2">
-          <div onClick={() => toastActions.showComingSoon('Date Range Picker')} className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
+          <div onClick={() => toast("Coming Soon", { description: 'Date Range Picker feature is being finalized.' })} className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-sm text-[11px] font-black text-muted-foreground cursor-pointer hover:bg-secondary transition-all">
             <Calendar size={14} className="text-primary" />
             <span>LAST 30 DAYS</span>
             <ChevronDown size={12} />
           </div>
-          <Button onClick={() => toastActions.triggerExport('PDF', 'PlatformPerformanceReport')} variant="outline" size="sm" className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button 
+            onClick={() => executeExport({ 
+              fileName: 'PlatformPerformance', 
+              data: [
+                { metric: 'Net Revenue', value: '₦482.5M', trend: '+14.2%' },
+                { metric: 'Active Users', value: '142,402', trend: '+8.7%' },
+                { metric: 'Retention Rate', value: '78.2%', trend: '+2.4%' },
+              ], 
+              format: 'PDF' 
+            })} 
+            variant="outline" 
+            size="sm" 
+            className="h-9 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground"
+          >
             <Download size={14} /> Download PDF Report
           </Button>
-          <Button onClick={() => toastActions.showActionToast('Recalculating Insights...', 'Refreshing all platform metrics')} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 border-none transition-all">
+          <Button onClick={() => toast.success('Recalculating Insights...', { description: 'Refreshing all platform metrics' })} size="sm" className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 font-bold shadow-lg shadow-primary/20 flex items-center gap-2 border-none transition-all">
             <RefreshCw size={14} /> Recalculate
           </Button>
         </motion.div>
@@ -139,8 +155,24 @@ export default function AnalyticsPage() {
               <p className="text-[11px] font-bold text-muted-foreground uppercase mt-1 tracking-tight">Daily platform revenue & volume</p>
             </div>
             <div className="flex items-center gap-1 bg-muted p-1 rounded-xl border border-border">
-              <button className="px-3 py-1 bg-secondary shadow-sm border border-primary/20 rounded-lg text-[9px] font-black uppercase tracking-widest text-foreground">Revenue</button>
-              <button className="px-3 py-1 text-muted-foreground text-[9px] font-black uppercase tracking-widest hover:text-foreground transition-all">Volume</button>
+              <button 
+                onClick={() => setActiveMetric('Revenue')}
+                className={cn(
+                  "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                  activeMetric === 'Revenue' ? "bg-secondary shadow-sm border border-primary/20 text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Revenue
+              </button>
+              <button 
+                onClick={() => setActiveMetric('Volume')}
+                className={cn(
+                  "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                  activeMetric === 'Volume' ? "bg-secondary shadow-sm border border-primary/20 text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Volume
+              </button>
             </div>
           </div>
           <ChartWrapper height={300}>
@@ -230,7 +262,7 @@ export default function AnalyticsPage() {
               { title: 'High-Value Transfer Loop', detail: 'Duplicate transfers detected between users MJ-01 and AS-04', time: '45m ago', level: 'High' },
               { title: 'Failed Pin Attempts', detail: '30+ failed education pin requests from single device', time: '1h ago', level: 'Low' },
             ].map((alert, i) => (
-              <div key={i} onClick={() => toastActions.showComingSoon('Anomaly Forensic Explorer')} className="p-4 bg-muted border border-border rounded-xl hover:bg-secondary hover:border-[#3B82F6]/30 transition-all cursor-pointer group">
+              <div key={i} onClick={() => toast("Coming Soon", { description: 'Anomaly Forensic Explorer feature is being finalized.' })} className="p-4 bg-muted border border-border rounded-xl hover:bg-secondary hover:border-[#3B82F6]/30 transition-all cursor-pointer group">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[12px] font-black text-foreground">{alert.title}</span>
                   <span className={cn(

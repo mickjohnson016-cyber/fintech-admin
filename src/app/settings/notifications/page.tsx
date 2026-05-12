@@ -29,8 +29,6 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
-import { toastActions } from '@/lib/toastActions';
-
 export default function NotificationSettings() {
   const [isTesting, setIsTesting] = useState(false);
 
@@ -168,10 +166,10 @@ export default function NotificationSettings() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button onClick={() => toastActions.showActionToast('Template Preview', `Displaying rendered output for ${template.name}...`)} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
+                    <button onClick={() => toast.success('Template Preview', { description: `Displaying rendered output for ${template.name}...` })} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
                       <Eye size={16} />
                     </button>
-                    <button onClick={() => toastActions.showActionToast('Template Editor', `Opening interactive designer for ${template.name}...`)} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
+                    <button onClick={() => toast.success('Template Editor', { description: `Opening interactive designer for ${template.name}...` })} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
                       <Settings2 size={16} />
                     </button>
                   </div>
@@ -272,7 +270,7 @@ export default function NotificationSettings() {
               <SettingsField label="Admin Quiet Hours" description="Silence all non-emergency alerts from 11 PM to 6 AM.">
                 <Switch defaultChecked={false} onCheckedChange={(checked) => handleToggle('Quiet Hours', checked)} />
               </SettingsField>
-              <Button onClick={() => toastActions.showComingSoon('Calendar Scheduling')} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
+              <Button onClick={() => toast("Coming Soon", { description: 'Calendar Scheduling feature is being finalized.' })} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
                 Configure Schedule
               </Button>
             </div>

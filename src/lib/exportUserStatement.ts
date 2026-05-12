@@ -25,10 +25,10 @@ export const exportUserStatement = async (user: any) => {
   const fileName = `OINZPAY-STATEMENT-${userId}.pdf`;
 
   // --- BRANDING & COLORS ---
-  const PRIMARY_BLUE = [37, 99, 235]; // #2563eb
-  const DARK_GRAY = [51, 65, 85]; // #334155
-  const TEXT_MUTED = [100, 116, 139]; // #64748b
-  const BORDER_COLOR = [226, 232, 240]; // #e2e8f0
+  const PRIMARY_BLUE: [number, number, number] = [37, 99, 235]; // #2563eb
+  const DARK_GRAY: [number, number, number] = [51, 65, 85]; // #334155
+  const TEXT_MUTED: [number, number, number] = [100, 116, 139]; // #64748b
+  const BORDER_COLOR: [number, number, number] = [226, 232, 240]; // #e2e8f0
 
   // --- HEADER SECTION ---
   doc.setFillColor(PRIMARY_BLUE[0], PRIMARY_BLUE[1], PRIMARY_BLUE[2]);

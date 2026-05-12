@@ -15,7 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { toastActions } from '@/lib/toastActions';
+import { toast } from 'sonner';
 
 // 1. TIMELINE DATA
 const timeline = [
@@ -86,13 +86,13 @@ export default function TransactionDetailsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => toastActions.triggerExport('PDF', `Receipt ${txn.id}`)} variant="outline" size="sm" className="h-10 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
+          <Button onClick={() => toast.success('Export Initiated', { description: `Generating receipt for ${txn.id} (PDF)...` })} variant="outline" size="sm" className="h-10 rounded-xl border-border font-bold text-muted-foreground bg-card shadow-sm flex items-center gap-2 hover:bg-secondary hover:text-foreground">
             <Download size={16} /> Receipt
           </Button>
-          <Button onClick={() => toastActions.confirmAction('Reverse Payment', () => console.log('reversed'))} variant="outline" size="sm" className="h-10 rounded-xl border-rose-500/20 font-bold text-rose-500 bg-card hover:bg-rose-500/5 shadow-sm flex items-center gap-2">
+          <Button onClick={() => toast.success('Reversal Initiated', { description: 'Communication with bank started.' })} variant="outline" size="sm" className="h-10 rounded-xl border-rose-500/20 font-bold text-rose-500 bg-card hover:bg-rose-500/5 shadow-sm flex items-center gap-2">
             <RefreshCw size={16} /> Reverse Payment
           </Button>
-          <Button onClick={() => toastActions.showActionToast('Case Escalated', 'A compliance officer will review this transaction shortly')} size="sm" className="h-10 rounded-xl bg-primary hover:bg-primary/90 text-white px-6 font-bold shadow-lg shadow-blue-500/10 flex items-center gap-2 border-none">
+          <Button onClick={() => toast.success('Case Escalated', { description: 'A compliance officer will review this transaction shortly' })} size="sm" className="h-10 rounded-xl bg-primary hover:bg-primary/90 text-white px-6 font-bold shadow-lg shadow-blue-500/10 flex items-center gap-2 border-none">
             <ShieldAlert size={16} /> Escalate
           </Button>
         </div>
@@ -256,7 +256,7 @@ export default function TransactionDetailsPage() {
               </div>
               
               <button 
-                onClick={() => toastActions.showComingSoon('Forensic Investigation')}
+                onClick={() => toast("Coming Soon", { description: 'Forensic Investigation feature is being finalized.' })}
                 className="w-full py-3.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
               >
                 View Full Forensic Report
@@ -269,21 +269,21 @@ export default function TransactionDetailsPage() {
             <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Operational Actions</h4>
             
             <div className="space-y-2">
-              <button onClick={() => toastActions.showActionToast('Re-try Attempted', 'Gateway response pending')} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-secondary group transition-all text-muted-foreground hover:text-foreground">
+              <button onClick={() => toast.success('Re-try Attempted', { description: 'Gateway response pending' })} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-secondary group transition-all text-muted-foreground hover:text-foreground">
                 <div className="flex items-center gap-3">
                   <Zap size={16} className="text-muted-foreground group-hover:text-primary" />
                   <span className="text-[12px] font-black uppercase tracking-widest">Manual Re-try</span>
                 </div>
                 <ChevronRight size={14} className="text-muted-foreground" />
               </button>
-              <button onClick={() => toastActions.showComingSoon('Support Ticketing')} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-secondary group transition-all text-muted-foreground hover:text-foreground">
+              <button onClick={() => toast("Coming Soon", { description: 'Support Ticketing feature is being finalized.' })} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-secondary group transition-all text-muted-foreground hover:text-foreground">
                 <div className="flex items-center gap-3">
                   <AlertCircle size={16} className="text-muted-foreground group-hover:text-amber-500" />
                   <span className="text-[12px] font-black uppercase tracking-widest">Open Support Ticket</span>
                 </div>
                 <ChevronRight size={14} className="text-muted-foreground" />
               </button>
-              <button onClick={() => toastActions.confirmAction('Block Beneficiary', () => console.log('blocked'))} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-rose-500/10 group transition-all text-rose-500">
+              <button onClick={() => toast.error('Beneficiary Blocked', { description: 'Address has been added to restricted list.' })} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-rose-500/10 group transition-all text-rose-500">
                 <div className="flex items-center gap-3">
                   <Ban size={16} className="text-rose-500/50 group-hover:text-rose-500" />
                   <span className="text-[12px] font-black uppercase tracking-widest">Block Beneficiary</span>
@@ -306,7 +306,7 @@ export default function TransactionDetailsPage() {
               </div>
             </div>
             <button 
-              onClick={() => toastActions.showComingSoon('Compliance Memos')}
+              onClick={() => toast("Coming Soon", { description: 'Compliance Memos feature is being finalized.' })}
               className="w-full mt-4 py-2 text-[10px] font-black text-primary uppercase tracking-widest hover:underline text-left"
             >
               Add New Note +
