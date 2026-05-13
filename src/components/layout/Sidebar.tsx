@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLayout } from '@/contexts/LayoutContext';
 import { useBranding } from '@/context/BrandingContext';
+import { useUser } from '@/contexts/UserContext';
 
 const corePlatform = [
   { name: 'Dashboard', icon: LayoutGrid, href: '/dashboard' },
@@ -37,12 +38,18 @@ const systemSettings = [
 export default function Sidebar() {
   const { sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed, setIsProfileOpen } = useLayout();
   const { logo: brandingLogo } = useBranding();
+  const { user } = useUser();
   const [mounted, setMounted] = React.useState(false);
   const pathname = usePathname();
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  const getInitials = (name: string) => {
+    if (!name) return '??';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
 
   return (
     <>
@@ -183,13 +190,17 @@ export default function Sidebar() {
           )}
         >
           <div onClick={() => setIsProfileOpen(true)} className="flex items-center gap-4 bg-secondary rounded-[24px] border border-border p-3 px-4 group cursor-pointer hover:bg-card transition-all duration-300">
-            <div className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center font-black text-muted-foreground/40 text-sm shadow-sm relative shrink-0">
-              NA
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-muted-foreground/30 border-2 border-muted rounded-full"></span>
+            <div className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center font-black text-primary text-xs shadow-sm relative shrink-0 overflow-hidden">
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="size-full object-cover" />
+              ) : (
+                getInitials(user.name)
+              )}
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-secondary rounded-full group-hover:border-card transition-colors"></span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-black text-foreground truncate leading-none">No Admin</p>
-              <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-widest text-muted-foreground/60">Administrator</p>
+              <p className="text-[13px] font-black text-foreground truncate leading-none">{user.name || "Identity Needed"}</p>
+              <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-widest text-muted-foreground/60">{user.role}</p>
             </div>
           </div>
         </motion.div>

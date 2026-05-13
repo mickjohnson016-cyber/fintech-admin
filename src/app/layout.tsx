@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { BrandingProvider } from '@/context/BrandingContext'
+import { UserProvider } from '@/contexts/UserContext'
 import { Toaster } from 'sonner'
 import { CommandPalette } from '@/components/CommandPalette'
 import DashboardLayout from '@/components/layout/DashboardLayout'
@@ -28,14 +29,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           disableTransitionOnChange
         >
           <BrandingProvider>
-            <DashboardLayout>
-              {children}
-            </DashboardLayout>
-            <Toaster 
-              position="bottom-right" 
-              richColors
-            />
-            <CommandPalette />
+            <UserProvider>
+              <DashboardLayout>
+                {children}
+              </DashboardLayout>
+              <Toaster 
+                position="bottom-right" 
+                richColors
+              />
+              <CommandPalette />
+            </UserProvider>
           </BrandingProvider>
         </ThemeProvider>
       </body>

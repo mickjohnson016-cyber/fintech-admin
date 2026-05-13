@@ -11,6 +11,7 @@ interface ExportOptions {
   fileName: string;
   data: any[];
   format: 'CSV' | 'JSON' | 'PDF' | 'XLSX';
+  headers?: string[];
 }
 
 /**
@@ -38,9 +39,12 @@ const getTimestampedName = (base: string, ext: string) => {
 /**
  * Core export logic
  */
-export const executeExport = async ({ fileName, data, format }: ExportOptions) => {
-  if (!data || data.length === 0) {
-    toast.error("Export failed", { description: "No data available to export." });
+export const executeExport = async ({ fileName, data, format, headers }: ExportOptions) => {
+  // Use provided headers or extract from first data object
+  const activeHeaders = headers || (data.length > 0 ? Object.keys(data[0]) : []);
+
+  if (activeHeaders.length === 0 && data.length === 0) {
+    toast.error("Export failed", { description: "No schema or data available to export." });
     return;
   }
 
@@ -49,10 +53,9 @@ export const executeExport = async ({ fileName, data, format }: ExportOptions) =
       try {
         switch (format) {
           case 'CSV': {
-            const headers = Object.keys(data[0]);
             const csvContent = [
-              headers.join(','),
-              ...data.map(row => headers.map(header => {
+              activeHeaders.join(','),
+              ...data.map(row => activeHeaders.map(header => {
                 const cell = row[header] === null || row[header] === undefined ? '' : row[header];
                 const cellStr = String(cell).replace(/"/g, '""');
                 return cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n') 
@@ -72,11 +75,10 @@ export const executeExport = async ({ fileName, data, format }: ExportOptions) =
           }
 
           case 'XLSX': {
-            // Tab-separated for Excel compatibility without heavy libs
-            const headers = Object.keys(data[0]);
+            // Tab-separated for Excel compatibility
             const content = [
-              headers.join('\t'),
-              ...data.map(row => headers.map(header => {
+              activeHeaders.join('\t'),
+              ...data.map(row => activeHeaders.map(header => {
                 const cell = row[header] === null || row[header] === undefined ? '' : row[header];
                 return String(cell).replace(/\t/g, ' ');
               }).join('\t'))
@@ -94,16 +96,22 @@ export const executeExport = async ({ fileName, data, format }: ExportOptions) =
             doc.setTextColor(100);
             doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
             
-            const headers = [Object.keys(data[0])];
-            const body = data.map(obj => Object.values(obj));
+            const body = data.length > 0 ? data.map(obj => activeHeaders.map(h => obj[h] ?? '')) : [];
 
             autoTable(doc, {
               startY: 35,
-              head: headers,
+              head: [activeHeaders],
               body: body as any,
               theme: 'striped',
               headStyles: { fillColor: [37, 99, 235] },
               styles: { fontSize: 8 },
+              didDrawPage: (data) => {
+                if (body.length === 0) {
+                  doc.setFontSize(10);
+                  doc.setTextColor(150);
+                  doc.text('No data available in this report.', 14, data.cursor?.y ? data.cursor.y + 10 : 45);
+                }
+              }
             });
             doc.save(getTimestampedName(fileName, 'pdf'));
             break;
@@ -113,12 +121,12 @@ export const executeExport = async ({ fileName, data, format }: ExportOptions) =
       } catch (err) {
         reject(err);
       }
-    }, 1200); // Simulate processing
+    }, 800); // Quick processing
   });
 
   toast.promise(promise, {
-    loading: `Preparing ${format} export for ${fileName}...`,
-    success: (data) => `${format} download started successfully.`,
-    error: (err) => `Failed to generate ${format} report.`,
+    loading: `Generating ${format} report...`,
+    success: () => `${format} download started.`,
+    error: () => `Export failed.`,
   });
 };

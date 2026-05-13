@@ -44,6 +44,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { useLayout } from '@/contexts/LayoutContext';
+import { useUser } from '@/contexts/UserContext';
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 
@@ -51,6 +52,7 @@ const initialNotifications: any[] = [];
 
 export default function TopNavbar() {
   const { setSidebarOpen, isCollapsed, setIsCollapsed, setIsProfileOpen } = useLayout();
+  const { user } = useUser();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -134,6 +136,11 @@ export default function TopNavbar() {
   const togglePref = (key: keyof typeof prefs) => {
     setPrefs(prev => ({ ...prev, [key]: !prev[key] }));
     toast.success(`${key.replace(/([A-Z])/g, ' $1').toLowerCase()} updated`);
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return '??';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
@@ -504,14 +511,18 @@ export default function TopNavbar() {
           className="flex items-center gap-3 group cursor-pointer hover:bg-card p-1.5 px-2 rounded-2xl transition-all"
         >
           <div className="flex flex-col items-end hidden sm:flex">
-            <span className="text-[12px] font-black text-foreground tracking-tight">No Admin</span>
+            <span className="text-[12px] font-black text-foreground tracking-tight">{user.name || "Configure Profile"}</span>
             <div className="flex items-center gap-1.5">
-              <div className="size-1 bg-muted-foreground/30 rounded-full" />
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Global Admin</span>
+              <div className="size-1 bg-emerald-500 rounded-full" />
+              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{user.role}</span>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-secondary border border-border/40 flex items-center justify-center font-black text-muted-foreground/40 text-xs shadow-sm transition-transform group-hover:scale-105">
-            NA
+          <div className="w-10 h-10 rounded-xl bg-secondary border border-border/40 flex items-center justify-center font-black text-primary text-xs shadow-sm transition-transform group-hover:scale-105 overflow-hidden">
+            {user.avatar ? (
+              <img src={user.avatar} alt={user.name} className="size-full object-cover" />
+            ) : (
+              getInitials(user.name)
+            )}
           </div>
         </div>
       </div>

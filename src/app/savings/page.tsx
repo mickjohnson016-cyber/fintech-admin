@@ -39,7 +39,9 @@ import { useRouter } from 'next/navigation';
 import { DashboardGrid } from '@/components/ui/DashboardGrid';
 import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { ActionMenu } from '@/components/ui/ActionMenu';
+import { TableActionMenu } from '@/components/ui/TableActionMenu';
+import { QuickActionModal } from '@/components/ui/QuickActionModal';
+import { ExportModal } from '@/components/ui/ExportModal';
 
 // 1. BANKING OPERATIONS MOCK DATA
 const savingsMetrics = [
@@ -79,6 +81,11 @@ const Badge = ({ status }: { status: string }) => {
 
 export default function SavingsOperationsPage() {
   const router = useRouter();
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
+
   const {
     searchTerm,
     setSearchTerm,
@@ -88,6 +95,20 @@ export default function SavingsOperationsPage() {
   } = useTableFilters(savingsData, {
     searchKeys: ['user.name', 'id', 'plan.name', 'plan.type']
   });
+
+  const handleFlagPlan = () => {
+    setIsActionLoading(true);
+    setTimeout(() => {
+      toast.warning('Plan Flagged', { description: `Savings plan ${selectedPlan?.id} has been escalated for compliance review.` });
+      setIsFlagModalOpen(false);
+      setIsActionLoading(false);
+      setSelectedPlan(null);
+    }, 1500);
+  };
+
+  const handleExport = () => {
+    setIsExportModalOpen(true);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -268,11 +289,11 @@ export default function SavingsOperationsPage() {
                         <Badge status={plan.status} />
                       </td>
                       <td className="px-4 py-2.5 text-right shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <ActionMenu triggerSize={14} items={[
-                          { label: 'View Details', icon: Eye, onClick: () => toast.success('Opening Details', { description: `Loading savings plan ${plan.id}` }) },
+                        <TableActionMenu items={[
+                          { label: 'View Details', icon: Eye, onClick: () => router.push(`/users/${plan.user.id}`) },
                           { label: 'Copy Plan ID', icon: Copy, onClick: () => { navigator.clipboard.writeText(plan.id); toast.success('Copied', { description: plan.id }); } },
-                          { label: 'Export Statement', icon: Download, onClick: () => toast.success('Export Started', { description: `Generating statement for ${plan.id}` }), dividerBefore: true },
-                          { label: 'Flag for Review', icon: ShieldAlert, onClick: () => toast.warning('Flagged', { description: `Plan ${plan.id} marked for compliance review.` }), variant: 'danger', dividerBefore: true },
+                          { label: 'Export Statement', icon: Download, onClick: () => { setSelectedPlan(plan); setIsExportModalOpen(true); }, dividerBefore: true },
+                          { label: 'Flag for Review', icon: ShieldAlert, onClick: () => { setSelectedPlan(plan); setIsFlagModalOpen(true); }, variant: 'danger', dividerBefore: true },
                         ]} />
                       </td>
                     </tr>
@@ -293,7 +314,7 @@ export default function SavingsOperationsPage() {
           </div>
           
           <div className="px-6 py-4 bg-muted flex items-center justify-between border-t border-border">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing 0 savings plans</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing {filteredData.length} savings plans</p>
             <div className="flex items-center gap-1">
               <button onClick={() => toast.success('Loading Previous Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
               <button className="w-8 h-8 bg-primary text-white rounded-lg font-black text-[10px]">1</button>
@@ -303,6 +324,29 @@ export default function SavingsOperationsPage() {
           </div>
         </div>
       </div>
+
+      {/* MODALS */}
+      <QuickActionModal
+        isOpen={isFlagModalOpen}
+        onClose={() => setIsFlagModalOpen(false)}
+        onConfirm={handleFlagPlan}
+        title="Escalate for Review"
+        description="This will flag the savings plan for internal audit and may temporarily restrict withdrawals."
+        type="danger"
+        confirmLabel="Escalate Plan"
+        isLoading={isActionLoading}
+        icon={ShieldAlert}
+      />
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Generate Statement"
+        description="Select the preferred format for the savings plan statement."
+        fileName={`Savings_Statement_${selectedPlan?.id || 'All'}`}
+        data={selectedPlan ? [selectedPlan] : filteredData}
+        headers={['id', 'user.name', 'plan.name', 'balance', 'status']}
+      />
+
     </div>
   );
 }

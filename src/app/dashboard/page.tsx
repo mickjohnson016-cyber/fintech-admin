@@ -17,7 +17,9 @@ import { useRouter } from 'next/navigation';
 import { DashboardGrid } from '@/components/ui/DashboardGrid';
 import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { ActionMenu } from '@/components/ui/ActionMenu';
+import { CardActionMenu } from '@/components/ui/CardActionMenu';
+import { QuickActionModal } from '@/components/ui/QuickActionModal';
+import { ExportModal } from '@/components/ui/ExportModal';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount).replace('NGN', '₦');
@@ -25,7 +27,24 @@ const formatCurrency = (amount: number) => {
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('Overview');
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
   const router = useRouter();
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    toast.success('Refreshing Data', { description: 'Syncing latest platform metrics...' });
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast.success('Data Refreshed', { description: 'All dashboard metrics are now up to date.' });
+    }, 1500);
+  };
+
+  const handleExport = () => {
+    setIsExportModalOpen(true);
+  };
 
   return (
     <div className="w-full space-y-4 animate-in fade-in duration-700 pb-10">
@@ -42,7 +61,18 @@ export default function DashboardPage() {
             <span>SELECT RANGE</span>
             <ChevronDown size={12} />
           </div>
-          <Button onClick={() => toast.success('Data Refreshed', { description: 'Fetching latest platform metrics...' })} variant="ghost" size="icon" className="h-8 w-8 rounded-xl border border-border bg-card hover:bg-secondary"><RefreshCw size={14} className="text-muted-foreground" /></Button>
+          <Button 
+            onClick={handleRefresh} 
+            disabled={isRefreshing}
+            variant="ghost" 
+            size="icon" 
+            className={cn(
+              "h-8 w-8 rounded-xl border border-border bg-card hover:bg-secondary transition-all",
+              isRefreshing && "animate-spin"
+            )}
+          >
+            <RefreshCw size={14} className="text-muted-foreground" />
+          </Button>
         </motion.div>
       </div>
 
@@ -85,10 +115,10 @@ export default function DashboardPage() {
         <Card className="lg:col-span-8 p-5">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Monthly Sales Analytics</h3>
-            <ActionMenu items={[
-              { label: 'Export CSV', icon: Download, onClick: () => toast.success('Export Started', { description: 'Sales analytics data export initiated.' }) },
-              { label: 'Refresh Data', icon: RefreshCw, onClick: () => toast.success('Refreshed', { description: 'Analytics data synced with latest records.' }) },
-              { label: 'View Full Report', icon: Eye, onClick: () => router.push('/reports'), dividerBefore: true },
+            <CardActionMenu items={[
+              { label: 'Export Data', icon: Download, onClick: () => setIsExportModalOpen(true) },
+              { label: 'Sync Records', icon: RefreshCw, onClick: handleRefresh },
+              { label: 'Full Analytics', icon: Eye, onClick: () => router.push('/reports'), dividerBefore: true },
             ]} />
           </div>
           <div className="min-h-[300px] flex items-center justify-center">
@@ -104,9 +134,9 @@ export default function DashboardPage() {
         <Card className="lg:col-span-4 p-5 flex flex-col items-center">
           <div className="w-full flex justify-between items-center mb-1">
             <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Goal Status</h3>
-            <ActionMenu items={[
-              { label: 'Set Monthly Target', icon: TrendingUp, onClick: () => toast.success('Target Configuration', { description: 'Navigate to Settings to configure revenue targets.' }) },
-              { label: 'Export Goal Data', icon: Download, onClick: () => toast.success('Export Started', { description: 'Goal status data export initiated.' }) },
+            <CardActionMenu items={[
+              { label: 'Update Target', icon: TrendingUp, onClick: () => setIsTargetModalOpen(true) },
+              { label: 'Export Goals', icon: Download, onClick: () => setIsExportModalOpen(true) },
               { label: 'View Reports', icon: FileText, onClick: () => router.push('/reports'), dividerBefore: true },
             ]} />
           </div>
@@ -199,6 +229,39 @@ export default function DashboardPage() {
           </table>
         </div>
       </Card>
+      
+      {/* MODALS */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Analytics"
+        fileName="Executive_Analytics_Report"
+        data={[]} // Dashboard typically has aggregated data, passing empty for now to show schema-only
+        headers={['Metric', 'Value', 'Trend', 'Status']}
+      />
+
+      <QuickActionModal
+        isOpen={isTargetModalOpen}
+        onClose={() => setIsTargetModalOpen(false)}
+        onConfirm={() => {
+          setIsTargetModalOpen(false);
+          toast.success('Target Updated', { description: 'Monthly revenue target has been recalibrated.' });
+        }}
+        title="Set Revenue Target"
+        description="Define the monthly goal for platform revenue analytics."
+        icon={TrendingUp}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Monthly Target (NGN)</label>
+            <input 
+              type="text" 
+              placeholder="e.g. 5,000,000" 
+              className="w-full bg-secondary/50 border border-border/50 rounded-2xl px-4 py-3 outline-none focus:border-primary/50 transition-all font-bold"
+            />
+          </div>
+        </div>
+      </QuickActionModal>
 
     </div>
   );

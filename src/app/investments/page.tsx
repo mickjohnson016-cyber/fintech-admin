@@ -48,7 +48,9 @@ import { motion } from 'framer-motion';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { toast } from 'sonner';
 import { useTableFilters } from '@/hooks/useTableFilters';
-import { ActionMenu } from '@/components/ui/ActionMenu';
+import { TableActionMenu } from '@/components/ui/TableActionMenu';
+import { QuickActionModal } from '@/components/ui/QuickActionModal';
+import { ExportModal } from '@/components/ui/ExportModal';
 
 // 1. MOCK DATA FOR TABLE
 const tableData: any[] = [];
@@ -86,6 +88,10 @@ const Badge = ({ children, className }: { children: React.ReactNode, className?:
 
 export default function InvestmentsPage() {
   const [activeTab, setActiveTab] = useState('Daily');
+  const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
+  const [isFreezeModalOpen, setIsFreezeModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   const {
     searchTerm,
@@ -96,6 +102,20 @@ export default function InvestmentsPage() {
   } = useTableFilters(tableData, {
     searchKeys: ['name', 'id', 'plan']
   });
+
+  const handleFreeze = () => {
+    setIsActionLoading(true);
+    setTimeout(() => {
+      toast.error('Investment Frozen', { description: `Record ${selectedInvestment?.id} has been suspended for compliance review.` });
+      setIsFreezeModalOpen(false);
+      setIsActionLoading(false);
+      setSelectedInvestment(null);
+    }, 1500);
+  };
+
+  const handleExport = () => {
+    setIsExportModalOpen(true);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -376,11 +396,11 @@ export default function InvestmentsPage() {
                     <td className="px-4 py-2.5 text-center"><Badge className={cn("text-[8px] border", row.risk === 'Low' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20')}>{row.risk}</Badge></td>
                     <td className="px-4 py-2.5 text-right text-[11px] font-bold text-muted-foreground">{row.end}</td>
                     <td className="px-4 py-2.5 text-right shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <ActionMenu triggerSize={14} items={[
+                      <TableActionMenu items={[
                         { label: 'View Portfolio', icon: Eye, onClick: () => toast.success('Opening Portfolio', { description: `Loading investment details for ${row.id}` }) },
                         { label: 'Copy Record ID', icon: Copy, onClick: () => { navigator.clipboard.writeText(row.id); toast.success('Copied', { description: row.id }); } },
-                        { label: 'Export Report', icon: Download, onClick: () => toast.success('Export Started', { description: `Investment report for ${row.name} initiated.` }), dividerBefore: true },
-                        { label: 'Freeze Account', icon: ShieldAlert, onClick: () => toast.warning('Account Frozen', { description: `Investment ${row.id} has been suspended for review.` }), variant: 'danger', dividerBefore: true },
+                        { label: 'Export Report', icon: Download, onClick: () => { setSelectedInvestment(row); setIsExportModalOpen(true); }, dividerBefore: true },
+                        { label: 'Freeze Account', icon: ShieldAlert, onClick: () => { setSelectedInvestment(row); setIsFreezeModalOpen(true); }, variant: 'danger', dividerBefore: true },
                       ]} />
                     </td>
                   </tr>
@@ -400,6 +420,29 @@ export default function InvestmentsPage() {
           </div>
         </Card>
       </div>
+
+      {/* MODALS */}
+      <QuickActionModal
+        isOpen={isFreezeModalOpen}
+        onClose={() => setIsFreezeModalOpen(false)}
+        onConfirm={handleFreeze}
+        title="Freeze Investment"
+        description="Are you sure you want to freeze this investment record? All payouts and modifications will be blocked."
+        type="danger"
+        confirmLabel="Freeze Record"
+        isLoading={isActionLoading}
+        icon={ShieldAlert}
+      />
+
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Investment Data"
+        description="Select the report granularity and export format for this investment portfolio."
+        fileName={`Investment_Report_${selectedInvestment?.id || 'All'}`}
+        data={selectedInvestment ? [selectedInvestment] : filteredData}
+        headers={['id', 'name', 'plan', 'amount', 'roi', 'status', 'risk', 'end']}
+      />
 
     </div>
   );

@@ -42,7 +42,9 @@ import { executeExport } from '@/lib/exportUtils';
 import { DashboardGrid } from '@/components/ui/DashboardGrid';
 import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { ActionMenu } from '@/components/ui/ActionMenu';
+import { TableActionMenu } from '@/components/ui/TableActionMenu';
+import { QuickActionModal } from '@/components/ui/QuickActionModal';
+import { ExportModal } from '@/components/ui/ExportModal';
 
 // 1. BILL PAYMENTS MOCK DATA
 const billMetrics = [
@@ -109,6 +111,9 @@ const Badge = ({ status, type }: { status?: string, type?: string }) => {
 
 export default function BillPaymentsPage() {
   const [activeTab, setActiveTab] = useState('All Payments');
+  const [selectedTxn, setSelectedTxn] = useState<any>(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
   
   const [selectedProvider, setSelectedProvider] = useState<any>(null);
   const [isRefreshingProvider, setIsRefreshingProvider] = useState<string | null>(null);
@@ -122,6 +127,10 @@ export default function BillPaymentsPage() {
   } = useTableFilters(billTransactions, {
     searchKeys: ['customer', 'id', 'type', 'provider', 'ref']
   });
+
+  const handleGenerateReport = () => {
+    setIsReportModalOpen(true);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -321,10 +330,10 @@ export default function BillPaymentsPage() {
                         >
                           <Download size={14} />
                         </Button>
-                        <ActionMenu triggerSize={14} items={[
+                        <TableActionMenu items={[
                           { label: 'Copy Reference', icon: Copy, onClick: () => { navigator.clipboard.writeText(txn.ref); toast.success('Copied', { description: txn.ref }); } },
                           { label: 'View Receipt', icon: Eye, onClick: () => { toast.loading('Fetching receipt...', { id: 'bill-receipt' }); setTimeout(() => toast.success('Receipt Ready', { id: 'bill-receipt', description: `PDF generated for ${txn.ref}` }), 800); } },
-                          { label: 'Generate Report', icon: FileText, onClick: () => toast.success('Report Queued', { description: `Compliance report for ${txn.id} initiated.` }), dividerBefore: true },
+                          { label: 'Generate Report', icon: FileText, onClick: () => { setSelectedTxn(txn); setIsReportModalOpen(true); }, dividerBefore: true },
                         ]} />
                       </div>
                     </td>
@@ -345,7 +354,7 @@ export default function BillPaymentsPage() {
           </div>
           
           <div className="px-6 py-4 bg-muted flex items-center justify-between border-t border-border">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing 0 utility payments</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Showing {filteredData.length} utility payments</p>
             <div className="flex items-center gap-1">
               <button onClick={() => toast.success('Loading Previous Page')} className="px-3 py-1.5 bg-card border border-border rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Prev</button>
               <button className="w-8 h-8 bg-primary text-white rounded-lg font-black text-[10px] shadow-lg shadow-primary/20">1</button>
@@ -394,6 +403,18 @@ export default function BillPaymentsPage() {
           </div>
         </div>
       </div>
+
+      {/* MODALS */}
+      <ExportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        title="Compliance Report"
+        description="Select the preferred format for the transaction compliance report."
+        fileName={`Compliance_Report_${selectedTxn?.id || 'All'}`}
+        data={selectedTxn ? [selectedTxn] : filteredData}
+        headers={['id', 'customer', 'type', 'provider', 'amount', 'status', 'ref', 'time']}
+      />
+
     </div>
   );
 }

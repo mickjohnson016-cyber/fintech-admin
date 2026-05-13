@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Shield, Lock, User, Mail, CheckCircle2, AlertCircle, Clock, Plus } from 'lucide-react';
+import { X, Shield, Lock, User, Mail, CheckCircle2, AlertCircle, Clock, Plus, Upload, Image as ImageIcon, Trash2, Camera } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -76,12 +76,49 @@ export const RoleModal = ({
   role: any; 
   onSave: (data: any) => void;
 }) => {
-  const [formData, setFormData] = useState(role || { name: '', desc: '', avatar: 'admin-m' });
+  const [formData, setFormData] = useState(role || { name: '', desc: '', avatar: 'admin-m', customAvatar: null });
+  const [previewUrl, setPreviewUrl] = useState<string | null>(role?.customAvatar || null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (role) setFormData(role);
-    else setFormData({ name: '', desc: '', avatar: 'admin-m' });
+    if (role) {
+      setFormData(role);
+      setPreviewUrl(role.customAvatar || null);
+    } else {
+      setFormData({ name: '', desc: '', avatar: 'admin-m', customAvatar: null });
+      setPreviewUrl(null);
+    }
   }, [role]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validation
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Invalid format', { description: 'Please upload a PNG, JPG, or WEBP image.' });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large', { description: 'Maximum upload size is 5MB.' });
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    setFormData({ ...formData, avatar: 'custom', customAvatar: url });
+    toast.success('Avatar Uploaded', { description: 'Custom profile image is ready.' });
+  };
+
+  const handleRemoveCustom = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setFormData({ ...formData, avatar: 'admin-m', customAvatar: null });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +153,49 @@ export const RoleModal = ({
         <div className="space-y-4">
           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Profile Avatar</label>
           <div className="grid grid-cols-4 gap-3">
+            {/* Custom Upload Button */}
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+              className="hidden" 
+              accept="image/png,image/jpeg,image/jpg,image/webp" 
+            />
+            
+            <button
+              type="button"
+              onClick={() => previewUrl ? setFormData({ ...formData, avatar: 'custom' }) : fileInputRef.current?.click()}
+              className={cn(
+                "relative flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-dashed transition-all group overflow-hidden",
+                formData.avatar === 'custom' 
+                  ? "border-primary bg-primary/5 ring-4 ring-primary/5" 
+                  : "border-border/20 bg-secondary/10 hover:border-primary/30 hover:bg-secondary/20"
+              )}
+            >
+              <div className="size-10 rounded-xl overflow-hidden border border-border/20 shadow-inner flex items-center justify-center bg-background group-hover:scale-105 transition-transform">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Custom" className="size-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                    <Camera size={18} strokeWidth={2.5} />
+                  </div>
+                )}
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-tighter text-muted-foreground group-hover:text-primary transition-colors">
+                {previewUrl ? "Custom" : "Upload"}
+              </span>
+
+              {previewUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemoveCustom}
+                  className="absolute top-1 right-1 size-5 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                >
+                  <Trash2 size={10} strokeWidth={3} />
+                </button>
+              )}
+            </button>
+
             {AVATAR_OPTIONS.map((avatar) => (
               <button
                 key={avatar.id}
@@ -128,8 +208,7 @@ export const RoleModal = ({
                     : "border-border/10 bg-secondary/20 hover:border-primary/30 hover:bg-secondary/40"
                 )}
               >
-                <div className="size-10 rounded-xl overflow-hidden border border-border/20 shadow-inner flex items-center justify-center bg-background">
-                  {/* Fallback for missing images until they fully load or if they are missing */}
+                <div className="size-10 rounded-xl overflow-hidden border border-border/20 shadow-inner flex items-center justify-center bg-background group-hover:scale-105 transition-transform">
                   <img 
                     src={avatar.image} 
                     alt={avatar.name} 

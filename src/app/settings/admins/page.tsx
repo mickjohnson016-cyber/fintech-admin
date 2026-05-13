@@ -34,8 +34,12 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RoleModal, InviteModal } from '@/components/settings/AdminModals';
 import { executeExport } from '@/lib/exportUtils';
+import { useUser } from '@/contexts/UserContext';
 
 const getAvatarPath = (avatarId: string) => {
+  if (!avatarId) return '/assets/avatars/generic.png';
+  if (avatarId.startsWith('blob:') || avatarId.startsWith('http') || avatarId.startsWith('data:')) return avatarId;
+  
   const paths: Record<string, string> = {
     'admin-m': '/assets/avatars/admin-m.png',
     'admin-f': '/assets/avatars/admin-f.png',
@@ -50,8 +54,61 @@ const getAvatarPath = (avatarId: string) => {
 };
 
 export default function AdminManagement() {
-  const [adminList, setAdminList] = useState<any[]>([]);
-  const [roleList, setRoleList] = useState<any[]>([]);
+  const { user: currentUser } = useUser();
+  
+  const initialAdmins = [
+    { 
+      id: 'ADM-001', 
+      name: currentUser.name, 
+      email: currentUser.email, 
+      role: currentUser.role, 
+      status: "Active", 
+      lastActive: "Just now", 
+      avatar: currentUser.avatar || 'admin-m' 
+    },
+    { 
+      id: 'ADM-002', 
+      name: 'Sarah Chen', 
+      email: 's.chen@oinzpay.com', 
+      role: 'Compliance Officer', 
+      status: "Active", 
+      lastActive: '2 mins ago', 
+      avatar: 'admin-f' 
+    },
+    { 
+      id: 'ADM-003', 
+      name: 'Alex Rivera', 
+      email: 'a.rivera@oinzpay.com', 
+      role: 'Security Engineer', 
+      status: "Offline", 
+      lastActive: '4 hours ago', 
+      avatar: 'security' 
+    },
+  ];
+
+  const initialRoles = [
+    { id: 'ROLE-001', name: 'Super Admin', desc: 'Full system access and governance control.', avatar: 'admin-m', count: 1 },
+    { id: 'ROLE-002', name: 'Compliance Officer', desc: 'KYC/AML review and policy enforcement.', avatar: 'compliance', count: 1 },
+    { id: 'ROLE-003', name: 'Security Engineer', desc: 'Infrastructure protection and audit logging.', avatar: 'security', count: 1 },
+  ];
+
+  const [adminList, setAdminList] = useState<any[]>(initialAdmins);
+  const [roleList, setRoleList] = useState<any[]>(initialRoles);
+
+  // Sync current user data in the list if they are present
+  useMemo(() => {
+    setAdminList(prev => prev.map(admin => {
+      if (admin.email === currentUser.email) {
+        return { 
+          ...admin, 
+          name: currentUser.name, 
+          avatar: currentUser.avatar || admin.avatar,
+          role: currentUser.role 
+        };
+      }
+      return admin;
+    }));
+  }, [currentUser]);
 
   const [permissions, setPermissions] = useState([
     { label: "Transactions", items: ["View", "Create", "Approve", "Refund"], active: [0, 1, 2, 3] },

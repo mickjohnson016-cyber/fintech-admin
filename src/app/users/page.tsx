@@ -53,7 +53,9 @@ import { DashboardGrid } from '@/components/ui/DashboardGrid';
 import { AdaptiveMetricCard } from '@/components/ui/AdaptiveMetricCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { ActionMenu } from '@/components/ui/ActionMenu';
+import { TableActionMenu } from '@/components/ui/TableActionMenu';
+import { QuickActionModal } from '@/components/ui/QuickActionModal';
+import { ExportModal } from '@/components/ui/ExportModal';
 
 // --- MOCK DATA ---
 
@@ -93,8 +95,33 @@ const metrics = [
 
 export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
+  const [userToSuspend, setUserToSuspend] = useState<UserRecord | null>(null);
+  const [userToReset, setUserToReset] = useState<UserRecord | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  
   const router = useRouter();
+
+  const handleSuspend = () => {
+    if (!userToSuspend) return;
+    setIsActionLoading(true);
+    setTimeout(() => {
+      toast.error('Account Suspended', { description: `${userToSuspend.name} has been restricted from all platform services.` });
+      setUserToSuspend(null);
+      setIsActionLoading(false);
+    }, 1500);
+  };
+
+  const handlePasswordReset = () => {
+    if (!userToReset) return;
+    setIsActionLoading(true);
+    setTimeout(() => {
+      toast.success('Reset Email Sent', { description: `A secure password reset link has been dispatched to ${userToReset.email}.` });
+      setUserToReset(null);
+      setIsActionLoading(false);
+    }, 1500);
+  };
 
   const {
     searchTerm,
@@ -132,7 +159,7 @@ export default function UsersPage() {
         </div>
         <div className="flex items-center gap-3">
           <Button 
-            onClick={() => executeExport({ fileName: 'CustomerDirectory', data: users, format: 'CSV' })}
+            onClick={() => setIsExportModalOpen(true)}
             variant="outline" 
             className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest bg-card border-border/40 hover:bg-secondary flex items-center gap-2"
           >
@@ -308,11 +335,12 @@ export default function UsersPage() {
                     </div>
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <ActionMenu triggerSize={18} items={[
+                    <TableActionMenu items={[
                       { label: 'View Profile', icon: Eye, onClick: () => router.push(`/users/${user.id}`) },
                       { label: 'Copy User ID', icon: Copy, onClick: () => { navigator.clipboard.writeText(user.id); toast.success('Copied', { description: user.id }); } },
-                      { label: 'Export Statement', icon: Download, onClick: () => toast.success('Export Started', { description: `Statement for ${user.name} initiated.` }), dividerBefore: true },
-                      { label: 'Suspend Account', icon: Ban, onClick: () => toast.error('Account Suspended', { description: `${user.name} has been temporarily suspended.` }), variant: 'danger', dividerBefore: true },
+                      { label: 'Reset Password', icon: LockIcon, onClick: () => setUserToReset(user), dividerBefore: true },
+                      { label: 'Export Statement', icon: Download, onClick: () => handleExportStatement(user), dividerBefore: true },
+                      { label: 'Suspend Account', icon: Ban, onClick: () => setUserToSuspend(user), variant: 'danger', dividerBefore: true },
                     ]} />
                   </td>
                 </tr>
@@ -332,13 +360,46 @@ export default function UsersPage() {
         </div>
 
         <div className="p-4 bg-secondary/5 border-t border-border/10 flex items-center justify-between px-8">
-          <p className="text-[11px] font-bold text-muted-foreground uppercase">Showing 0 Customers</p>
+          <p className="text-[11px] font-bold text-muted-foreground uppercase">Showing {filteredData.length} Customers</p>
           <div className="flex gap-2">
             <Button onClick={() => toast.info('Pagination', { description: 'Loading previous customer segment...' })} variant="outline" size="sm" className="h-9 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 opacity-50">Previous</Button>
             <Button onClick={() => toast.info('Pagination', { description: 'Loading next customer segment...' })} variant="outline" size="sm" className="h-9 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40">Next Page</Button>
           </div>
         </div>
       </div>
+
+      {/* MODALS */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Customer Directory"
+        fileName="OINZpay_Customer_Directory"
+        data={users}
+        headers={['id', 'name', 'email', 'phone', 'balance', 'status', 'kycLevel', 'riskLevel']}
+      />
+      <QuickActionModal
+        isOpen={!!userToSuspend}
+        onClose={() => setUserToSuspend(null)}
+        onConfirm={handleSuspend}
+        title="Suspend Account"
+        description="Are you sure you want to suspend this user? They will lose access to all platform features immediately."
+        type="danger"
+        confirmLabel="Suspend User"
+        isLoading={isActionLoading}
+        icon={UserX}
+      />
+
+      <QuickActionModal
+        isOpen={!!userToReset}
+        onClose={() => setUserToReset(null)}
+        onConfirm={handlePasswordReset}
+        title="Reset Password"
+        description="This will send a secure password reset link to the user's registered email address."
+        type="confirm"
+        confirmLabel="Send Reset Link"
+        isLoading={isActionLoading}
+        icon={LockIcon}
+      />
 
       {/* 5. USER DETAIL DRAWER */}
       <AnimatePresence>
