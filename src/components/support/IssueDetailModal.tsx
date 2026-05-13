@@ -64,7 +64,6 @@ export default function IssueDetailModal({
     if (!internalNote.trim()) return;
     onAddNote(issue.id, internalNote);
     setInternalNote("");
-    toast.success("Note Added", { description: "Internal observation recorded." });
   };
 
   const handleSendReply = () => {
@@ -78,7 +77,7 @@ export default function IssueDetailModal({
     setIsSavingDraft(true);
     setTimeout(() => {
       setIsSavingDraft(false);
-      toast.info("Draft Saved", { description: "Your progress has been cached locally." });
+      toast.info("Draft Saved");
     }, 800);
   };
 
@@ -91,185 +90,161 @@ export default function IssueDetailModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-background/80 backdrop-blur-md z-[100]"
+            className="fixed inset-0 bg-background/40 backdrop-blur-sm z-[100]"
           />
 
           <motion.div
-            initial={{ opacity: 0, x: 100 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            className="fixed inset-y-0 right-0 w-full max-w-2xl bg-card border-l border-border/50 shadow-2xl z-[101] flex flex-col overflow-hidden"
+            exit={{ opacity: 0, x: 20 }}
+            className="fixed inset-y-0 right-0 w-full max-w-xl bg-card border-l border-border shadow-2xl z-[101] flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="p-8 border-b border-border/10 flex items-center justify-between bg-muted/30">
-              <div className="space-y-1">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="text-2xl font-black text-primary font-mono tracking-tighter">{issue.id}</span>
-                  
-                  {/* Priority Picker */}
-                  <div className="relative group/priority">
-                    <button className={cn(
-                      "px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border transition-all",
-                      issue.priority === 'Critical' ? "bg-rose-500/10 border-rose-500/20 text-rose-500" : 
-                      issue.priority === 'High' ? "bg-orange-500/10 border-orange-500/20 text-orange-500" :
-                      "bg-muted border-border/40 text-muted-foreground"
-                    )}>
-                      {issue.priority} Priority
-                    </button>
-                    <div className="absolute top-full left-0 mt-2 w-32 bg-card border border-border rounded-xl shadow-xl opacity-0 invisible group-hover/priority:opacity-100 group-hover/priority:visible transition-all z-50 py-1">
-                      {['Low', 'Medium', 'High', 'Critical'].map((p) => (
-                        <button 
-                          key={p} 
-                          onClick={() => onUpdatePriority(issue.id, p as any)}
-                          className="w-full px-3 py-1.5 text-left text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        >
-                          {p}
-                        </button>
-                      ))}
+            <div className="p-6 border-b border-border flex flex-col gap-4 bg-muted/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl font-semibold text-primary font-mono tracking-tight">{issue.id}</span>
+                  <div className="flex items-center gap-2">
+                    {/* Priority */}
+                    <div className="relative group/priority">
+                      <button className={cn(
+                        "px-2 py-0.5 rounded text-[11px] font-semibold tracking-tight border transition-colors",
+                        issue.priority === 'Critical' ? "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20" : 
+                        issue.priority === 'High' ? "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20" :
+                        "bg-muted/50 text-muted-foreground border-border/50"
+                      )}>
+                        {issue.priority}
+                      </button>
+                      <div className="absolute top-full left-0 mt-1 w-32 bg-card border border-border rounded-lg shadow-lg opacity-0 invisible group-hover/priority:opacity-100 group-hover/priority:visible transition-all z-50 py-1">
+                        {['Low', 'Medium', 'High', 'Critical'].map((p) => (
+                          <button 
+                            key={p} 
+                            onClick={() => onUpdatePriority(issue.id, p as any)}
+                            className="w-full px-3 py-1.5 text-left text-[12px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Status Picker */}
-                  <div className="relative group/status">
-                    <button className={cn(
-                      "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all",
-                      issue.status === 'Open' ? "bg-blue-500/10 border-blue-500/20 text-blue-500" :
-                      issue.status === 'Investigating' ? "bg-amber-500/10 border-amber-500/20 text-amber-500" :
-                      issue.status === 'Escalated' ? "bg-rose-500/10 border-rose-500/20 text-rose-500" :
-                      issue.status === 'Resolved' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" :
-                      "bg-muted border-border/40 text-muted-foreground"
-                    )}>
-                      {issue.status}
-                    </button>
-                    <div className="absolute top-full left-0 mt-2 w-40 bg-card border border-border rounded-xl shadow-xl opacity-0 invisible group-hover/status:opacity-100 group-hover/status:visible transition-all z-50 py-1">
-                      {['Open', 'Pending', 'Investigating', 'Escalated', 'Resolved', 'Closed'].map((s) => (
-                        <button 
-                          key={s} 
-                          onClick={() => onUpdateStatus(issue.id, s as any)}
-                          className="w-full px-3 py-1.5 text-left text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        >
-                          {s}
-                        </button>
-                      ))}
+                    {/* Status */}
+                    <div className="relative group/status">
+                      <button className={cn(
+                        "px-2 py-0.5 rounded text-[11px] font-semibold tracking-tight border transition-colors",
+                        issue.status === 'Open' ? "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20" :
+                        issue.status === 'Investigating' ? "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20" :
+                        issue.status === 'Escalated' ? "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20" :
+                        issue.status === 'Resolved' ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
+                        "bg-muted/50 text-muted-foreground border-border/50"
+                      )}>
+                        {issue.status}
+                      </button>
+                      <div className="absolute top-full left-0 mt-1 w-36 bg-card border border-border rounded-lg shadow-lg opacity-0 invisible group-hover/status:opacity-100 group-hover/status:visible transition-all z-50 py-1">
+                        {['Open', 'Pending', 'Investigating', 'Escalated', 'Resolved', 'Closed'].map((s) => (
+                          <button 
+                            key={s} 
+                            onClick={() => onUpdateStatus(issue.id, s as any)}
+                            className="w-full px-3 py-1.5 text-left text-[12px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-                <h2 className="text-xl font-black text-foreground tracking-tight">{issue.type}</h2>
+                <div className="flex items-center gap-1.5">
+                  <Button variant="ghost" size="icon" className="size-8 rounded-md" onClick={() => toast.success("Link Copied")}>
+                    <Share2 size={14} className="text-muted-foreground" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="size-8 rounded-md" onClick={onClose}>
+                    <X size={16} className="text-muted-foreground" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => toast.info("Link Copied", { description: "Case deep-link copied to clipboard." })}
-                  className="p-3 bg-card border border-border/20 rounded-2xl text-muted-foreground hover:text-foreground transition-all"
-                >
-                  <Share2 size={18} />
-                </button>
-                <button 
-                  onClick={onClose}
-                  className="p-3 bg-card border border-border/20 rounded-2xl text-muted-foreground hover:text-foreground transition-all"
-                >
-                  <X size={20} />
-                </button>
-              </div>
+              <h2 className="text-lg font-semibold text-foreground tracking-tight">{issue.type}</h2>
             </div>
 
-            {/* Content Tabs */}
-            <div className="px-8 border-b border-border/10 bg-card">
-              <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
+            {/* Navigation Tabs */}
+            <div className="px-6 border-b border-border bg-card">
+              <div className="flex items-center gap-6">
                 {['overview', 'activity', 'files', 'reply'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab as any)}
                     className={cn(
-                      "py-4 text-[11px] font-black uppercase tracking-widest transition-all relative whitespace-nowrap",
+                      "py-3 text-[13px] font-medium transition-all relative",
                       activeTab === tab ? "text-primary" : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    {tab}
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
                     {activeTab === tab && (
-                      <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                      <motion.div layoutId="activeTabDetails" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                     )}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-8">
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-8">
               {activeTab === 'overview' && (
                 <>
-                  {/* User Section */}
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Reporter Information</h4>
-                    <div className="p-6 bg-secondary/30 border border-border/10 rounded-[32px] flex flex-col sm:flex-row sm:items-center justify-between gap-6 group">
-                      <div className="flex items-center gap-4">
-                        <div className="size-14 rounded-2xl bg-card border border-border/40 flex items-center justify-center text-primary font-black text-xl shadow-inner shrink-0">
+                  {/* Info Grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/5 space-y-2">
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-tight">Reporter</p>
+                      <div className="flex items-center gap-2.5">
+                        <div className="size-8 rounded-md bg-secondary border border-border flex items-center justify-center text-[12px] font-bold text-muted-foreground">
                           {issue.user[0]}
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-[15px] font-black text-foreground tracking-tight truncate">{issue.user}</p>
-                          <p className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest">ID: PLAT-USR-8821</p>
-                        </div>
+                        <span className="text-[14px] font-medium truncate">{issue.user}</span>
                       </div>
-                      <Button variant="outline" className="h-9 rounded-xl border-border/40 font-black text-[9px] uppercase tracking-widest gap-2 shrink-0">
-                        View User <ArrowUpRight size={14} />
-                      </Button>
+                    </div>
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/5 space-y-2">
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-tight">Assignee</p>
+                      <div className="flex items-center gap-2.5">
+                        <div className="size-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                          <User size={14} />
+                        </div>
+                        <span className="text-[14px] font-medium truncate">{issue.assignedTo || 'Unassigned'}</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Assignment Section */}
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Owner & Team</h4>
-                    <div className="p-6 bg-secondary/30 border border-border/10 rounded-[32px] flex flex-col sm:flex-row sm:items-center justify-between gap-6 group">
-                      <div className="flex items-center gap-4">
-                        <div className="size-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                          <User size={24} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[15px] font-black text-foreground tracking-tight truncate">{issue.assignedTo || 'Unassigned'}</p>
-                          <p className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest">{issue.assignedTeam || 'No Team Assigned'}</p>
-                        </div>
-                      </div>
-                      <Button 
-                        onClick={() => onAssign(issue)}
-                        variant="outline" 
-                        className="h-9 rounded-xl border-border/40 font-black text-[9px] uppercase tracking-widest gap-2 shrink-0 hover:bg-primary/5 hover:text-primary hover:border-primary/20"
-                      >
-                        <UserPlus size={14} /> {issue.assignedTo ? 'Change Owner' : 'Assign Admin'}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Issue Description */}
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Investigation Details</h4>
-                    <div className="p-6 bg-secondary/20 border border-border/5 rounded-[32px] space-y-4">
-                      <p className="text-[13px] font-medium text-foreground/80 leading-relaxed italic">
-                        "{issue.description}"
+                  {/* Description */}
+                  <div className="space-y-3">
+                    <h4 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-tight">Description</h4>
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/5">
+                      <p className="text-[14px] font-medium text-foreground/80 leading-relaxed">
+                        {issue.description}
                       </p>
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        <div className="px-3 py-1.5 bg-background border border-border/40 rounded-xl flex items-center gap-2 text-[10px] font-bold text-muted-foreground">
-                          <AlertTriangle size={12} className="text-amber-500" /> Timeout Cluster-B
-                        </div>
-                        <div className="px-3 py-1.5 bg-background border border-border/40 rounded-xl flex items-center gap-2 text-[10px] font-bold text-muted-foreground">
-                          <CheckCircle2 size={12} className="text-emerald-500" /> Ledger Verified
-                        </div>
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        <span className="px-2 py-0.5 rounded-md bg-background border border-border/60 text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                          <AlertTriangle size={12} className="text-amber-500" /> Platform Operational
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md bg-background border border-border/60 text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                          <CheckCircle2 size={12} className="text-emerald-500" /> Ledger Matched
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Internal Notes */}
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Internal Admin Notes</h4>
-                    <div className="relative group">
+                  <div className="space-y-3">
+                    <h4 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-tight">Internal Observations</h4>
+                    <div className="relative">
                       <textarea 
                         value={internalNote}
                         onChange={(e) => setInternalNote(e.target.value)}
-                        placeholder="Add observation or evidence for other admins..."
-                        className="w-full bg-secondary/30 border border-border/40 rounded-[24px] p-5 text-sm font-bold min-h-[120px] outline-none focus:bg-background focus:border-primary/40 transition-all no-scrollbar"
+                        placeholder="Add note for administrative staff..."
+                        className="w-full bg-background border border-border rounded-xl p-4 text-[14px] font-medium min-h-[100px] outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all resize-none"
                       />
                       <Button 
                         onClick={handleAddNote}
-                        className="absolute bottom-4 right-4 h-9 rounded-xl bg-primary text-white px-4 font-black text-[10px] uppercase tracking-widest"
+                        size="sm"
+                        className="absolute bottom-3 right-3 h-8 rounded-lg bg-primary text-primary-foreground text-[12px] font-semibold"
                       >
                         Add Note
                       </Button>
@@ -279,64 +254,66 @@ export default function IssueDetailModal({
               )}
 
               {activeTab === 'activity' && (
-                <div className="space-y-6">
-                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Issue Timeline & Audit Trail</h4>
+                <div className="space-y-4">
+                  <h4 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-tight">Activity Timeline</h4>
                   <ActivityTimeline events={issue.timeline} />
                 </div>
               )}
 
               {activeTab === 'files' && (
-                <div className="space-y-6">
-                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Attachments & Evidence</h4>
-                  <div className="py-20 text-center space-y-4 bg-secondary/10 border-2 border-dashed border-border/20 rounded-[32px]">
-                    <div className="size-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto border border-border/10">
-                      <Paperclip size={24} className="text-muted-foreground/20" />
+                <div className="space-y-4">
+                  <h4 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-tight">Attachments</h4>
+                  <div className="py-16 text-center border-2 border-dashed border-border/50 rounded-xl space-y-4 bg-muted/5">
+                    <div className="size-12 bg-muted/50 rounded-full flex items-center justify-center mx-auto">
+                      <Paperclip size={20} className="text-muted-foreground" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">Drop files here to attach</p>
-                      <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Max size: 10MB per file</p>
+                      <p className="text-[13px] font-medium text-foreground">Attach evidence or logs</p>
+                      <p className="text-[12px] text-muted-foreground">Drag and drop or browse files</p>
                     </div>
-                    <Button variant="outline" className="h-9 rounded-xl border-border/40 font-black text-[9px] uppercase tracking-widest">Select Files</Button>
+                    <Button variant="outline" size="sm" className="h-8 px-4 rounded-lg text-[12px] font-semibold">Select Files</Button>
                   </div>
                 </div>
               )}
 
               {activeTab === 'reply' && (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Reply to User</h4>
-                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
-                      <div className="size-1 bg-emerald-500 rounded-full animate-pulse" /> User Online
+                    <h4 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-tight">Communication</h4>
+                    <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <div className="size-1.5 bg-emerald-500 rounded-full animate-pulse" /> Messenger Sync Active
                     </span>
                   </div>
                   <div className="space-y-4">
-                    <div className="relative group">
+                    <div className="relative">
                       <textarea 
                         value={userReply}
                         onChange={(e) => setUserReply(e.target.value)}
-                        placeholder="Compose a message to the user..."
-                        className="w-full bg-secondary/30 border border-border/40 rounded-[32px] p-6 text-sm font-bold min-h-[200px] outline-none focus:bg-background focus:border-primary/40 transition-all no-scrollbar"
+                        placeholder="Type a response to the customer..."
+                        className="w-full bg-background border border-border rounded-xl p-4 text-[14px] font-medium min-h-[180px] outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all resize-none"
                       />
-                      <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                      <div className="absolute bottom-3 right-3 flex items-center gap-2">
                         <Button 
                           onClick={handleSaveDraft}
                           variant="ghost"
-                          className="h-9 rounded-xl font-black text-[10px] uppercase tracking-widest gap-2"
+                          size="sm"
+                          className="h-8 rounded-lg text-[12px] font-semibold gap-1.5 hover:bg-muted"
                         >
-                          {isSavingDraft ? <RotateCcw size={14} className="animate-spin" /> : <Save size={14} />} Save Draft
+                          {isSavingDraft ? <RotateCcw size={12} className="animate-spin" /> : <Save size={12} />} Draft
                         </Button>
                         <Button 
                           onClick={handleSendReply}
-                          className="h-10 rounded-xl bg-primary text-white px-6 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-2"
+                          size="sm"
+                          className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-[12px] font-semibold shadow-sm flex items-center gap-2"
                         >
                           <Send size={14} /> Send Reply
                         </Button>
                       </div>
                     </div>
-                    <div className="p-4 bg-primary/5 border border-primary/10 rounded-2xl flex items-start gap-3">
-                      <MessageSquare size={16} className="text-primary mt-0.5" />
-                      <p className="text-[11px] font-medium text-primary/80 leading-relaxed">
-                        User will be notified via their mobile app and registered email address immediately.
+                    <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg flex items-start gap-3">
+                      <Info size={14} className="text-primary mt-0.5" />
+                      <p className="text-[12px] text-primary/80 font-medium">
+                        The user will receive an instant push notification and email update.
                       </p>
                     </div>
                   </div>
@@ -345,34 +322,34 @@ export default function IssueDetailModal({
             </div>
 
             {/* Footer Actions */}
-            <div className="p-8 border-t border-border/10 bg-card flex flex-col sm:flex-row gap-4">
+            <div className="p-6 border-t border-border bg-card flex items-center gap-3">
               <Button 
                 variant="outline"
-                className="flex-1 h-12 rounded-2xl border-border/40 font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2"
+                className="flex-1 h-10 rounded-lg text-[13px] font-semibold border-border/60 hover:bg-muted transition-colors gap-2"
                 onClick={() => onEscalate(issue)}
               >
-                <ShieldAlert size={16} /> Escalate Case
+                <ShieldAlert size={14} /> Escalate
               </Button>
               <Button 
                 className={cn(
-                  "flex-1 h-12 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg",
+                  "flex-1 h-10 rounded-lg text-[13px] font-semibold text-white transition-opacity hover:opacity-90 gap-2",
                   issue.status === 'Resolved' || issue.status === 'Closed' 
-                    ? "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20" 
-                    : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20"
+                    ? "bg-amber-600 dark:bg-amber-500" 
+                    : "bg-emerald-600 dark:bg-emerald-500"
                 )}
                 onClick={() => {
                   if (issue.status === 'Resolved' || issue.status === 'Closed') {
                     onUpdateStatus(issue.id, 'Open');
-                    toast.success("Ticket Reopened", { description: "Issue has been returned to the active queue." });
+                    toast.success("Ticket Reopened");
                   } else {
                     onResolve(issue.id);
                   }
                 }}
               >
                 {issue.status === 'Resolved' || issue.status === 'Closed' ? (
-                  <><RotateCcw size={16} /> Reopen Ticket</>
+                  <><RotateCcw size={14} /> Reopen</>
                 ) : (
-                  <><CheckCircle2 size={16} /> Resolve Issue</>
+                  <><CheckCircle2 size={14} /> Resolve Case</>
                 )}
               </Button>
             </div>

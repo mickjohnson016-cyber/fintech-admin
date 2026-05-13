@@ -7,7 +7,6 @@ import {
   Search, 
   Filter, 
   Download, 
-  MoreHorizontal,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -33,6 +32,8 @@ interface DataTableProps<T> {
   emptyDescription?: string;
   searchPlaceholder?: string;
   actions?: (item: T) => React.ReactNode;
+  emptyAction?: React.ReactNode;
+  onExport?: () => void;
 }
 
 export function DataTable<T>({ 
@@ -44,7 +45,9 @@ export function DataTable<T>({
   emptyTitle = "No data available",
   emptyDescription = "There are no records to display at this time.",
   searchPlaceholder = "Search records...",
-  actions
+  actions,
+  emptyAction,
+  onExport
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -96,37 +99,41 @@ export function DataTable<T>({
       {/* Table Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-sm group">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors" />
           <input 
             type="text"
             placeholder={searchPlaceholder}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-muted/50 border border-border/40 rounded-2xl py-2.5 pl-11 pr-4 text-[13px] font-bold outline-none focus:bg-background focus:border-primary/40 transition-all"
+            className="w-full bg-background border border-border/60 rounded-lg py-2 pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="h-10 rounded-xl border-border/40 font-black text-[10px] uppercase tracking-widest gap-2">
+          <Button variant="outline" className="h-9 px-3 rounded-lg border-border/60 text-xs font-semibold gap-2">
             <Filter size={14} /> Filter
           </Button>
-          <Button variant="outline" className="h-10 rounded-xl border-border/40 font-black text-[10px] uppercase tracking-widest gap-2">
+          <Button 
+            variant="outline" 
+            className="h-9 px-3 rounded-lg border-border/60 text-xs font-semibold gap-2"
+            onClick={onExport}
+          >
             <Download size={14} /> Export
           </Button>
         </div>
       </div>
 
       {/* Table Container */}
-      <div className="bg-card border border-border/40 rounded-[32px] overflow-hidden shadow-sm">
-        <div className="overflow-x-auto no-scrollbar">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
+      <div className="bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
-              <tr className="border-b border-border/5 bg-muted/30">
+              <tr className="border-b border-border/40 bg-muted/30">
                 {columns.map((column, i) => (
                   <th 
                     key={i}
                     onClick={() => column.sortable && requestSort(column.accessorKey as string)}
                     className={cn(
-                      "px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap",
+                      "px-4 py-3.5 text-[12px] font-semibold text-muted-foreground tracking-tight whitespace-nowrap",
                       column.sortable && "cursor-pointer hover:text-foreground transition-colors",
                       column.className
                     )}
@@ -142,19 +149,19 @@ export function DataTable<T>({
                     </div>
                   </th>
                 ))}
-                {actions && <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] text-right">Actions</th>}
+                {actions && <th className="px-4 py-3.5 text-[12px] font-semibold text-muted-foreground text-right">Actions</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/5">
+            <tbody className="divide-y divide-border/30">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     {columns.map((_, j) => (
-                      <td key={j} className="px-6 py-4">
-                        <div className="h-4 bg-muted rounded-md w-3/4" />
+                      <td key={j} className="px-4 py-4">
+                        <div className="h-4 bg-muted rounded w-3/4" />
                       </td>
                     ))}
-                    {actions && <td className="px-6 py-4"><div className="h-4 bg-muted rounded-md w-10 ml-auto" /></td>}
+                    {actions && <td className="px-4 py-4"><div className="h-4 bg-muted rounded w-8 ml-auto" /></td>}
                   </tr>
                 ))
               ) : paginatedData.length > 0 ? (
@@ -163,17 +170,17 @@ export function DataTable<T>({
                     key={i} 
                     onClick={() => onRowClick?.(item)}
                     className={cn(
-                      "group transition-all hover:bg-secondary/20",
+                      "group transition-colors hover:bg-muted/30",
                       onRowClick && "cursor-pointer"
                     )}
                   >
                     {columns.map((column, j) => (
-                      <td key={j} className={cn("px-6 py-4 text-[13px] font-bold text-foreground/80 group-hover:text-foreground transition-colors", column.className)}>
+                      <td key={j} className={cn("px-4 py-3.5 text-sm font-medium text-foreground/80 transition-colors", column.className)}>
                         {column.cell ? column.cell(item) : (item as any)[column.accessorKey]}
                       </td>
                     ))}
                     {actions && (
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                         {actions(item)}
                       </td>
                     )}
@@ -181,11 +188,13 @@ export function DataTable<T>({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={columns.length + (actions ? 1 : 0)} className="py-20">
+                  <td colSpan={columns.length + (actions ? 1 : 0)} className="py-20 text-center">
                     <EmptyState 
                       title={emptyTitle}
                       description={emptyDescription}
-                    />
+                    >
+                      {emptyAction}
+                    </EmptyState>
                   </td>
                 </tr>
               )}
@@ -195,28 +204,28 @@ export function DataTable<T>({
 
         {/* Pagination */}
         {filteredData.length > pageSize && (
-          <div className="px-6 py-4 border-t border-border/5 flex items-center justify-between bg-muted/10">
-            <p className="text-[11px] font-bold text-muted-foreground">
-              Showing <span className="text-foreground">{(currentPage - 1) * pageSize + 1}</span> to <span className="text-foreground">{Math.min(currentPage * pageSize, filteredData.length)}</span> of <span className="text-foreground">{filteredData.length}</span> results
+          <div className="px-4 py-3 border-t border-border/40 flex items-center justify-between bg-muted/10">
+            <p className="text-[12px] font-medium text-muted-foreground">
+              Showing <span className="text-foreground">{((currentPage - 1) * pageSize) + 1}</span> to <span className="text-foreground">{Math.min(currentPage * pageSize, filteredData.length)}</span> of <span className="text-foreground">{filteredData.length}</span>
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-lg border-border/40"
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
-                <ChevronLeft size={14} />
+                <ChevronLeft size={16} />
               </Button>
               <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-lg border-border/40"
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
               >
-                <ChevronRight size={14} />
+                <ChevronRight size={16} />
               </Button>
             </div>
           </div>

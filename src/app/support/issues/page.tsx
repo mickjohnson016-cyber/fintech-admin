@@ -1,28 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   MessageSquare, 
   ShieldAlert, 
-  AlertCircle, 
   Clock, 
-  User, 
   Filter,
   RefreshCw,
   Plus,
-  ArrowUpRight,
-  Search,
   CheckCircle2,
-  AlertTriangle,
-  History,
   MoreVertical,
-  ChevronRight,
-  Download,
   X,
   Edit2,
   UserPlus,
   ShieldCheck,
-  XCircle,
   Trash2,
   Eye,
   ArrowUpCircle
@@ -40,6 +31,7 @@ import EscalationModal from '@/components/support/EscalationModal';
 import AssignmentModal from '@/components/support/AssignmentModal';
 import { useIssues, Ticket } from '@/hooks/useIssues';
 import { QuickActionModal } from '@/components/ui/QuickActionModal';
+import { ExportModal } from '@/components/ui/ExportModal';
 
 export default function IssuesCenterPage() {
   const { 
@@ -48,24 +40,24 @@ export default function IssuesCenterPage() {
     assignIssue, 
     escalateIssue, 
     resolveIssue, 
+    closeIssue,
     deleteIssue,
     addNote, 
     updateIssue 
   } = useIssues();
 
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [isEscalating, setIsEscalating] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
-  
-  // Deletion state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
-  
-  // Active menu state
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-  const selectedTicket = issues.find(t => t.id === selectedTicketId) || null;
+  const selectedTicket = useMemo(() => {
+    if (!selectedTicketId) return null;
+    return issues.find(t => t.id === selectedTicketId) || null;
+  }, [issues, selectedTicketId]);
 
   const handleCreateTicket = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -88,18 +80,27 @@ export default function IssuesCenterPage() {
         description: 'New ticket initialized via administrative console.',
         timestamp: 'Just now',
         user: { name: 'Admin', role: 'System', initials: 'AD' }
-      }]
+      }],
+      notes: []
     };
 
     addIssue(newIssue);
     setIsNewTicketModalOpen(false);
   };
 
-  const confirmDelete = () => {
-    if (ticketToDelete) {
-      deleteIssue(ticketToDelete.id);
+  const handleExport = () => {
+    if (issues.length === 0) {
+      toast.error("Export Unavailable");
+      return;
+    }
+    setIsExportModalOpen(true);
+  };
+
+  const executePermanentDelete = () => {
+    if (selectedTicketId) {
+      deleteIssue(selectedTicketId);
       setIsDeleteModalOpen(false);
-      setTicketToDelete(null);
+      setSelectedTicketId(null);
     }
   };
 
@@ -109,7 +110,7 @@ export default function IssuesCenterPage() {
       accessorKey: 'id',
       sortable: true,
       cell: (item: Ticket) => (
-        <span className="font-black text-primary font-mono">{item.id}</span>
+        <span className="font-medium text-primary font-mono text-[13px]">{item.id}</span>
       )
     },
     {
@@ -118,21 +119,19 @@ export default function IssuesCenterPage() {
       sortable: true,
       cell: (item: Ticket) => (
         <div className="flex items-center gap-2">
-          <div className="size-6 rounded-lg bg-secondary border border-border/40 flex items-center justify-center text-[10px] font-black text-muted-foreground">
+          <div className="size-6 rounded bg-muted flex items-center justify-center text-[10px] font-semibold text-muted-foreground">
             {item.user[0]}
           </div>
-          <span className="truncate max-w-[120px] font-bold">{item.user}</span>
+          <span className="truncate max-w-[120px] font-medium text-foreground">{item.user}</span>
         </div>
       )
     },
     {
-      header: 'Issue Type',
+      header: 'Type',
       accessorKey: 'type',
       sortable: true,
       cell: (item: Ticket) => (
-        <span className="px-2 py-1 rounded-md bg-secondary/50 text-[10px] font-black uppercase tracking-tight text-foreground/70">
-          {item.type}
-        </span>
+        <span className="text-[12px] text-muted-foreground">{item.type}</span>
       )
     },
     {
@@ -140,17 +139,14 @@ export default function IssuesCenterPage() {
       accessorKey: 'priority',
       sortable: true,
       cell: (item: Ticket) => (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <div className={cn(
             "size-1.5 rounded-full",
-            item.priority === 'Critical' ? "bg-rose-500 shadow-[0_0_8px_#F43F5E]" :
+            item.priority === 'Critical' ? "bg-rose-500" :
             item.priority === 'High' ? "bg-orange-500" :
             item.priority === 'Medium' ? "bg-amber-500" : "bg-emerald-500"
           )} />
-          <span className={cn(
-            "text-[11px] font-black uppercase tracking-tighter",
-            item.priority === 'Critical' ? "text-rose-500" : "text-foreground/70"
-          )}>{item.priority}</span>
+          <span className="text-[12px] font-medium">{item.priority}</span>
         </div>
       )
     },
@@ -160,60 +156,42 @@ export default function IssuesCenterPage() {
       sortable: true,
       cell: (item: Ticket) => (
         <span className={cn(
-          "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all",
-          item.status === 'Open' ? "bg-blue-500/10 border-blue-500/20 text-blue-500" :
-          item.status === 'Investigating' ? "bg-amber-500/10 border-amber-500/20 text-amber-500" :
-          item.status === 'Escalated' ? "bg-rose-500/10 border-rose-500/20 text-rose-500" :
-          item.status === 'Resolved' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" :
-          "bg-muted border-border/40 text-muted-foreground"
+          "px-2 py-0.5 rounded text-[11px] font-medium border",
+          item.status === 'Open' ? "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20" :
+          item.status === 'Investigating' ? "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20" :
+          item.status === 'Escalated' ? "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20" :
+          item.status === 'Resolved' ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
+          "bg-muted text-muted-foreground border-border"
         )}>
           {item.status}
         </span>
       )
     },
     {
-      header: 'Assigned To',
+      header: 'Assigned',
       accessorKey: 'assignedTo',
       sortable: true,
       cell: (item: Ticket) => (
-        <span className="text-muted-foreground italic text-[11px] font-bold">{item.assignedTo || 'Unassigned'}</span>
-      )
-    },
-    {
-      header: 'Updated',
-      accessorKey: 'lastUpdated',
-      sortable: true,
-      cell: (item: Ticket) => (
-        <span className="text-[10px] font-bold text-muted-foreground uppercase">{item.lastUpdated}</span>
+        <span className="text-muted-foreground text-[12px]">{item.assignedTo || '—'}</span>
       )
     }
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700 pb-10">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <Breadcrumbs />
 
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-foreground tracking-tighter flex items-center gap-3">
-            Issues Center
-            <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20">Operational</span>
-          </h1>
-          <p className="text-[13px] font-medium text-muted-foreground">Manage user reports, investigate incidents, and escalate operational blockers.</p>
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Issues Center</h1>
+          <p className="text-[14px] text-muted-foreground">Manage and resolve administrative incidents.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="outline"
-            className="h-11 rounded-2xl border-border/40 font-black text-[11px] uppercase tracking-widest flex items-center gap-2"
-            onClick={() => toast.success("Queue Refreshed", { description: "Incident log synchronized with backend." })}
-          >
-            <RefreshCw size={14} /> Sync Log
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => toast.success("Synced")}>
+            <RefreshCw size={14} className="mr-2" /> Sync Log
           </Button>
-          <Button 
-            className="h-11 rounded-2xl bg-primary text-white px-6 font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-2"
-            onClick={() => setIsNewTicketModalOpen(true)}
-          >
-            <Plus size={16} /> New Ticket
+          <Button size="sm" onClick={() => setIsNewTicketModalOpen(true)}>
+            <Plus size={14} className="mr-2" /> New Ticket
           </Button>
         </div>
       </div>
@@ -221,58 +199,44 @@ export default function IssuesCenterPage() {
       <DashboardGrid cols={4}>
         <AdaptiveMetricCard 
           label="Total Active" 
-          value={issues.filter(i => i.status !== 'Resolved' && i.status !== 'Closed').length.toString()}
+          value={issues.filter(i => i.status !== 'Resolved' && i.status !== 'Closed').length}
           icon={MessageSquare} 
-          trend="-- %" 
-          trendUp={null}
-          color="primary"
         />
         <AdaptiveMetricCard 
-          label="Pending Investigation" 
-          value={issues.filter(i => i.status === 'Investigating').length.toString()}
+          label="Investigating" 
+          value={issues.filter(i => i.status === 'Investigating').length}
           icon={Clock} 
-          trend="-- %" 
-          trendUp={null}
-          color="amber"
         />
         <AdaptiveMetricCard 
-          label="Escalated Cases" 
-          value={issues.filter(i => i.status === 'Escalated').length.toString()}
+          label="Escalated" 
+          value={issues.filter(i => i.status === 'Escalated').length}
           icon={ShieldAlert} 
-          trend="-- %" 
-          trendUp={null}
-          color="rose"
         />
         <AdaptiveMetricCard 
-          label="Resolved (All time)" 
-          value={issues.filter(i => i.status === 'Resolved').length.toString()}
+          label="Resolved" 
+          value={issues.filter(i => i.status === 'Resolved' || i.status === 'Closed').length}
           icon={CheckCircle2} 
-          trend="-- %" 
-          trendUp={null}
-          color="emerald"
         />
       </DashboardGrid>
 
-      <div className="pt-2">
+      <div className="space-y-4">
         <DataTable 
           data={issues}
           columns={columns}
-          emptyTitle="No issues reported"
-          emptyDescription="Platform operational health is optimal. New incident reports will appear here."
-          searchPlaceholder="Search by ID, User, or Issue Type..."
+          onExport={handleExport}
           onRowClick={(ticket) => setSelectedTicketId(ticket.id)}
           actions={(ticket) => (
-            <div className="relative">
+            <div className="relative flex items-center justify-end">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="size-8 rounded-lg text-muted-foreground hover:text-primary transition-all"
+                className={cn("size-8", activeMenuId === ticket.id && "bg-muted")}
                 onClick={(e) => {
                    e.stopPropagation();
                    setActiveMenuId(activeMenuId === ticket.id ? null : ticket.id);
                 }}
               >
-                <MoreVertical size={16} />
+                <MoreVertical size={14} />
               </Button>
 
               <AnimatePresence>
@@ -280,48 +244,28 @@ export default function IssuesCenterPage() {
                   <>
                     <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
                     <motion.div 
-                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                      className="absolute right-0 mt-2 w-48 bg-card border border-border/40 rounded-2xl shadow-2xl z-20 overflow-hidden p-1.5 pointer-events-auto"
+                      initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
+                      className="absolute right-0 top-full mt-1 w-44 bg-card border border-border shadow-md rounded-lg z-20 overflow-hidden p-1"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button 
-                        onClick={() => { setSelectedTicketId(ticket.id); setActiveMenuId(null); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                      {[
+                        { label: 'View Details', icon: Eye, onClick: () => { setSelectedTicketId(ticket.id); setActiveMenuId(null); } },
+                        { label: 'Edit Ticket', icon: Edit2, onClick: () => { setSelectedTicketId(ticket.id); setActiveMenuId(null); } },
+                        { label: 'Assign Admin', icon: UserPlus, onClick: () => { setSelectedTicketId(ticket.id); setIsAssigning(true); setActiveMenuId(null); } },
+                        { label: 'Escalate Case', icon: ArrowUpCircle, onClick: () => { setSelectedTicketId(ticket.id); setIsEscalating(true); setActiveMenuId(null); } },
+                        { label: 'Close Ticket', icon: ShieldCheck, onClick: () => { closeIssue(ticket.id); setActiveMenuId(null); }, className: 'text-emerald-600' },
+                      ].map((item, i) => (
+                        <button key={i} onClick={(e) => { e.stopPropagation(); item.onClick(); }}
+                          className={cn("w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors", item.className)}
+                        >
+                           <item.icon size={14} /> {item.label}
+                        </button>
+                      ))}
+                      <div className="h-px bg-border my-1" />
+                      <button onClick={(e) => { e.stopPropagation(); setSelectedTicketId(ticket.id); setIsDeleteModalOpen(true); setActiveMenuId(null); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-destructive hover:bg-destructive/5 transition-colors"
                       >
-                         <Eye size={14} /> View Ticket
-                      </button>
-                      <button 
-                        onClick={() => { setSelectedTicketId(ticket.id); setActiveMenuId(null); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
-                      >
-                         <Edit2 size={14} /> Edit Details
-                      </button>
-                      <button 
-                        onClick={() => { setSelectedTicketId(ticket.id); setIsAssigning(true); setActiveMenuId(null); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
-                      >
-                         <UserPlus size={14} /> Assign Admin
-                      </button>
-                      <button 
-                        onClick={() => { setSelectedTicketId(ticket.id); setIsEscalating(true); setActiveMenuId(null); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
-                      >
-                         <ArrowUpCircle size={14} /> Escalate
-                      </button>
-                      <button 
-                        onClick={() => { resolveIssue(ticket.id); setActiveMenuId(null); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/5 transition-all"
-                      >
-                         <ShieldCheck size={14} /> Close Ticket
-                      </button>
-                      <div className="h-px bg-border/5 my-1.5" />
-                      <button 
-                        onClick={() => { setTicketToDelete(ticket); setIsDeleteModalOpen(true); setActiveMenuId(null); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/5 transition-all"
-                      >
-                         <Trash2 size={14} /> Delete Ticket
+                         <Trash2 size={14} /> Delete
                       </button>
                     </motion.div>
                   </>
@@ -332,69 +276,59 @@ export default function IssuesCenterPage() {
         />
       </div>
 
-      {/* MODALS */}
       <IssueDetailModal 
-        issue={selectedTicket}
-        isOpen={!!selectedTicket && !isEscalating && !isAssigning}
-        onClose={() => setSelectedTicketId(null)}
-        onEscalate={() => setIsEscalating(true)}
-        onResolve={(id) => resolveIssue(id)}
-        onAddNote={(id, note) => addNote(id, note)}
-        onAssign={() => setIsAssigning(true)}
-        onUpdateStatus={(id, status) => updateIssue(id, { status })}
+        issue={selectedTicket} isOpen={!!selectedTicket && !isEscalating && !isAssigning && !isDeleteModalOpen}
+        onClose={() => setSelectedTicketId(null)} onEscalate={() => setIsEscalating(true)}
+        onResolve={(id) => resolveIssue(id)} onAddNote={(id, note) => addNote(id, note)}
+        onAssign={() => setIsAssigning(true)} onUpdateStatus={(id, status) => updateIssue(id, { status })}
         onUpdatePriority={(id, priority) => updateIssue(id, { priority })}
       />
 
       <EscalationModal 
-        issue={selectedTicket}
-        isOpen={isEscalating}
-        onClose={() => setIsEscalating(false)}
+        issue={selectedTicket} isOpen={isEscalating} onClose={() => setIsEscalating(false)}
         onConfirm={(team, reason, priority) => {
           if (selectedTicketId) escalateIssue(selectedTicketId, team, reason, priority);
+          setIsEscalating(false);
         }}
       />
 
       <AssignmentModal 
-        issue={selectedTicket}
-        isOpen={isAssigning}
-        onClose={() => setIsAssigning(false)}
+        issue={selectedTicket} isOpen={isAssigning} onClose={() => setIsAssigning(false)}
         onAssign={(admin, team) => {
           if (selectedTicketId) assignIssue(selectedTicketId, admin, team);
           setIsAssigning(false);
         }}
       />
 
-      {/* NEW TICKET MODAL (Administrative Tool) */}
       <AnimatePresence>
         {isNewTicketModalOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsNewTicketModalOpen(false)} className="fixed inset-0 bg-background/80 backdrop-blur-md z-[300]" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsNewTicketModalOpen(false)} className="fixed inset-0 bg-background/40 backdrop-blur-sm z-[300]" />
             <div className="fixed inset-0 flex items-center justify-center z-[301] p-4 pointer-events-none">
-              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-lg bg-card border border-border rounded-[40px] shadow-2xl overflow-hidden pointer-events-auto">
+              <motion.div initial={{ scale: 0.99, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.99, opacity: 0 }} className="w-full max-w-lg bg-card border border-border shadow-lg rounded-xl overflow-hidden pointer-events-auto">
                 <form onSubmit={handleCreateTicket}>
-                  <div className="p-8 border-b border-border/10 flex items-center justify-between">
-                    <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Create Manual Ticket</h3>
-                    <button type="button" onClick={() => setIsNewTicketModalOpen(false)} className="p-2 hover:bg-secondary rounded-xl transition-all"><X size={18} /></button>
+                  <div className="p-6 border-b border-border flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Create Ticket</h3>
+                    <button type="button" onClick={() => setIsNewTicketModalOpen(false)} className="p-1 hover:bg-muted rounded transition-colors"><X size={18} /></button>
                   </div>
-                  <div className="p-8 space-y-5">
+                  <div className="p-6 space-y-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Customer Name</label>
-                      <input name="user" required placeholder="Full Name or Username" className="w-full bg-secondary/30 border border-border/10 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:bg-background transition-all" />
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-tight">User Identity</label>
+                      <input name="user" required placeholder="Account name..." className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary/30" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Issue Type</label>
-                        <select name="type" className="w-full bg-secondary/30 border border-border/10 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:bg-background transition-all">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-tight">Issue Type</label>
+                        <select name="type" className="w-full bg-background border border-border rounded-md px-2 py-2 text-sm outline-none">
                           <option>Failed Transaction</option>
                           <option>KYC Rejection</option>
                           <option>Account Locked</option>
                           <option>Card Issues</option>
-                          <option>Refund Request</option>
                         </select>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Initial Priority</label>
-                        <select name="priority" className="w-full bg-secondary/30 border border-border/10 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:bg-background transition-all">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-tight">Priority</label>
+                        <select name="priority" className="w-full bg-background border border-border rounded-md px-2 py-2 text-sm outline-none">
                           <option>Low</option>
                           <option>Medium</option>
                           <option>High</option>
@@ -403,12 +337,12 @@ export default function IssuesCenterPage() {
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Case Description</label>
-                      <textarea name="description" required rows={3} placeholder="Provide initial context for the investigation..." className="w-full bg-secondary/30 border border-border/10 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:bg-background transition-all resize-none" />
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-tight">Description</label>
+                      <textarea name="description" required rows={3} placeholder="Incident details..." className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary/30 resize-none" />
                     </div>
                   </div>
-                  <div className="p-8 pt-0">
-                    <Button type="submit" className="w-full h-12 rounded-2xl bg-primary text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20">Generate Operational Ticket</Button>
+                  <div className="p-6 pt-0">
+                    <Button type="submit" className="w-full">Initialize Ticket</Button>
                   </div>
                 </form>
               </motion.div>
@@ -418,14 +352,17 @@ export default function IssuesCenterPage() {
       </AnimatePresence>
 
       <QuickActionModal 
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={confirmDelete}
-        title="Permanently Delete Ticket?"
-        description={`Are you sure you want to permanently delete ticket ${ticketToDelete?.id}? This action will purge all associated logs, notes, and history from the operational queue. This cannot be undone.`}
-        icon={Trash2}
-        type="danger"
-        confirmLabel="Delete Permanently"
+        isOpen={isDeleteModalOpen} onClose={() => { setIsDeleteModalOpen(false); setSelectedTicketId(null); }}
+        onConfirm={executePermanentDelete} title="Delete Ticket"
+        description={`Confirm deletion of ${selectedTicketId}. This action is permanent.`}
+        type="danger" confirmLabel="Delete"
+      />
+
+      <ExportModal 
+        isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)}
+        title="Export Data" fileName="Incident_Log"
+        data={issues.map(i => ({ 'ID': i.id, 'User': i.user, 'Status': i.status }))}
+        headers={['ID', 'User', 'Status']}
       />
     </div>
   );
