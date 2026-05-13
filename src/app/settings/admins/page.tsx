@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import SettingsHeader from '@/components/settings/SettingsHeader';
 import SettingsCard from '@/components/settings/SettingsCard';
 import {
@@ -26,7 +26,12 @@ import {
   History,
   CheckCircle2,
   Filter,
-  Loader2
+  Loader2,
+  ShieldAlert,
+  ArrowRightLeft,
+  FileText,
+  Smartphone,
+  Check
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -35,8 +40,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RoleModal, InviteModal } from '@/components/settings/AdminModals';
 import { executeExport } from '@/lib/exportUtils';
 import { useUser } from '@/contexts/UserContext';
+import { QuickActionModal } from '@/components/ui/QuickActionModal';
 
-const getAvatarPath = (avatarId: string) => {
+const getAvatarPath = (avatarId: string | null) => {
   if (!avatarId) return '/assets/avatars/generic.png';
   if (avatarId.startsWith('blob:') || avatarId.startsWith('http') || avatarId.startsWith('data:')) return avatarId;
   
@@ -56,65 +62,9 @@ const getAvatarPath = (avatarId: string) => {
 export default function AdminManagement() {
   const { user: currentUser } = useUser();
   
-  const initialAdmins = [
-    { 
-      id: 'ADM-001', 
-      name: currentUser.name, 
-      email: currentUser.email, 
-      role: currentUser.role, 
-      status: "Active", 
-      lastActive: "Just now", 
-      avatar: currentUser.avatar || 'admin-m' 
-    },
-    { 
-      id: 'ADM-002', 
-      name: 'Sarah Chen', 
-      email: 's.chen@oinzpay.com', 
-      role: 'Compliance Officer', 
-      status: "Active", 
-      lastActive: '2 mins ago', 
-      avatar: 'admin-f' 
-    },
-    { 
-      id: 'ADM-003', 
-      name: 'Alex Rivera', 
-      email: 'a.rivera@oinzpay.com', 
-      role: 'Security Engineer', 
-      status: "Offline", 
-      lastActive: '4 hours ago', 
-      avatar: 'security' 
-    },
-  ];
-
-  const initialRoles = [
-    { id: 'ROLE-001', name: 'Super Admin', desc: 'Full system access and governance control.', avatar: 'admin-m', count: 1 },
-    { id: 'ROLE-002', name: 'Compliance Officer', desc: 'KYC/AML review and policy enforcement.', avatar: 'compliance', count: 1 },
-    { id: 'ROLE-003', name: 'Security Engineer', desc: 'Infrastructure protection and audit logging.', avatar: 'security', count: 1 },
-  ];
-
-  const [adminList, setAdminList] = useState<any[]>(initialAdmins);
-  const [roleList, setRoleList] = useState<any[]>(initialRoles);
-
-  // Sync current user data in the list if they are present
-  useMemo(() => {
-    setAdminList(prev => prev.map(admin => {
-      if (admin.email === currentUser.email) {
-        return { 
-          ...admin, 
-          name: currentUser.name, 
-          avatar: currentUser.avatar || admin.avatar,
-          role: currentUser.role 
-        };
-      }
-      return admin;
-    }));
-  }, [currentUser]);
-
-  const [permissions, setPermissions] = useState([
-    { label: "Transactions", items: ["View", "Create", "Approve", "Refund"], active: [0, 1, 2, 3] },
-    { label: "KYC/AML", items: ["View", "Review", "Override", "Delete"], active: [0, 1] },
-    { label: "Provider Config", items: ["View", "Modify", "Disable", "Reset"], active: [0] },
-  ]);
+  const [adminList, setAdminList] = useState<any[]>([]);
+  const [roleList, setRoleList] = useState<any[]>([]);
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRoleFilter, setSelectedRoleFilter] = useState("All Roles");
@@ -123,16 +73,23 @@ export default function AdminManagement() {
   // Modal States
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<any>(null);
+  const [selectedAdmin, setSelectedAdmin] = useState<any>(null);
   
-  // Security & Governance states
-  const [governanceRole, setGovernanceRole] = useState("Super Admin");
-  const [autoRevokeEnabled, setAutoRevokeEnabled] = useState(true);
-  const [multiApprovalEnabled, setMultiApprovalEnabled] = useState(true);
+  // Governance states
+  const [governanceRole, setGovernanceRole] = useState("No Role Assigned");
+  const [autoRevokeEnabled, setAutoRevokeEnabled] = useState(false);
+  const [multiApprovalEnabled, setMultiApprovalEnabled] = useState(false);
   const [regionalScopeEnabled, setRegionalScopeEnabled] = useState(false);
   const [isAuditRunning, setIsAuditRunning] = useState(false);
 
-  // Filtered Admins
+  const [permissions, setPermissions] = useState([
+    { label: "Transactions", items: ["View", "Create", "Approve", "Refund"], active: [] },
+    { label: "KYC/AML", items: ["View", "Review", "Override", "Delete"], active: [] },
+    { label: "Provider Config", items: ["View", "Modify", "Disable", "Reset"], active: [] },
+  ]);
+
   const filteredAdmins = useMemo(() => {
     return adminList.filter(admin => {
       const matchesSearch = admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -142,377 +99,286 @@ export default function AdminManagement() {
     });
   }, [adminList, searchTerm, selectedRoleFilter]);
 
-  // Role Actions
+  // Actions
   const handleSaveRole = (data: any) => {
     if (selectedRole) {
       setRoleList(prev => prev.map(r => r.id === selectedRole.id ? { ...r, ...data } : r));
-      toast.success('Role Updated', { description: `Configuration for "${data.name}" has been synchronized.` });
+      toast.success('Role Updated');
     } else {
-      const newRole = {
-        ...data,
-        id: `ROLE-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-        count: 0
-      };
-      setRoleList(prev => [...prev, newRole]);
-      toast.success('Role Created', { description: `New access scope "${data.name}" is now active.` });
+      setRoleList(prev => [...prev, { ...data, id: `ROLE-${Math.random().toString(36).substr(2, 4)}`, count: 0 }]);
+      toast.success('Role Created');
     }
     setSelectedRole(null);
   };
 
-  const deleteRole = (id: string, name: string) => {
-    setRoleList(prev => prev.filter(r => r.id !== id));
-    toast.error('Role Deleted', { description: `${name} has been purged from system definitions.` });
+  const handleDeleteAdmin = () => {
+    if (!selectedAdmin) return;
+    setAdminList(prev => prev.filter(a => a.id !== selectedAdmin.id));
+    setIsDeleteModalOpen(false);
+    setSelectedAdmin(null);
+    toast.error('Admin Access Revoked');
   };
 
-  // Admin Actions
-  const handleInviteAdmin = (data: any) => {
-    const roleObj = roleList.find((r: any) => r.name === data.role);
-    const newAdmin = {
-      id: `ADM-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-      ...data,
-      status: "Active",
-      lastActive: "Just now",
-      avatar: roleObj?.avatar || 'generic'
-    };
-    setAdminList(prev => [newAdmin, ...prev]);
-    toast.success('Invitation Sent', { description: `A secure onboarding link has been dispatched to ${data.email}.` });
-  };
-
-  const deleteAdmin = (id: string, name: string) => {
-    setAdminList(prev => prev.filter(a => a.id !== id));
-    toast.error('Account Revoked', { description: `${name}'s administrative privileges have been terminated.` });
-  };
-
-  const toggleAdminStatus = (id: string) => {
+  const handleToggleStatus = (id: string) => {
     setAdminList(prev => prev.map(a => {
       if (a.id === id) {
-        const newStatus = a.status === "Active" ? "Offline" : "Active";
-        toast.success('Status Toggled', { description: `${a.name} is now ${newStatus}.` });
+        const newStatus = a.status === 'Active' ? 'Suspended' : 'Active';
+        toast.info(`Admin ${newStatus}`);
         return { ...a, status: newStatus };
       }
       return a;
     }));
+    setActiveMenu(null);
   };
 
   const togglePermission = (scopeIndex: number, itemIndex: number) => {
     const newPermissions = [...permissions];
-    const activeItems = [...newPermissions[scopeIndex].active];
-
+    const activeItems = [...newPermissions[scopeIndex].active] as number[];
     if (activeItems.includes(itemIndex)) {
       newPermissions[scopeIndex].active = activeItems.filter(i => i !== itemIndex);
     } else {
       newPermissions[scopeIndex].active = [...activeItems, itemIndex];
     }
-
     setPermissions(newPermissions);
-    toast.success('Policy Updated', { description: `Granular permission changed in ${newPermissions[scopeIndex].label} scope.` });
+    toast.success('Policy Updated');
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
+    <div className="space-y-10">
       <SettingsHeader
         title="Admin & Role Management"
-        description="Govern administrative access via Role-Based Access Control (RBAC). Manage users, permissions, and security scopes."
+        description="Govern administrative access via Role-Based Access Control (RBAC). Configure users and security scopes."
       />
 
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Role Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {roleList.map((role) => (
-            <div key={role.id} className="bg-card border border-border/40 rounded-[32px] p-6 hover:border-primary/30 hover:bg-secondary/20 transition-all group relative overflow-hidden shadow-sm">
-              <div className="flex items-start justify-between mb-4">
-                <div className="size-12 rounded-2xl overflow-hidden border border-border/20 shadow-inner bg-secondary/50 flex items-center justify-center p-1">
-                   <img 
-                      src={getAvatarPath(role.avatar)} 
-                      alt={role.name} 
-                      className="size-full object-cover rounded-xl" 
-                   />
-                </div>
-                <button
-                  onClick={() => deleteRole(role.id, role.name)}
-                  className="size-6 bg-secondary/50 rounded-lg flex items-center justify-center text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 transition-all"
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-              <h4 className="text-[13px] font-black text-foreground tracking-tight mb-1">{role.name}</h4>
-              <p className="text-[10px] font-medium text-muted-foreground leading-snug mb-3 line-clamp-2">{role.desc}</p>
-              <div className="flex items-center justify-between">
-                <button 
-                  onClick={() => { setSelectedRole(role); setIsRoleModalOpen(true); }}
-                  className="text-[9px] font-black text-primary uppercase tracking-widest flex items-center gap-1 group-hover:gap-2 transition-all"
-                >
-                  Edit <ChevronRight size={10} />
-                </button>
-                <span className="text-[9px] font-black text-muted-foreground/40 uppercase">{role.count} Admins</span>
-              </div>
-            </div>
-          ))}
-          <button 
-            onClick={() => { setSelectedRole(null); setIsRoleModalOpen(true); }}
-            className="border-2 border-dashed border-border/40 rounded-[24px] p-5 flex flex-col items-center justify-center gap-2 hover:border-primary/40 hover:bg-primary/5 transition-all group min-h-[120px]"
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="xl:col-span-2 space-y-8">
+          {/* Active Roles */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             {roleList.map((role) => (
+               <div key={role.id} className="p-6 bg-card border border-border/40 rounded-[32px] hover:border-primary/30 transition-all group relative overflow-hidden shadow-sm">
+                  <div className="flex justify-between items-start mb-4">
+                     <div className="size-12 rounded-2xl bg-secondary/50 border border-border/10 overflow-hidden flex items-center justify-center">
+                        <img src={getAvatarPath(role.avatar)} className="size-full object-cover" />
+                     </div>
+                     <button onClick={() => { setSelectedRole(role); setIsRoleModalOpen(true); }} className="p-2 text-muted-foreground hover:text-primary transition-colors">
+                        <Edit2 size={14} />
+                     </button>
+                  </div>
+                  <h4 className="text-[13px] font-black text-foreground mb-1">{role.name}</h4>
+                  <p className="text-[10px] font-medium text-muted-foreground mb-4 line-clamp-2">{role.desc}</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-border/5">
+                     <span className="text-[9px] font-black uppercase text-muted-foreground/40">{role.count} Active Admins</span>
+                     <ChevronRight size={14} className="text-muted-foreground/20 group-hover:text-primary transition-all group-hover:translate-x-1" />
+                  </div>
+               </div>
+             ))}
+             <button 
+                onClick={() => { setSelectedRole(null); setIsRoleModalOpen(true); }}
+                className="border-2 border-dashed border-border/40 rounded-[32px] flex flex-col items-center justify-center gap-2 hover:bg-primary/5 hover:border-primary/20 transition-all min-h-[140px]"
+              >
+                <div className="p-2 bg-secondary rounded-xl"><Plus size={16} /></div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">New Role</span>
+             </button>
+          </div>
+
+          {/* Admin Directory */}
+          <SettingsCard
+            title="Administrative Directory"
+            description="Accounts with authorized system access."
+            icon={Users2}
           >
-            <div className="p-2 bg-secondary rounded-xl group-hover:bg-primary group-hover:text-white transition-all">
-              <Plus size={16} />
+            <div className="space-y-6">
+               <div className="flex flex-col sm:flex-row gap-4 p-4 bg-secondary/30 rounded-[24px] border border-border/20">
+                  <div className="relative flex-1 group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <input 
+                      placeholder="Search admins..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full bg-background border border-border/40 rounded-xl py-2.5 pl-12 pr-4 text-[12px] font-medium outline-none focus:border-primary/40 transition-all"
+                    />
+                  </div>
+                  <select 
+                    value={selectedRoleFilter}
+                    onChange={(e) => setSelectedRoleFilter(e.target.value)}
+                    className="h-11 bg-background border border-border/40 rounded-xl px-4 text-[10px] font-black uppercase outline-none"
+                  >
+                    <option>All Roles</option>
+                    {roleList.map(r => <option key={r.id}>{r.name}</option>)}
+                  </select>
+                  <Button onClick={() => setIsInviteModalOpen(true)} className="h-11 rounded-xl bg-primary text-white px-6 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-2 shrink-0">
+                    <UserPlus size={16} /> Invite
+                  </Button>
+               </div>
+
+               <div className="space-y-3">
+                  <AnimatePresence mode="popLayout">
+                    {filteredAdmins.length > 0 ? filteredAdmins.map((admin) => (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        key={admin.id}
+                        className="p-4 bg-secondary/10 border border-border/5 rounded-[24px] flex items-center justify-between group hover:border-primary/20 hover:bg-secondary/20 transition-all"
+                      >
+                         <div className="flex items-center gap-4">
+                            <div className="size-12 rounded-2xl bg-background border border-border/40 overflow-hidden flex items-center justify-center">
+                               <img src={getAvatarPath(admin.avatar)} className="size-full object-cover" onError={(e) => (e.currentTarget.src = `https://ui-avatars.com/api/?name=${admin.name}&background=random`)} />
+                            </div>
+                            <div>
+                               <div className="flex items-center gap-2">
+                                  <p className="text-[13px] font-black text-foreground">{admin.name}</p>
+                                  <span className={cn(
+                                    "px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase border",
+                                    admin.status === "Active" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                                  )}>{admin.status}</span>
+                               </div>
+                               <p className="text-[11px] font-medium text-muted-foreground">{admin.email}</p>
+                               <p className="text-[9px] font-black text-primary uppercase mt-0.5 tracking-widest">{admin.role}</p>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-6">
+                            <div className="text-right hidden sm:block">
+                               <p className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest">Active</p>
+                               <p className="text-[11px] font-bold text-foreground">{admin.lastActive}</p>
+                            </div>
+                            <div className="relative">
+                               <button 
+                                onClick={() => setActiveMenu(activeMenu === admin.id ? null : admin.id)}
+                                className="p-2 text-muted-foreground hover:text-primary transition-all"
+                               >
+                                  <MoreVertical size={18} />
+                               </button>
+                               {activeMenu === admin.id && (
+                                 <>
+                                   <div className="fixed inset-0 z-10" onClick={() => setActiveMenu(null)} />
+                                   <div className="absolute right-0 mt-2 w-48 bg-card border border-border/40 rounded-2xl shadow-2xl z-20 overflow-hidden p-1.5 animate-in fade-in zoom-in-95 duration-200">
+                                      <button onClick={() => handleToggleStatus(admin.id)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase text-muted-foreground hover:bg-secondary hover:text-foreground">
+                                         <ShieldAlert size={14} /> {admin.status === 'Suspended' ? 'Activate' : 'Suspend'}
+                                      </button>
+                                      <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase text-muted-foreground hover:bg-secondary hover:text-foreground">
+                                         <Key size={14} /> Credentials
+                                      </button>
+                                      <div className="h-px bg-border/5 my-1" />
+                                      <button onClick={() => { setSelectedAdmin(admin); setIsDeleteModalOpen(true); setActiveMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase text-rose-500 hover:bg-rose-500/5">
+                                         <UserX size={14} /> Revoke Access
+                                      </button>
+                                   </div>
+                                 </>
+                               )}
+                            </div>
+                         </div>
+                      </motion.div>
+                    ))}
+                    {filteredAdmins.length === 0 && (
+                      <div className="py-20 text-center border-2 border-dashed border-border/10 rounded-[40px]">
+                         <Users2 size={40} className="mx-auto text-muted-foreground/20 mb-4" />
+                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No administrators configured</p>
+                      </div>
+                    )}
+                  </AnimatePresence>
+               </div>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">New Role</span>
-          </button>
+          </SettingsCard>
         </div>
 
-        {/* Admin Table */}
-        <SettingsCard
-          title="Administrative Directory"
-          description="Accounts with system access."
-          icon={Users2}
-        >
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-secondary/30 p-4 rounded-2xl border border-border/20">
-              <div className="relative w-full sm:w-64 group">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-background border border-border/40 rounded-xl py-2 pl-10 pr-4 text-[12px] font-medium outline-none focus:border-primary/40 transition-all"
-                />
-              </div>
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <select
-                  value={selectedRoleFilter}
-                  onChange={(e) => setSelectedRoleFilter(e.target.value)}
-                  className="flex-1 sm:flex-none h-10 px-4 bg-background border border-border/40 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-primary/40 transition-all"
-                >
-                  <option>All Roles</option>
-                  {roleList.map(r => <option key={r.id}>{r.name}</option>)}
-                </select>
-                <Button onClick={() => setIsInviteModalOpen(true)} className="flex-1 sm:flex-none h-10 rounded-xl font-black text-[9px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20 flex items-center gap-2">
-                  <UserPlus size={14} />
-                  Invite
-                </Button>
-              </div>
-            </div>
+        <div className="xl:col-span-1 space-y-8">
+          {/* Governance Panel */}
+          <div className="p-8 bg-card border border-border/40 rounded-[40px] space-y-8 shadow-sm">
+             <div className="flex items-center gap-3 text-primary">
+                <ShieldCheck size={20} />
+                <h3 className="text-[14px] font-black uppercase tracking-widest">Governance Control</h3>
+             </div>
 
-            <div className="space-y-3">
-              <AnimatePresence mode="popLayout">
-                {filteredAdmins.length > 0 ? filteredAdmins.map((admin) => (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
-                    key={admin.id}
-                    className="flex items-center justify-between p-4 bg-secondary/10 border border-border/5 rounded-[20px] hover:border-primary/20 hover:bg-secondary/20 transition-all group relative"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="size-12 rounded-2xl overflow-hidden border border-border/20 shadow-sm bg-secondary/30 flex items-center justify-center shrink-0 p-1">
-                         <img 
-                            src={getAvatarPath(admin.avatar)} 
-                            alt={admin.name} 
-                            className="size-full object-cover rounded-xl" 
-                            onError={(e) => {
-                               (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${admin.name}&background=random`;
-                            }}
-                         />
-                      </div>
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <h5 className="text-[13px] font-black text-foreground tracking-tight">{admin.name}</h5>
-                          <span className={cn(
-                            "px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border transition-colors",
-                            admin.status === "Active" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-muted text-muted-foreground border-border/50"
-                          )}>
-                            {admin.status}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
-                          <span>{admin.email}</span>
-                          <span className="size-0.5 bg-muted-foreground/30 rounded-full" />
-                          <span className="font-bold text-foreground/70">{admin.role}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right hidden sm:block">
-                        <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40">Active</p>
-                        <p className="text-[11px] font-bold text-foreground">{admin.lastActive}</p>
-                      </div>
-                      <div className="relative">
-                        <button
-                          onClick={() => setActiveMenu(activeMenu === admin.id ? null : admin.id)}
-                          className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
-                        >
-                          <MoreVertical size={18} />
-                        </button>
-
-                        {activeMenu === admin.id && (
-                          <>
-                            <div className="fixed inset-0 z-10" onClick={() => setActiveMenu(null)} />
-                            <div className="absolute right-0 mt-2 w-44 bg-card border border-border/40 rounded-xl shadow-xl z-20 overflow-hidden py-1.5 animate-in fade-in zoom-in-95 duration-200">
-                              <button onClick={() => { toggleAdminStatus(admin.id); setActiveMenu(null); }} className="w-full px-3 py-2 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground flex items-center gap-2.5">
-                                <Activity size={14} /> Status
-                              </button>
-                              <button onClick={() => { toast.success('Password Reset', { description: `Security token dispatched to ${admin.email}.` }); setActiveMenu(null); }} className="w-full px-3 py-2 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground flex items-center gap-2.5">
-                                <Key size={14} /> Credentials
-                              </button>
-                              <div className="h-[1px] bg-border/10 my-1" />
-                              <button onClick={() => { deleteAdmin(admin.id, admin.name); setActiveMenu(null); }} className="w-full px-3 py-2 text-left text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/5 flex items-center gap-2.5">
-                                <UserX size={14} /> Revoke
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                )) : (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="py-20 text-center bg-secondary/5 border border-dashed border-border/10 rounded-[32px]"
-                  >
-                     <div className="flex flex-col items-center gap-3 opacity-30">
-                        <Users2 size={40} className="text-muted-foreground" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">No active administrators found</p>
-                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </SettingsCard>
-
-        {/* New Integrated Security & Governance Section */}
-        <div className="bg-card border border-border/50 rounded-[32px] p-8 shadow-sm space-y-8 mt-6">
-          <div className="flex items-center gap-4">
-            <div className="size-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary shrink-0">
-              <ShieldCheck size={24} />
-            </div>
-            <div>
-              <h3 className="text-[16px] font-black text-foreground tracking-tight">Security & Governance</h3>
-              <p className="text-[12px] font-medium text-muted-foreground">RBAC Policies and Global Guardrails</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Governance Policies */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-border/40 pb-3">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">Governance Policies</h4>
-                <Activity size={14} className="text-muted-foreground/30" />
-              </div>
-              <div className="space-y-1">
+             <div className="space-y-4">
                 {[
-                  { id: 'pol-1', label: "Auto-Revoke", desc: "Revoke after 90d inactivity", icon: Activity, active: autoRevokeEnabled, setter: setAutoRevokeEnabled },
-                  { id: 'pol-2', label: "Multi-Approval", desc: "Two admins for sensitive changes", icon: Shield, active: multiApprovalEnabled, setter: setMultiApprovalEnabled },
-                  { id: 'pol-3', label: "Regional Scope", desc: "Restrict by geography", icon: Globe, active: regionalScopeEnabled, setter: setRegionalScopeEnabled },
-                ].map((policy) => (
-                  <button
-                    key={policy.id}
-                    onClick={() => {
-                      policy.setter(!policy.active);
-                      toast.success(policy.active ? `${policy.label} disabled` : `${policy.label} enabled`);
-                    }}
-                    className="w-full flex items-center justify-between py-3 px-2 hover:bg-secondary/40 rounded-xl transition-all group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={cn("size-8 rounded-lg flex items-center justify-center border transition-all", policy.active ? "bg-primary/5 border-primary/20 text-primary" : "bg-muted/10 border-border/10 text-muted-foreground/40")}>
-                        <policy.icon size={16} />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-[13px] font-bold text-foreground/80 group-hover:text-foreground">{policy.label}</p>
-                        <p className="text-[10px] font-medium text-muted-foreground/60">{policy.desc}</p>
-                      </div>
-                    </div>
-                    <span className={cn(
-                      "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all",
-                      policy.active ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-muted text-muted-foreground/30 border-border/10"
-                    )}>
-                      {policy.active ? "Enabled" : "Off"}
-                    </span>
-                  </button>
+                  { label: "Auto-Revoke", desc: "Purge after 90d inactivity", active: autoRevokeEnabled, setter: setAutoRevokeEnabled },
+                  { label: "Multi-Approval", desc: "Requires 2 admins for payouts", active: multiApprovalEnabled, setter: setMultiApprovalEnabled },
+                  { label: "Regional Scope", desc: "Geo-fence admin sessions", active: regionalScopeEnabled, setter: setRegionalScopeEnabled },
+                ].map((policy, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-border/10">
+                     <div className="space-y-0.5">
+                        <p className="text-[12px] font-black text-foreground">{policy.label}</p>
+                        <p className="text-[9px] font-medium text-muted-foreground">{policy.desc}</p>
+                     </div>
+                     <button onClick={() => policy.setter(!policy.active)} className={cn(
+                       "px-2 py-0.5 rounded-full text-[8px] font-black uppercase border transition-all",
+                       policy.active ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-muted text-muted-foreground border-border/50"
+                     )}>{policy.active ? "ON" : "OFF"}</button>
+                  </div>
                 ))}
-              </div>
-            </div>
+             </div>
 
-            {/* Policy Matrix */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-border/40 pb-3">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">Policy Matrix: {governanceRole.toUpperCase()}</h4>
-                <button 
-                  onClick={() => {
-                    const nextRole = governanceRole === "Super Admin" ? "Compliance Officer" : "Super Admin";
-                    setGovernanceRole(nextRole);
-                    toast.success("Policy role switched", { description: `Viewing ${nextRole} policy matrix` });
-                  }} 
-                  className="text-[10px] font-black text-primary uppercase flex items-center gap-1 hover:underline transition-all"
-                >
-                  Switch Role <ChevronRight size={12} />
-                </button>
-              </div>
+             <div className="space-y-4 pt-6 border-t border-border/10">
+                <div className="flex items-center justify-between">
+                   <h4 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Policy Matrix</h4>
+                   <select 
+                    value={governanceRole}
+                    onChange={(e) => setGovernanceRole(e.target.value)}
+                    className="text-[10px] font-black text-primary uppercase bg-transparent outline-none"
+                   >
+                      <option>No Role Assigned</option>
+                      {roleList.map(r => <option key={r.id}>{r.name}</option>)}
+                   </select>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                   {permissions[0].items.map((item, j) => {
+                     const isActive = permissions[0].active.includes(j);
+                     return (
+                       <button 
+                        key={j} 
+                        onClick={() => togglePermission(0, j)}
+                        className={cn(
+                          "flex items-center justify-between p-3 rounded-xl border text-[11px] font-bold transition-all",
+                          isActive ? "bg-primary/5 border-primary/20 text-primary" : "bg-secondary/20 border-border/5 text-muted-foreground"
+                        )}
+                       >
+                          {item}
+                          {isActive && <Check size={12} />}
+                       </button>
+                     );
+                   })}
+                </div>
+             </div>
 
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1">
-                {permissions[0].items.map((item, j) => {
-                  const isActive = permissions[0].active.includes(j);
-                  return (
-                    <button
-                      key={j}
-                      onClick={() => togglePermission(0, j)}
-                      className="flex items-center justify-between py-3 px-2 hover:bg-secondary/30 rounded-xl transition-all group"
-                    >
-                      <span className="text-[13px] font-bold text-foreground/80 group-hover:text-foreground">{item}</span>
-                      {isActive ? (
-                        <CheckCircle2 size={16} className="text-emerald-500" />
-                      ) : (
-                        <X size={16} className="text-muted-foreground/20" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="pt-6 flex items-center gap-4">
+             <div className="pt-4">
                 <Button 
-                  onClick={() => executeExport({ 
-                    fileName: 'RBAC_Policy_Matrix', 
-                    data: permissions, 
-                    format: 'PDF' 
-                  })} 
-                  variant="outline" 
-                  className="h-10 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40 hover:bg-secondary px-6"
-                >
-                  Export Policy
-                </Button>
-                <div 
                   onClick={() => {
                     setIsAuditRunning(true);
-                    toast.success("Audit session started", { description: "Live governance monitoring enabled" });
-                    setTimeout(() => setIsAuditRunning(false), 3000);
+                    toast.success("Audit Logging Active");
+                    setTimeout(() => setIsAuditRunning(false), 2500);
                   }}
-                  className={cn(
-                    "flex gap-2 items-center rounded-xl px-3 py-2 cursor-pointer transition-all border",
-                    isAuditRunning ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-primary/5 border-primary/10 text-primary hover:bg-primary/10"
-                  )}
+                  className="w-full h-11 rounded-xl bg-secondary hover:bg-secondary/80 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
                 >
-                  {isAuditRunning ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      <span className="text-[9px] font-black uppercase tracking-widest">Audit Running...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Activity size={14} />
-                      <span className="text-[9px] font-black uppercase tracking-widest">Audit Active</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+                   {isAuditRunning ? <Loader2 className="animate-spin" size={14} /> : <Activity size={14} />}
+                   {isAuditRunning ? "Auditing System..." : "Start Governance Audit"}
+                </Button>
+             </div>
           </div>
+
+          {/* Activity Logs */}
+          <SettingsCard title="Recent Activity" icon={History}>
+             <div className="space-y-4">
+                {activityLogs.length > 0 ? activityLogs.map((log, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                     <div className="size-2 rounded-full bg-primary mt-1.5" />
+                     <div className="space-y-0.5">
+                        <p className="text-[11px] font-black text-foreground">{log.action}</p>
+                        <p className="text-[9px] font-medium text-muted-foreground uppercase">{log.user} • {log.time}</p>
+                     </div>
+                  </div>
+                )) : (
+                  <div className="py-10 text-center">
+                     <p className="text-[9px] font-black uppercase text-muted-foreground/30 tracking-widest">No activity available</p>
+                  </div>
+                )}
+             </div>
+          </SettingsCard>
         </div>
       </div>
 
-      {/* Admin Management Modals */}
+      {/* Modals */}
       <RoleModal
         isOpen={isRoleModalOpen}
         onClose={() => { setIsRoleModalOpen(false); setSelectedRole(null); }}
@@ -523,8 +389,21 @@ export default function AdminManagement() {
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
         roles={roleList}
-        onInvite={handleInviteAdmin}
+        onInvite={(data) => {
+          setAdminList(prev => [...prev, { ...data, id: `ADM-${Math.random().toString(36).substr(2, 4)}`, status: 'Active', lastActive: 'Just now' }]);
+          toast.success('Admin Invited');
+        }}
         onCreateRole={() => setIsRoleModalOpen(true)}
+      />
+      <QuickActionModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteAdmin}
+        title="Revoke Admin Access"
+        description={`Confirming removal of administrator account from system governance.`}
+        icon={UserX}
+        type="danger"
+        confirmLabel="Revoke Access"
       />
     </div>
   );

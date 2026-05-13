@@ -16,9 +16,9 @@ interface UserContextType {
 }
 
 const defaultUser: UserProfile = {
-  name: 'Mick Johnson',
-  email: 'm.johnson@oinzpay.com',
-  role: 'Global Administrator',
+  name: '',
+  email: '',
+  role: 'Unassigned Role',
   avatar: null,
 };
 
@@ -33,7 +33,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const savedUser = localStorage.getItem('oinzpay_admin_profile');
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsed = JSON.parse(savedUser);
+        setUser(parsed);
       } catch (e) {
         console.error('Failed to parse saved profile', e);
       }

@@ -104,6 +104,11 @@ export function useIssues() {
     });
   }, [addTimelineEvent]);
 
+  const deleteIssue = useCallback((id: string) => {
+    setIssues(prev => prev.filter(issue => issue.id !== id));
+    toast.error("Ticket Deleted", { description: "The record has been permanently removed from the system." });
+  }, []);
+
   return {
     issues,
     addIssue,
@@ -111,6 +116,7 @@ export function useIssues() {
     assignIssue,
     escalateIssue,
     resolveIssue,
+    deleteIssue,
     addNote,
     setIssues
   };

@@ -1,274 +1,191 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useState } from 'react';
 import SettingsHeader from '@/components/settings/SettingsHeader';
 import SettingsCard from '@/components/settings/SettingsCard';
 import SettingsField from '@/components/settings/SettingsField';
 import { 
   Server, 
-  Activity, 
   Cpu, 
   Database, 
-  HardDrive, 
+  Activity, 
   ShieldCheck, 
-  Zap, 
-  Globe, 
-  Search,
-  RefreshCcw,
+  RefreshCcw, 
+  History, 
   AlertTriangle,
   ChevronRight,
-  TrendingUp,
-  Clock,
+  HardDrive,
+  Network,
   Terminal,
-  Layers,
+  Zap,
+  CheckCircle2,
+  Loader2,
+  X,
   Gauge
 } from 'lucide-react';
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
-import Breadcrumbs from '@/components/layout/Breadcrumbs';
 
-export default function InfrastructureSettings() {
-  // Pre-compute chart heights to avoid hydration mismatch from Math.random() in render
-  const chartHeights = useMemo(
-    () => [72, 45, 88, 33, 61, 52, 79, 40, 67, 55, 83, 38, 71, 48, 90, 35, 64, 57, 76, 42, 69, 50, 85, 37],
-    []
-  );
+interface Node {
+  id: string;
+  name: string;
+  region: string;
+  status: 'healthy' | 'warning' | 'error';
+  load: number;
+}
+
+export default function InfrastructureMonitoring() {
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [isRecycling, setIsRecycling] = useState<string | null>(null);
 
   return (
-    <div className="space-y-6">
-      <Breadcrumbs />
+    <div className="space-y-10">
       <SettingsHeader 
-        title="Infrastructure & Monitoring" 
-        description="Monitor system health, manage cloud resources, and configure automated scaling and backup policies."
+        title="Infrastructure & SRE Monitoring" 
+        description="Monitor platform cluster health, database replication, and system performance telemetry."
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
-          {/* Node Health */}
+          {/* Cluster Health */}
           <SettingsCard 
-            title="Cluster Status" 
-            description="Real-time performance metrics for global application nodes."
+            title="Compute Cluster Management" 
+            description="Active node status and resource allocation across global availability zones."
             icon={Server}
-            badge="Healthy"
-            badgeVariant="success"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {([].length > 0) ? ([] as any[]).map((node, i) => (
-                <div key={i} onClick={() => toast.success('Node Telemetry', { description: `Inspecting real-time metrics for ${node.name}...` })} className="p-5 bg-secondary/30 border border-border/20 rounded-[32px] hover:bg-secondary/50 hover:border-primary/20 transition-all group cursor-pointer">
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-3">
-                      <div className="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10B981]" />
-                      <div>
-                        <h5 className="text-[13px] font-black text-foreground tracking-tight">{node.name}</h5>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">{node.region}</p>
+            <div className="space-y-4">
+               {nodes.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {nodes.map((node) => (
+                      <div key={node.id} className="p-5 bg-secondary/10 border border-border/5 rounded-[28px] hover:border-primary/20 transition-all group">
+                         <div className="flex items-start justify-between mb-6">
+                            <div className="size-12 rounded-2xl bg-background border border-border/10 flex items-center justify-center text-primary shadow-sm">
+                               <Cpu size={24} />
+                            </div>
+                            <div className={cn(
+                              "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border",
+                              node.status === 'healthy' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                            )}>{node.status}</div>
+                         </div>
+                         <h4 className="text-[13px] font-black text-foreground tracking-tight mb-1">{node.name}</h4>
+                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-6">{node.region}</p>
+                         <div className="space-y-2">
+                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                               <span className="text-muted-foreground/40">CPU LOAD</span>
+                               <span className="text-foreground">{node.load}%</span>
+                            </div>
+                            <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                               <div className="h-full bg-primary transition-all" style={{ width: `${node.load}%` }} />
+                            </div>
+                         </div>
+                         <div className="pt-6 mt-6 border-t border-border/5 flex gap-2">
+                            <Button 
+                              disabled={isRecycling === node.id}
+                              className="flex-1 h-10 bg-secondary hover:bg-secondary/80 text-foreground text-[10px] font-black uppercase tracking-widest rounded-xl"
+                            >
+                               {isRecycling === node.id ? <Loader2 className="animate-spin" size={14} /> : <RefreshCcw size={14} />}
+                               Recycle
+                            </Button>
+                         </div>
                       </div>
-                    </div>
-                    <span className="text-[9px] font-black text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-lg">{node.load}</span>
+                    ))}
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                     <div className="space-y-1.5">
-                        <div className="flex justify-between text-[9px] font-black uppercase text-muted-foreground/60">
-                           <span>CPU</span>
-                           <span>{node.cpu}</span>
-                        </div>
-                        <div className="h-1 w-full bg-muted/40 rounded-full overflow-hidden">
-                           <div className="h-full bg-primary rounded-full" style={{ width: node.cpu }} />
-                        </div>
+               ) : (
+                  <div className="py-20 text-center border-2 border-dashed border-border/10 rounded-[40px]">
+                     <div className="size-16 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-6 text-muted-foreground/20">
+                        <Server size={32} />
                      </div>
-                     <div className="space-y-1.5">
-                        <div className="flex justify-between text-[9px] font-black uppercase text-muted-foreground/60">
-                           <span>RAM</span>
-                           <span>{node.ram}</span>
-                        </div>
-                        <div className="h-1 w-full bg-muted/40 rounded-full overflow-hidden">
-                           <div className="h-full bg-primary rounded-full" style={{ width: "45%" }} />
-                        </div>
-                     </div>
+                     <h4 className="text-[14px] font-black text-foreground uppercase tracking-widest">No nodes detected</h4>
+                     <p className="text-[12px] font-medium text-muted-foreground mt-2 max-w-xs mx-auto">Initialize your cluster by connecting your first compute instance.</p>
+                     <Button variant="outline" className="mt-8 h-11 px-8 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40">Register Node</Button>
                   </div>
-                </div>
-              )) : (
-                 <div className="col-span-full py-20 text-center bg-secondary/10 border border-dashed border-border/20 rounded-[32px]">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">No active nodes detected.</p>
-                 </div>
-              )}
+               )}
             </div>
           </SettingsCard>
 
-          {/* Database & Storage */}
+          {/* Database & Replication */}
           <SettingsCard 
-            title="Database & Storage" 
-            description="Manage data persistence layer, indexing performance, and backup frequency."
+            title="Data Persistance Layer" 
+            description="Replication status and storage health for the primary PostgreSQL/Redis clusters."
             icon={Database}
           >
-            <div className="space-y-2">
-              <SettingsField 
-                label="Automated Point-in-Time Backup" 
-                description="Enable continuous incremental backups for the primary PostgreSQL cluster."
-                icon={RefreshCcw}
-              >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'PITR Enabled' : 'PITR Disabled', { description: 'Continuous backup status updated.' })} />
-              </SettingsField>
-
-              <SettingsField 
-                label="Read Replica Auto-Scaling" 
-                description="Spin up additional read replicas when database CPU exceeds 70%."
-                icon={TrendingUp}
-              >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Auto-Scaling Active' : 'Scaling Restricted', { description: 'DB replica management policy updated.' })} />
-              </SettingsField>
-
-              <SettingsField 
-                label="Data Retention Policy" 
-                description="Keep transaction logs in hot storage for 12 months, then archive to S3."
-                icon={Clock}
-              >
-                <select defaultValue="12 Months" className="bg-secondary/50 border border-border/40 rounded-xl px-4 py-2 text-[12px] font-black uppercase outline-none focus:border-primary/40 transition-all">
-                  <option>6 Months</option>
-                  <option>12 Months</option>
-                  <option>24 Months</option>
-                </select>
-              </SettingsField>
-
-              <SettingsField 
-                label="Binary Log Purging" 
-                description="Automatically purge binlogs older than 7 days."
-                icon={HardDrive}
-              >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Log Purge Active' : 'Log Purge Disabled', { description: 'Binlog retention policy updated.' })} />
-              </SettingsField>
-            </div>
-          </SettingsCard>
-
-          {/* SRE Controls */}
-          <SettingsCard 
-            title="Scaling & Resilience" 
-            description="Configure automated cluster scaling and traffic routing."
-            icon={Zap}
-          >
-            <div className="space-y-4 p-6 bg-secondary/30 border border-border/20 rounded-[32px]">
-              <div className="flex justify-between items-center mb-6">
-                <div className="space-y-1">
-                  <h6 className="text-[14px] font-black text-foreground">Horizontal Pod Autoscaler (HPA)</h6>
-                  <p className="text-[11px] font-medium text-muted-foreground">Global scaling target across all AWS/Azure clusters.</p>
-                </div>
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'K8s HPA Enabled' : 'HPA Disabled', { description: 'Cluster scaling is now managed manually.' })} />
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                 {[
-                   { label: "Min Nodes", val: "4", icon: Layers },
-                   { label: "Max Nodes", val: "24", icon: Layers },
-                   { label: "Target CPU", val: "65%", icon: Cpu },
-                 ].map((stat, i) => (
-                   <div key={i} className="p-4 bg-background/50 border border-border/10 rounded-2xl flex flex-col items-center gap-1">
-                      <stat.icon size={16} className="text-primary mb-1" />
-                      <p className="text-[10px] font-black uppercase text-muted-foreground/60">{stat.label}</p>
-                      <p className="text-[14px] font-black text-foreground">{stat.val}</p>
+             <div className="p-8 bg-primary/5 border border-primary/10 rounded-[28px] space-y-6">
+                <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-xl bg-background border border-primary/20 flex items-center justify-center text-primary">
+                         <Database size={20} />
+                      </div>
+                      <div className="space-y-0.5">
+                         <p className="text-[13px] font-black text-foreground">Main Postgres Cluster</p>
+                         <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Status: Ready</p>
+                      </div>
                    </div>
-                 ))}
-              </div>
-            </div>
+                   <div className="text-right">
+                      <p className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">Replication Lag</p>
+                      <p className="text-lg font-black text-foreground">0ms</p>
+                   </div>
+                </div>
+                <div className="grid grid-cols-3 gap-6 pt-6 border-t border-primary/10">
+                   {[
+                     { label: "Storage Used", value: "0%" },
+                     { label: "Active Conns", value: "0" },
+                     { label: "IOPS Peak", value: "0" },
+                   ].map((metric, i) => (
+                     <div key={i} className="space-y-1">
+                        <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">{metric.label}</p>
+                        <p className="text-[13px] font-black text-foreground">{metric.value}</p>
+                     </div>
+                   ))}
+                </div>
+             </div>
           </SettingsCard>
         </div>
 
-        <div className="xl:col-span-1 space-y-8">
-          {/* Real-time Performance Gauge */}
-          <div className="p-8 bg-card border border-border/40 rounded-[32px] space-y-8 shadow-xl shadow-black/5">
-             <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                  <Gauge size={14} />
-                  System Latency
-                </p>
-                <h3 className="text-3xl font-black text-foreground tracking-tighter">--ms</h3>
-                <p className="text-[12px] font-medium text-muted-foreground">Average P99 Response Time</p>
-             </div>
-
-             <div className="space-y-6">
-                {[
-                  { label: "API Gateway", val: "0ms", target: "15ms", color: "text-muted-foreground" },
-                  { label: "Auth Middleware", val: "0ms", target: "10ms", color: "text-muted-foreground" },
-                  { label: "DB Query Execution", val: "0ms", target: "25ms", color: "text-muted-foreground" },
-                ].map((lat, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                     <div className="space-y-0.5">
-                        <p className="text-[11px] font-black uppercase tracking-widest text-foreground">{lat.label}</p>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase">Target: {lat.target}</p>
-                     </div>
-                     <span className={cn("text-[14px] font-black", lat.color)}>{lat.val}</span>
-                  </div>
-                ))}
-             </div>
-
-             <div className="h-20 w-full flex items-end gap-1 px-2">
-                {chartHeights.map((h, i) => (
-                  <div 
-                    key={i} 
-                    className="flex-1 bg-muted/20 rounded-t-sm" 
-                    style={{ height: `10%` }} 
-                  />
-                ))}
-             </div>
-          </div>
-
-          {/* Infrastructure Alerts */}
-          <SettingsCard 
-            title="System Incidents" 
-            description="Infrastructure-level health alerts."
-            icon={AlertTriangle}
-          >
-            <div className="space-y-4">
-              {[].length > 0 ? [
-                { title: "S3 Snapshot Delay", status: "Resolved", time: "12h ago", color: "bg-emerald-500" },
-                { title: "High RAM Usage (Worker-01)", status: "Alert", time: "14m ago", color: "bg-amber-500" },
-              ].map((alert: any, i: number) => (
-                <div key={i} className="p-4 bg-secondary/30 border border-border/10 rounded-2xl flex items-center justify-between group hover:bg-secondary/50 transition-all">
-                  <div className="flex items-center gap-3">
-                     <div className={cn("size-2 rounded-full", alert.color)} />
-                     <div className="space-y-0.5">
-                       <p className="text-[12px] font-black text-foreground">{alert.title}</p>
-                       <p className="text-[9px] font-bold text-muted-foreground uppercase">{alert.time}</p>
-                     </div>
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{alert.status}</span>
-                </div>
-              )) : (
-                 <div className="py-8 text-center opacity-30">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No active incidents</p>
+        <div className="space-y-8">
+           {/* Global Telemetry */}
+           <div className="p-8 bg-card border border-border/40 rounded-[40px] space-y-8 shadow-sm">
+              <div className="flex items-center gap-3">
+                 <div className="size-10 rounded-2xl bg-secondary flex items-center justify-center text-muted-foreground">
+                    <Gauge size={20} />
                  </div>
-              )}
-              <Button 
-                onClick={() => toast.success('Incident Command Center', { description: 'Displaying real-time critical path monitoring.' })}
-                variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40"
-              >
-                 Incident Command Center
-              </Button>
-            </div>
-          </SettingsCard>
+                 <h3 className="text-[14px] font-black uppercase tracking-widest">Telemetry</h3>
+              </div>
+              
+              <div className="space-y-6">
+                 {[
+                   { label: "Global Latency", value: "0ms", trend: "0%", color: "text-muted-foreground" },
+                   { label: "Requests/Sec", value: "0", trend: "0%", color: "text-muted-foreground" },
+                   { label: "Error Rate", value: "0.00%", trend: "0%", color: "text-muted-foreground" },
+                 ].map((stat, i) => (
+                   <div key={i} className="flex items-center justify-between">
+                      <div className="space-y-1">
+                         <p className="text-[11px] font-bold text-muted-foreground">{stat.label}</p>
+                         <p className="text-xl font-black text-foreground">{stat.value}</p>
+                      </div>
+                      <div className={cn("text-[10px] font-black", stat.color)}>{stat.trend}</div>
+                   </div>
+                 ))}
+              </div>
 
-          {/* SRE Quick Access */}
-          <div className="p-6 bg-secondary/40 border border-border/20 rounded-[32px] space-y-4">
-             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2">
-               <Terminal size={14} />
-               SRE Toolkit
-             </div>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button onClick={() => toast.success('Log Streamer', { description: 'Opening real-time Kubernetes log aggregator...' })} className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
-                  K8s Logs
-                </button>
-                <button onClick={() => toast.success('Identity Access', { description: 'Opening secure SSH key management vault...' })} className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
-                  SSH Keys
-                </button>
-                <button onClick={() => toast.success('Network Config', { description: 'Opening Cloudflare/Route53 DNS dashboard...' })} className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
-                  DNS Config
-                </button>
-                <button onClick={() => toast.success('Security Status', { description: 'Inspecting SSL/TLS certificate expiry and health...' })} className="p-3 bg-background border border-border/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all text-center">
-                  SSL Status
-                </button>
-             </div>
-          </div>
+              <Button className="w-full h-11 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">System Snapshot</Button>
+           </div>
+
+           {/* SRE Toolkit */}
+           <SettingsCard title="SRE Toolkit" icon={Terminal}>
+              <div className="space-y-2">
+                 {[
+                   { label: "Flush Global Cache", icon: RefreshCcw },
+                   { label: "Run Data Migration", icon: HardDrive },
+                   { label: "DNS Propagation Check", icon: Network },
+                 ].map((tool, i) => (
+                   <button key={i} className="w-full flex items-center justify-between p-4 bg-secondary/30 rounded-xl hover:bg-secondary/50 transition-all text-[11px] font-bold text-foreground">
+                      <span>{tool.label}</span>
+                      <tool.icon size={14} className="text-muted-foreground" />
+                   </button>
+                 ))}
+              </div>
+           </SettingsCard>
         </div>
       </div>
     </div>

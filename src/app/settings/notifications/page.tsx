@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import SettingsHeader from '@/components/settings/SettingsHeader';
 import SettingsCard from '@/components/settings/SettingsCard';
 import SettingsField from '@/components/settings/SettingsField';
@@ -9,267 +9,161 @@ import {
   Mail, 
   MessageSquare, 
   Smartphone, 
-  ShieldAlert, 
-  Activity, 
-  Lock as LockIcon, 
+  Clock, 
+  History, 
+  Settings2, 
   Eye, 
-  Search,
-  Settings2,
-  ChevronRight,
-  Send,
-  Clock,
-  CheckCircle2,
+  CheckCircle2, 
+  AlertTriangle,
   Zap,
-  Globe
+  Plus,
+  Trash2,
+  Send,
+  MoreVertical,
+  X
 } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
 
-export default function NotificationSettings() {
-  const [isTesting, setIsTesting] = useState(false);
+interface Template {
+  id: string;
+  name: string;
+  trigger: string;
+  channels: ('email' | 'sms' | 'push')[];
+}
 
-  const handleSendTestNotification = async () => {
-    setIsTesting(true);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success('Test Dispatched', {
-      description: 'Sending security alert payload to current administrator session...'
-    });
-    
-    setIsTesting(false);
-  };
-
-  const handleToggle = (label: string, enabled: boolean) => {
-    toast.success(`${label} ${enabled ? 'Enabled' : 'Disabled'}`, {
-      description: 'Global notification preferences updated.'
-    });
-  };
+export default function Notifications() {
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [activeLogs, setActiveLogs] = useState<any[]>([]);
 
   return (
     <div className="space-y-10">
       <SettingsHeader 
-        title="Notifications" 
-        description="Configure how the platform communicates with admins and users across different channels."
+        title="Notification & Template Engine" 
+        description="Manage automated system communications, delivery channels, and message templates."
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
-          {/* Channel Management */}
+          {/* Channel Controls */}
           <SettingsCard 
-            title="Notification Channels" 
-            description="Enable or disable global communication delivery methods."
-            icon={Globe}
-          >
-            <div className="space-y-2">
-              <SettingsField 
-                label="Email Delivery (SMTP/SendGrid)" 
-                description="Primary channel for official communication and transaction receipts."
-                icon={Mail}
-              >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('Email Channel', checked)} />
-              </SettingsField>
-
-              <SettingsField 
-                label="SMS Gateway (Twilio/Termii)" 
-                description="Used for high-priority alerts and 2FA codes."
-                icon={MessageSquare}
-              >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('SMS Gateway', checked)} />
-              </SettingsField>
-
-              <SettingsField 
-                label="Mobile Push (FCM/OneSignal)" 
-                description="Real-time app notifications for transaction updates."
-                icon={Smartphone}
-              >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('Push Service', checked)} />
-              </SettingsField>
-
-              <SettingsField 
-                label="System Webhooks" 
-                description="Stream events to external monitoring services."
-                icon={Zap}
-              >
-                <Switch defaultChecked={false} onCheckedChange={(checked) => handleToggle('Webhooks Streaming', checked)} />
-              </SettingsField>
-            </div>
-          </SettingsCard>
-
-          {/* Admin Alerts */}
-          <SettingsCard 
-            title="Administrative Alerts" 
-            description="Configure which events trigger notifications for the admin team."
-            icon={ShieldAlert}
+            title="Communication Channels" 
+            description="Toggle and configure global delivery vectors for system alerts."
+            icon={Zap}
           >
             <div className="space-y-6">
-              <div className="space-y-2">
-                <h4 className="px-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-4">Security Events</h4>
-                <SettingsField label="Suspicious Login Attempt" icon={LockIcon}>
-                  <div className="flex gap-4">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Mail size={12} /> Email</span>
-                    <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('Security Alert', checked)} />
-                  </div>
-                </SettingsField>
-                <SettingsField label="Admin Permission Change" icon={Settings2}>
-                  <div className="flex gap-4">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Mail size={12} /> Email</span>
-                    <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('Governance Alert', checked)} />
-                  </div>
-                </SettingsField>
-              </div>
-
-              <div className="space-y-2 pt-6 border-t border-border/10">
-                <h4 className="px-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-4">Operational Events</h4>
-                <SettingsField label="Provider Connectivity Drop" icon={Activity}>
-                  <div className="flex gap-4">
-                     <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Smartphone size={12} /> SMS</span>
-                     <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('SRE Alert', checked)} />
-                  </div>
-                </SettingsField>
-                <SettingsField label="High-Value Transaction Flag" icon={Zap}>
-                   <div className="flex gap-4">
-                     <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1.5"><Smartphone size={12} /> SMS</span>
-                     <Switch defaultChecked={true} onCheckedChange={(checked) => handleToggle('Transaction Alert', checked)} />
-                  </div>
-                </SettingsField>
-              </div>
+               {[
+                 { label: "Email Gateway", desc: "Dispatch receipts and security alerts via SMTP/SendGrid.", icon: Mail },
+                 { label: "SMS Gateway", desc: "Send OTPs and critical alerts via Twilio/Termii.", icon: MessageSquare },
+                 { label: "Push Notifications", desc: "Mobile app engagement via Firebase Cloud Messaging.", icon: Smartphone },
+               ].map((channel, i) => (
+                 <SettingsField key={i} label={channel.label} description={channel.desc} icon={channel.icon}>
+                   <Switch />
+                 </SettingsField>
+               ))}
             </div>
           </SettingsCard>
 
-          {/* Notification Templates */}
+          {/* Template Management */}
           <SettingsCard 
-            title="Communication Templates" 
-            description="Manage the content and design of automated system messages."
-            icon={Send}
+            title="Message Templates" 
+            description="Pre-configured content for automated system triggers."
+            icon={Settings2}
           >
-            <div className="space-y-4">
-              {([] as any[]).map((template: any, i: number) => (
-                <div key={i} className="p-5 bg-secondary/30 border border-border/10 rounded-[28px] flex items-center justify-between group hover:border-primary/30 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-background border border-border/40 rounded-2xl text-muted-foreground group-hover:text-primary transition-colors">
-                      <Mail size={16} />
+             <div className="space-y-4">
+                {templates.length > 0 ? (
+                  templates.map((template) => (
+                    <div key={template.id} className="p-4 bg-secondary/10 border border-border/5 rounded-2xl flex items-center justify-between group">
+                       <div className="flex items-center gap-4">
+                          <div className="size-10 rounded-xl bg-background border border-border flex items-center justify-center text-primary">
+                             <Settings2 size={20} />
+                          </div>
+                          <div>
+                             <p className="text-[13px] font-black text-foreground">{template.name}</p>
+                             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{template.trigger}</p>
+                          </div>
+                       </div>
+                       <div className="flex items-center gap-4">
+                          <div className="flex -space-x-1">
+                             {template.channels.map((ch) => (
+                                <div key={ch} className="size-6 rounded-full bg-secondary border border-background flex items-center justify-center text-muted-foreground">
+                                   {ch === 'email' ? <Mail size={12} /> : ch === 'sms' ? <MessageSquare size={12} /> : <Smartphone size={12} />}
+                                </div>
+                             ))}
+                          </div>
+                          <button className="p-2 text-muted-foreground hover:text-primary transition-all opacity-0 group-hover:opacity-100">
+                             <MoreVertical size={16} />
+                          </button>
+                       </div>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-[14px] font-black text-foreground">{template.name}</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase">{template.type} • Last edited {template.lastEdited}</p>
-                    </div>
+                  ))
+                ) : (
+                  <div className="py-20 text-center border-2 border-dashed border-border/10 rounded-[40px]">
+                     <div className="size-16 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-6 text-muted-foreground/20">
+                        <Bell size={32} />
+                     </div>
+                     <h4 className="text-[14px] font-black text-foreground uppercase tracking-widest">No templates defined</h4>
+                     <p className="text-[12px] font-medium text-muted-foreground mt-2 max-w-xs mx-auto">Create communication templates to automate platform triggers.</p>
+                     <Button variant="outline" className="mt-8 h-11 px-8 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40">Add New Template</Button>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => toast.success('Template Preview', { description: `Displaying rendered output for ${template.name}...` })} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
-                      <Eye size={16} />
-                    </button>
-                    <button onClick={() => toast.success('Template Editor', { description: `Opening interactive designer for ${template.name}...` })} className="p-2.5 bg-background border border-border/40 rounded-xl text-muted-foreground hover:text-primary transition-all">
-                      <Settings2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <Button variant="ghost" className="w-full text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary">
-                View All Templates
-              </Button>
-            </div>
+                )}
+             </div>
           </SettingsCard>
         </div>
 
-        <div className="xl:col-span-1 space-y-8">
-          {/* Real-time Preview Widget */}
-          <div className="p-8 bg-card border border-border/40 rounded-[32px] space-y-6 shadow-xl shadow-black/5 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <Smartphone size={100} className="text-primary" />
-            </div>
-            
-            <div className="space-y-2 relative z-10">
-              <p className="text-[10px] font-black uppercase tracking-widest text-primary">Live Preview</p>
-              <h3 className="text-2xl font-black text-foreground tracking-tighter">Mobile Push</h3>
-            </div>
+        <div className="space-y-8">
+           {/* Delivery Health */}
+           <div className="p-8 bg-card border border-border/40 rounded-[40px] space-y-8 shadow-sm">
+              <div className="flex items-center gap-3">
+                 <div className="size-10 rounded-2xl bg-secondary flex items-center justify-center text-muted-foreground">
+                    <Send size={20} />
+                 </div>
+                 <h3 className="text-[14px] font-black uppercase tracking-widest">Delivery Health</h3>
+              </div>
+              
+              <div className="space-y-6">
+                 {[
+                   { label: "Delivery Rate", value: "0%", trend: "0%", color: "text-muted-foreground" },
+                   { label: "Bounce Rate", value: "0%", trend: "0%", color: "text-muted-foreground" },
+                   { label: "Total Sent", value: "0", trend: "0%", color: "text-muted-foreground" },
+                 ].map((stat, i) => (
+                   <div key={i} className="flex items-center justify-between">
+                      <div className="space-y-1">
+                         <p className="text-[11px] font-bold text-muted-foreground">{stat.label}</p>
+                         <p className="text-xl font-black text-foreground">{stat.value}</p>
+                      </div>
+                      <div className={cn("text-[10px] font-black", stat.color)}>{stat.trend}</div>
+                   </div>
+                 ))}
+              </div>
 
-            <div className="bg-secondary/40 border border-border/20 rounded-3xl p-5 relative z-10">
-               <div className="flex items-center gap-3 mb-3">
-                  <div className="size-8 bg-primary rounded-xl flex items-center justify-center text-white font-black text-[10px]">OINZ</div>
-                  <div className="flex-1">
-                    <p className="text-[11px] font-black text-foreground">OINZpay Admin</p>
-                    <p className="text-[9px] font-medium text-muted-foreground">Just now</p>
-                  </div>
-               </div>
-               <div className="space-y-1">
-                 <p className="text-[13px] font-black text-foreground tracking-tight">Security Alert: Blocked Login</p>
-                 <p className="text-[11px] font-medium text-muted-foreground leading-snug">
-                   An unusual login attempt from 102.89.2.44 was blocked. Review security logs.
-                 </p>
-               </div>
-            </div>
+              <Button className="w-full h-11 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">Delivery Report</Button>
+           </div>
 
-            <Button 
-              disabled={isTesting}
-              onClick={handleSendTestNotification} 
-              className="w-full h-11 rounded-2xl font-black text-[11px] uppercase tracking-widest bg-primary text-white flex items-center justify-center gap-2"
-            >
-              {isTesting ? (
-                <>
-                  <Loader2 className="size-3.5 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                "Send Test Notification"
-              )}
-            </Button>
-          </div>
-
-          {/* Delivery Stats */}
-          <SettingsCard 
-            title="Delivery Performance" 
-            description="Success rates for all channels."
-            icon={Activity}
-          >
-            <div className="space-y-6">
-              {[
-                { label: "Email Success", rate: "0%", status: "Healthy" },
-                { label: "SMS Delivery", rate: "0%", status: "Healthy" },
-                { label: "Push Delivery", rate: "0%", status: "Healthy" },
-              ].map((stat, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-wider">
-                    <span className="text-muted-foreground">{stat.label}</span>
-                    <span className={cn(
-                      "font-black",
-                      stat.status === "Healthy" ? "text-emerald-500" : "text-amber-500"
-                    )}>{stat.rate}</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
-                    <div 
-                      className={cn(
-                        "h-full rounded-full",
-                        stat.status === "Healthy" ? "bg-primary" : "bg-amber-500"
-                      )} 
-                      style={{ width: stat.rate }} 
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </SettingsCard>
-
-          {/* Quiet Hours */}
-          <SettingsCard 
-            title="Maintenance Mode" 
-            description="Global suppression of non-critical alerts."
-            icon={Clock}
-          >
-            <div className="space-y-4">
-              <SettingsField label="Admin Quiet Hours" description="Silence all non-emergency alerts from 11 PM to 6 AM.">
-                <Switch defaultChecked={false} onCheckedChange={(checked) => handleToggle('Quiet Hours', checked)} />
-              </SettingsField>
-              <Button onClick={() => toast("Coming Soon", { description: 'Calendar Scheduling feature is being finalized.' })} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
-                Configure Schedule
-              </Button>
-            </div>
-          </SettingsCard>
+           {/* Recent Dispatch Logs */}
+           <SettingsCard title="Dispatch History" icon={History}>
+              <div className="space-y-4">
+                 {activeLogs.length > 0 ? (
+                    activeLogs.map((log, i) => (
+                       <div key={i} className="flex items-start gap-3">
+                          <div className="size-2 rounded-full bg-primary mt-1.5" />
+                          <div className="space-y-0.5">
+                             <p className="text-[11px] font-black text-foreground">{log.template}</p>
+                             <p className="text-[9px] font-medium text-muted-foreground uppercase">{log.recipient} • {log.time}</p>
+                          </div>
+                       </div>
+                    ))
+                 ) : (
+                    <div className="py-10 text-center opacity-30">
+                       <Clock size={32} className="mx-auto mb-2" />
+                       <p className="text-[9px] font-black uppercase tracking-widest">No recent dispatches</p>
+                    </div>
+                 )}
+                 <button className="w-full text-[9px] font-black uppercase text-primary tracking-widest pt-4 border-t border-border/5 hover:underline text-center">Open Logs Terminal</button>
+              </div>
+           </SettingsCard>
         </div>
       </div>
     </div>

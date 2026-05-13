@@ -1,236 +1,188 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import SettingsHeader from '@/components/settings/SettingsHeader';
 import SettingsCard from '@/components/settings/SettingsCard';
 import SettingsField from '@/components/settings/SettingsField';
-import {
-  CreditCard,
-  ShieldAlert,
-  Zap,
-  History,
-  TrendingUp,
-  Activity,
-  AlertTriangle,
-  ArrowRightLeft,
+import { 
+  ArrowRightLeft, 
+  ShieldCheck, 
+  Ban, 
+  Percent, 
+  Wallet, 
+  AlertCircle,
   Clock,
-  Ban,
-  ShieldCheck,
+  History,
+  ShieldAlert,
+  ArrowUpRight,
+  Filter,
   CheckCircle2,
-  Percent,
-  Coins,
-  ChevronRight
+  X,
+  CreditCard,
+  Zap,
+  DollarSign
 } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import Breadcrumbs from '@/components/layout/Breadcrumbs';
+import { toast } from 'sonner';
+import { QuickActionModal } from '@/components/ui/QuickActionModal';
 
 export default function TransactionControls() {
+  const [globalFreeze, setGlobalFreeze] = useState(false);
+  const [strictAML, setStrictAML] = useState(false);
+  const [feeRules, setFeeRules] = useState<any[]>([]);
+
+  const handleToggleFreeze = (enabled: boolean) => {
+    setGlobalFreeze(enabled);
+    if (enabled) {
+      toast.error('Global Freeze Active', { description: 'All outgoing transactions have been suspended.' });
+    } else {
+      toast.success('System Thawed', { description: 'Transaction processing resumed.' });
+    }
+  };
+
+  const handleDeleteRule = (id: string) => {
+    setFeeRules(prev => prev.filter(r => r.id !== id));
+    toast.error('Fee Rule Removed');
+  };
+
   return (
-    <div className="space-y-6">
-      <Breadcrumbs />
-      <SettingsHeader
-        title="Transaction Controls"
-        description="Configure platform-wide transaction limits, fraud thresholds, and automated settlement rules."
+    <div className="space-y-10">
+      <SettingsHeader 
+        title="Transaction & Fraud Controls" 
+        description="Configure platform limits, transaction fee matrices, and real-time fraud mitigation rules."
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
-          {/* Global Limits */}
-          <SettingsCard
-            title="Global Transaction Limits"
-            description="Set maximum allowable amounts for different transaction types across the platform."
-            icon={TrendingUp}
+          {/* Global Guardrails */}
+          <SettingsCard 
+            title="Operational Guardrails" 
+            description="High-level circuit breakers for platform-wide liquidity and security."
+            icon={ShieldCheck}
           >
-            <div className="space-y-8">
-              <div className="space-y-6">
-                {([] as any[]).map((limit: any, i: number) => (
-                  <div key={i} className="space-y-5 p-6 bg-secondary/30 border border-border/20 rounded-[28px] hover:border-primary/20 hover:bg-secondary/40 transition-all group">
-                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <p className="text-[14px] font-black text-foreground tracking-tight truncate">{limit.label}</p>
-                        <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">{limit.desc}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-lg font-black text-primary tracking-tighter">{limit.value}</p>
-                        <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">Max: {limit.max.toLocaleString()}</p>
-                      </div>
-                    </div>
-                    <div className="px-1">
-                      <Slider defaultValue={[limit.current]} max={limit.max} step={10000} className="py-2" />
-                    </div>
+            <div className="space-y-6">
+               <SettingsField label="Global Transaction Freeze" description="Instantly kill all transaction processing. Use for emergency downtime." icon={Ban}>
+                  <Switch checked={globalFreeze} onCheckedChange={handleToggleFreeze} />
+               </SettingsField>
+               <SettingsField label="Strict AML Mode" description="Require enhanced due diligence for all transactions regardless of amount." icon={ShieldAlert}>
+                  <Switch checked={strictAML} onCheckedChange={setStrictAML} />
+               </SettingsField>
+            </div>
+          </SettingsCard>
+
+          {/* Limits & Thresholds */}
+          <SettingsCard 
+            title="Transaction Thresholds" 
+            description="Configure maximum velocity and amount limits per account tier."
+            icon={Wallet}
+          >
+             <div className="space-y-8">
+                {[
+                  { label: "Daily Transfer Limit", min: 0, max: 10000000, value: 0 },
+                  { label: "Daily Bill Payment", min: 0, max: 500000, value: 0 },
+                  { label: "Withdrawal Ceiling", min: 0, max: 2000000, value: 0 },
+                ].map((limit, i) => (
+                  <div key={i} className="space-y-4">
+                     <div className="flex justify-between items-center">
+                        <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">{limit.label}</label>
+                        <span className="text-sm font-black text-foreground">₦{limit.value.toLocaleString()}</span>
+                     </div>
+                     <input type="range" className="w-full h-1.5 bg-secondary rounded-full appearance-none cursor-pointer accent-primary" />
+                     <div className="flex justify-between text-[8px] font-black text-muted-foreground/40 uppercase tracking-tighter">
+                        <span>Min: ₦{limit.min.toLocaleString()}</span>
+                        <span>Max: ₦{limit.max.toLocaleString()}</span>
+                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
+                <Button className="w-full h-12 rounded-xl bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20">Apply New Thresholds</Button>
+             </div>
           </SettingsCard>
 
-          {/* Fraud & AML Rules */}
-          <SettingsCard
-            title="Fraud & Risk Engine"
-            description="Configure automated triggers and velocity checks to prevent illicit activity."
-            icon={ShieldAlert}
+          {/* Fee Matrix */}
+          <SettingsCard 
+            title="Global Fee Matrix" 
+            description="Rule-based fee calculations for platform-wide revenue generation."
+            icon={Percent}
           >
-            <div className="space-y-2">
-              <SettingsField
-                label="Transaction Velocity Check"
-                description="Flag users attempting more than 10 transactions within a 5-minute window."
-                icon={Activity}
-              >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Velocity Monitoring Enabled' : 'Velocity Checks Disabled', { description: 'Platform-wide fraud detection policy updated.' })} />
-              </SettingsField>
-
-              <SettingsField
-                label="Auto-Freeze High Risk"
-                description="Automatically freeze accounts flagged by the AML scoring system (Score > 85)."
-                icon={Ban}
-              >
-                <Switch defaultChecked={false} onCheckedChange={(checked) => toast.success(checked ? 'Auto-Freeze Active' : 'Auto-Freeze Disabled', { description: 'Risk mitigation protocol updated.' })} />
-              </SettingsField>
-
-              <SettingsField
-                label="Sanction List Matching"
-                description="Cross-reference all recipients against international and local sanction lists."
-                icon={ShieldCheck}
-              >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Sanction Screening Enabled' : 'Sanction Screening Disabled', { description: 'Compliance verification rules updated.' })} />
-              </SettingsField>
-
-              <SettingsField
-                label="Manual Review Threshold"
-                description="Transactions above this amount require human authorization before settlement."
-                icon={CheckCircle2}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-[12px] font-black text-foreground">₦</span>
-                  <input
-                    type="text"
-                    defaultValue="500,000"
-                    className="w-24 bg-background border border-border/40 rounded-xl px-3 py-1.5 text-[12px] font-black outline-none focus:border-primary/40 transition-all text-right"
-                  />
-                </div>
-              </SettingsField>
-            </div>
-          </SettingsCard>
-
-          {/* Settlement Windows */}
-          <SettingsCard
-            title="Settlement & Reversals"
-            description="Configure the timing for fund movements and reversal policies."
-            icon={ArrowRightLeft}
-          >
-            <div className="space-y-2">
-              <SettingsField
-                label="Standard Settlement Window"
-                description="Default time to settle successful transactions to provider accounts."
-                icon={Clock}
-              >
-                <select defaultValue="Next Day (T+1)" className="bg-secondary/50 border border-border/40 rounded-xl px-4 py-2 text-[12px] font-black uppercase outline-none focus:border-primary/40 transition-all">
-                  <option>Instant (T+0)</option>
-                  <option>Next Day (T+1)</option>
-                  <option>48 Hours (T+2)</option>
-                </select>
-              </SettingsField>
-
-              <SettingsField
-                label="Auto-Reversal on Provider Fail"
-                description="Instantly refund users if provider API returns a terminal failure code."
-                icon={History}
-              >
-                <Switch defaultChecked={true} onCheckedChange={(checked) => toast.success(checked ? 'Auto-Refunds Active' : 'Auto-Refunds Disabled', { description: 'Platform refund policy updated.' })} />
-              </SettingsField>
-            </div>
+             <div className="space-y-4">
+                {feeRules.length > 0 ? (
+                  feeRules.map((rule) => (
+                    <div key={rule.id} className="p-4 bg-secondary/10 border border-border/5 rounded-2xl flex items-center justify-between">
+                       <div className="flex items-center gap-4">
+                          <div className="size-10 rounded-xl bg-background border border-border flex items-center justify-center text-primary">
+                             <rule.icon size={20} />
+                          </div>
+                          <div>
+                             <p className="text-[13px] font-black text-foreground">{rule.name}</p>
+                             <p className="text-[10px] font-bold text-muted-foreground uppercase">{rule.type}</p>
+                          </div>
+                       </div>
+                       <div className="flex items-center gap-6">
+                          <p className="text-[13px] font-black text-primary">{rule.value}</p>
+                          <button onClick={() => handleDeleteRule(rule.id)} className="text-muted-foreground hover:text-rose-500 transition-colors">
+                             <X size={16} />
+                          </button>
+                       </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-20 text-center border-2 border-dashed border-border/10 rounded-[40px]">
+                     <div className="size-16 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-6 text-muted-foreground/20">
+                        <DollarSign size={32} />
+                     </div>
+                     <h4 className="text-[14px] font-black text-foreground uppercase tracking-widest">No fee rules configured</h4>
+                     <p className="text-[12px] font-medium text-muted-foreground mt-2">Initialize your revenue model by creating your first fee rule.</p>
+                     <Button variant="outline" className="mt-8 h-11 px-8 rounded-xl font-black text-[10px] uppercase tracking-widest border-border/40">Create Fee Rule</Button>
+                  </div>
+                )}
+             </div>
           </SettingsCard>
         </div>
 
-        <div className="xl:col-span-1 space-y-8">
-          {/* Operational Status */}
-          <div className="p-8 bg-card border border-border/40 rounded-[32px] space-y-8 shadow-xl shadow-black/5">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                <Activity size={14} />
-                Real-time Velocity
+        <div className="space-y-8">
+           {/* Risk Summary */}
+           <div className="p-8 bg-card border border-border/40 rounded-[40px] space-y-8 shadow-sm">
+              <div className="flex items-center gap-3">
+                 <div className="size-10 rounded-2xl bg-secondary flex items-center justify-center text-muted-foreground">
+                    <ShieldCheck size={20} />
+                 </div>
+                 <h3 className="text-[14px] font-black uppercase tracking-widest">Risk Engine</h3>
               </div>
-              <h3 className="text-3xl font-black text-foreground tracking-tighter">--</h3>
-              <p className="text-[13px] font-medium text-muted-foreground leading-relaxed">
-                Platform transaction telemetry awaiting synchronization.
-              </p>
-            </div>
+              
+              <div className="space-y-6">
+                 {[
+                   { label: "Flagged Trans.", value: "0", trend: "0%", color: "text-muted-foreground" },
+                   { label: "Blocked IPs", value: "0", trend: "0%", color: "text-muted-foreground" },
+                   { label: "System Uptime", value: "0%", trend: "0%", color: "text-muted-foreground" },
+                 ].map((stat, i) => (
+                   <div key={i} className="flex items-center justify-between">
+                      <div className="space-y-1">
+                         <p className="text-[11px] font-bold text-muted-foreground">{stat.label}</p>
+                         <p className="text-xl font-black text-foreground">{stat.value}</p>
+                      </div>
+                      <div className={cn("text-[10px] font-black", stat.color)}>{stat.trend}</div>
+                   </div>
+                 ))}
+              </div>
 
-            <div className="space-y-6">
-              {[
-                { label: "Successful", val: "--%", color: "text-muted-foreground" },
-                { label: "Flagged", val: "--%", color: "text-muted-foreground" },
-                { label: "Failed", val: "--%", color: "text-muted-foreground" },
-              ].map((stat, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</span>
-                  <span className={cn("text-[14px] font-black", stat.color)}>{stat.val}</span>
-                </div>
-              ))}
-            </div>
+              <Button className="w-full h-11 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">Run Compliance Audit</Button>
+           </div>
 
-            <div className="h-24 w-full bg-secondary/30 rounded-2xl flex items-end gap-1 p-4">
-              {[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((h, i) => (
-                <div key={i} className="flex-1 bg-primary/5 rounded-t-sm" style={{ height: `10%` }} />
-              ))}
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <SettingsCard
-            title="Emergency Controls"
-            description="Immediate actions for crisis management."
-            icon={AlertTriangle}
-          >
-            <div className="flex flex-col gap-3">
-              <Button
-                onClick={() => toast.error('Freeze Executed', { description: 'Platform-wide transaction processing has been halted.' })}
-                variant="outline" className="w-full h-auto py-3 px-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border-red-500/20 text-red-500 hover:bg-red-500/10 flex items-center justify-start gap-3 whitespace-normal text-left"
-              >
-                <Ban size={18} className="shrink-0" />
-                <span>Global Transaction Freeze</span>
-              </Button>
-              <Button
-                onClick={() => toast.warning('Strict AML Mode Enabled', { description: 'All transactions will undergo secondary verification' })}
-                variant="outline" className="w-full h-auto py-3 px-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border-amber-500/20 text-amber-500 hover:bg-amber-500/10 flex items-center justify-start gap-3 whitespace-normal text-left"
-              >
-                <ShieldAlert size={18} className="shrink-0" />
-                <span>Enforce Strict AML Mode</span>
-              </Button>
-            </div>
-          </SettingsCard>
-
-          {/* Commission & Fees */}
-          <SettingsCard
-            title="Fee Configuration"
-            description="Manage platform service charges."
-            icon={Coins}
-          >
-            <div className="space-y-4">
-              {([] as any[]).map((fee, i) => (
-                <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 border border-border/10 rounded-2xl">
-                  <div className="space-y-0.5">
-                    <p className="text-[12px] font-black text-foreground">{fee.label}</p>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase">{fee.type}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[13px] font-black text-primary">{fee.fee}</span>
-                    <ChevronRight size={14} className="text-muted-foreground/30" />
-                  </div>
-                </div>
-              ))}
-              <Button
-                onClick={() => toast.success('Configuration Mode', { description: 'Opening dynamic fee scheduler...' })}
-                className="w-full h-11 rounded-2xl font-black text-[11px] uppercase tracking-widest"
-              >
-                Edit Fee Schedule
-              </Button>
-            </div>
-          </SettingsCard>
+           {/* Quick Actions */}
+           <SettingsCard title="Control Shortcuts" icon={Zap}>
+              <div className="space-y-2">
+                 <button className="w-full flex items-center justify-between p-4 bg-secondary/30 rounded-xl hover:bg-secondary/50 transition-all text-[11px] font-bold text-foreground">
+                    <span>Export Risk Report</span>
+                    <ArrowUpRight size={14} className="text-muted-foreground" />
+                 </button>
+                 <button className="w-full flex items-center justify-between p-4 bg-secondary/30 rounded-xl hover:bg-secondary/50 transition-all text-[11px] font-bold text-foreground">
+                    <span>Purge Transaction Logs</span>
+                    <History size={14} className="text-muted-foreground" />
+                 </button>
+              </div>
+           </SettingsCard>
         </div>
       </div>
     </div>

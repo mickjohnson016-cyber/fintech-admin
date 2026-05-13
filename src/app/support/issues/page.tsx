@@ -18,7 +18,14 @@ import {
   MoreVertical,
   ChevronRight,
   Download,
-  X
+  X,
+  Edit2,
+  UserPlus,
+  ShieldCheck,
+  XCircle,
+  Trash2,
+  Eye,
+  ArrowUpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
@@ -32,6 +39,7 @@ import IssueDetailModal from '@/components/support/IssueDetailModal';
 import EscalationModal from '@/components/support/EscalationModal';
 import AssignmentModal from '@/components/support/AssignmentModal';
 import { useIssues, Ticket } from '@/hooks/useIssues';
+import { QuickActionModal } from '@/components/ui/QuickActionModal';
 
 export default function IssuesCenterPage() {
   const { 
@@ -40,6 +48,7 @@ export default function IssuesCenterPage() {
     assignIssue, 
     escalateIssue, 
     resolveIssue, 
+    deleteIssue,
     addNote, 
     updateIssue 
   } = useIssues();
@@ -48,6 +57,13 @@ export default function IssuesCenterPage() {
   const [isEscalating, setIsEscalating] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
+  
+  // Deletion state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
+  
+  // Active menu state
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   const selectedTicket = issues.find(t => t.id === selectedTicketId) || null;
 
@@ -77,6 +93,14 @@ export default function IssuesCenterPage() {
 
     addIssue(newIssue);
     setIsNewTicketModalOpen(false);
+  };
+
+  const confirmDelete = () => {
+    if (ticketToDelete) {
+      deleteIssue(ticketToDelete.id);
+      setIsDeleteModalOpen(false);
+      setTicketToDelete(null);
+    }
   };
 
   const columns = [
@@ -166,7 +190,7 @@ export default function IssuesCenterPage() {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700">
+    <div className="space-y-6 animate-in fade-in duration-700 pb-10">
       <Breadcrumbs />
 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -238,10 +262,71 @@ export default function IssuesCenterPage() {
           searchPlaceholder="Search by ID, User, or Issue Type..."
           onRowClick={(ticket) => setSelectedTicketId(ticket.id)}
           actions={(ticket) => (
-            <div className="flex items-center justify-end gap-1">
-              <Button variant="ghost" size="icon" className="size-8 rounded-lg" onClick={(e) => { e.stopPropagation(); setSelectedTicketId(ticket.id); }}>
-                <ChevronRight size={16} className="text-muted-foreground" />
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="size-8 rounded-lg text-muted-foreground hover:text-primary transition-all"
+                onClick={(e) => {
+                   e.stopPropagation();
+                   setActiveMenuId(activeMenuId === ticket.id ? null : ticket.id);
+                }}
+              >
+                <MoreVertical size={16} />
               </Button>
+
+              <AnimatePresence>
+                {activeMenuId === ticket.id && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      className="absolute right-0 mt-2 w-48 bg-card border border-border/40 rounded-2xl shadow-2xl z-20 overflow-hidden p-1.5 pointer-events-auto"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button 
+                        onClick={() => { setSelectedTicketId(ticket.id); setActiveMenuId(null); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                      >
+                         <Eye size={14} /> View Ticket
+                      </button>
+                      <button 
+                        onClick={() => { setSelectedTicketId(ticket.id); setActiveMenuId(null); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                      >
+                         <Edit2 size={14} /> Edit Details
+                      </button>
+                      <button 
+                        onClick={() => { setSelectedTicketId(ticket.id); setIsAssigning(true); setActiveMenuId(null); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                      >
+                         <UserPlus size={14} /> Assign Admin
+                      </button>
+                      <button 
+                        onClick={() => { setSelectedTicketId(ticket.id); setIsEscalating(true); setActiveMenuId(null); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                      >
+                         <ArrowUpCircle size={14} /> Escalate
+                      </button>
+                      <button 
+                        onClick={() => { resolveIssue(ticket.id); setActiveMenuId(null); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/5 transition-all"
+                      >
+                         <ShieldCheck size={14} /> Close Ticket
+                      </button>
+                      <div className="h-px bg-border/5 my-1.5" />
+                      <button 
+                        onClick={() => { setTicketToDelete(ticket); setIsDeleteModalOpen(true); setActiveMenuId(null); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/5 transition-all"
+                      >
+                         <Trash2 size={14} /> Delete Ticket
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
           )}
         />
@@ -331,6 +416,17 @@ export default function IssuesCenterPage() {
           </>
         )}
       </AnimatePresence>
+
+      <QuickActionModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Permanently Delete Ticket?"
+        description={`Are you sure you want to permanently delete ticket ${ticketToDelete?.id}? This action will purge all associated logs, notes, and history from the operational queue. This cannot be undone.`}
+        icon={Trash2}
+        type="danger"
+        confirmLabel="Delete Permanently"
+      />
     </div>
   );
 }
