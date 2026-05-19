@@ -97,9 +97,7 @@ export default function SecurityCenter() {
  title="Security & Governance" 
  description=""
  />
-
- <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
- <div className="xl:col-span-2 space-y-8">
+ <div className="max-w-4xl space-y-8">
  {/* Active Sessions */}
  <SettingsCard 
  title="Authenticated Sessions" 
@@ -173,69 +171,6 @@ export default function SecurityCenter() {
  </Button>
  </div>
  </SettingsCard>
- </div>
-
- <div className="space-y-8">
- {/* Security Score */}
- <div className="p-8 bg-card border border-border/40 rounded-[40px] space-y-6 shadow-sm overflow-hidden relative group">
- <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700">
- <Shield size={120} />
- </div>
- <div className="flex items-center justify-between">
- <div className="space-y-1">
- <h3 className="text-[14px] font-black uppercase tracking-widest text-foreground">Security Posture</h3>
- <p className="text-[10px] font-medium text-muted-foreground">Global Perimeter Health</p>
- </div>
- <div className="size-14 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary font-black text-lg">
- {securityScore}%
- </div>
- </div>
- 
- <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
- <motion.div 
- initial={{ width: 0 }}
- animate={{ width:`${safeScore}%` }}
- className="h-full bg-primary"
- />
- </div>
-
- <div className="space-y-4">
- {[
- { label:"MFA Enforcement", status:"Critical", icon: Fingerprint, color:"text-rose-500" },
- { label:"IP Restriction", status:"Inactive", icon: Globe, color:"text-muted-foreground" },
- { label:"Hardware Keys", status:"Optional", icon: Key, color:"text-muted-foreground" },
- ].map((item, i) => (
- <div key={i} className="flex items-center justify-between text-[11px] font-bold">
- <div className="flex items-center gap-2 text-muted-foreground">
- <item.icon size={14} />
- <span>{item.label}</span>
- </div>
- <span className={item.color}>{item.status}</span>
- </div>
- ))}
- </div>
-
- <Button 
- onClick={handleAnalyze}
- disabled={isAnalyzing}
- className="w-full h-11 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
- >
- {isAnalyzing && <Loader2 className="animate-spin" size={14} />}
- {isAnalyzing ?"Analyzing Platform..." :"Analyze Vulnerabilities"}
- </Button>
- </div>
-
- {/* Audit Logs */}
- <SettingsCard title="Security Events" icon={History}>
- <div className="space-y-4">
- <div className="py-10 text-center opacity-30">
- <ShieldAlert size={32} className="mx-auto mb-2" />
- <p className="text-[9px] font-black uppercase tracking-widest">No critical events detected</p>
- </div>
- <button className="w-full text-[9px] font-black uppercase text-primary tracking-widest pt-4 border-t border-border/5 hover:underline">View Audit Trail</button>
- </div>
- </SettingsCard>
- </div>
  </div>
 
  <QuickActionModal

@@ -1,9 +1,8 @@
-
 import { UserRole } from '../types/auth';
 
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
-  'Super Admin': ['*'], // Access to everything
-  'Operations Admin': [
+  'super_admin': ['*'], // Access to everything (including admin settings)
+  'admin': [
     '/dashboard', 
     '/support/issues', 
     '/users', 
@@ -13,32 +12,13 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     '/savings', 
     '/bills', 
     '/reports',
-    '/settings'
+    '/compliance'
   ],
-  'Compliance Admin': [
-    '/dashboard',
-    '/users',
-    '/compliance',
-    '/reports',
-    '/settings/security'
-  ],
-  'Finance Admin': [
-    '/dashboard',
-    '/transactions',
-    '/savings',
-    '/bills',
-    '/reports'
-  ],
-  'Support Admin': [
+  'staff': [
     '/dashboard',
     '/support/issues',
-    '/users'
-  ],
-  'Read Only Auditor': [
-    '/dashboard',
     '/users',
-    '/transactions',
-    '/reports'
+    '/transactions'
   ]
 };
 

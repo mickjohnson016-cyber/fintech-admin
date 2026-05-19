@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import SettingsHeader from'@/components/settings/SettingsHeader';
 import SettingsCard from'@/components/settings/SettingsCard';
 import {
@@ -41,6 +41,7 @@ import { RoleModal, InviteModal } from'@/components/settings/AdminModals';
 import { executeExport } from'@/lib/exportUtils';
 import { useUser } from'@/contexts/UserContext';
 import { QuickActionModal } from'@/components/ui/QuickActionModal';
+import { adminService, Admin } from '@/services/adminService';
 
 const getAvatarPath = (avatarId: string | null) => {
  if (!avatarId) return'/assets/avatars/generic.png';
@@ -62,9 +63,10 @@ const getAvatarPath = (avatarId: string | null) => {
 export default function AdminManagement() {
  const { user: currentUser } = useUser();
  
- const [adminList, setAdminList] = useState<any[]>([]);
+ const [adminList, setAdminList] = useState<Admin[]>([]);
  const [roleList, setRoleList] = useState<any[]>([]);
  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+ const [isLoading, setIsLoading] = useState(true);
 
  const [searchTerm, setSearchTerm] = useState("");
  const [selectedRoleFilter, setSelectedRoleFilter] = useState("All Roles");
@@ -75,7 +77,7 @@ export default function AdminManagement() {
  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
  const [selectedRole, setSelectedRole] = useState<any>(null);
- const [selectedAdmin, setSelectedAdmin] = useState<any>(null);
+ const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
  
  // Governance states
  const [governanceRole, setGovernanceRole] = useState("No Role Assigned");
@@ -84,14 +86,25 @@ export default function AdminManagement() {
  const [regionalScopeEnabled, setRegionalScopeEnabled] = useState(false);
  const [isAuditRunning, setIsAuditRunning] = useState(false);
 
- const [permissions, setPermissions] = useState([
+ const [permissions, setPermissions] = useState<Array<{ label: string, items: string[], active: number[] }>>([
  { label:"Transactions", items: ["View","Create","Approve","Refund"], active: [] },
  { label:"KYC/AML", items: ["View","Review","Override","Delete"], active: [] },
  { label:"Provider Config", items: ["View","Modify","Disable","Reset"], active: [] },
  ]);
 
+ const fetchAdmins = async () => {
+  setIsLoading(true);
+  const data = await adminService.getAdmins();
+  setAdminList(data);
+  setIsLoading(false);
+ };
+
+ useEffect(() => {
+  fetchAdmins();
+ }, []);
+
  const filteredAdmins = useMemo(() => {
- return adminList.filter(admin => {
+  return adminList.filter((admin: Admin) => {
  const matchesSearch = admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
  admin.email.toLowerCase().includes(searchTerm.toLowerCase());
  const matchesRole = selectedRoleFilter ==="All Roles" || admin.role === selectedRoleFilter;
@@ -102,33 +115,48 @@ export default function AdminManagement() {
  // Actions
  const handleSaveRole = (data: any) => {
  if (selectedRole) {
- setRoleList(prev => prev.map(r => r.id === selectedRole.id ? { ...r, ...data } : r));
+ setRoleList((prev: any[]) => prev.map((r: any) => r.id === selectedRole.id ? { ...r, ...data } : r));
  toast.success('Role Updated');
  } else {
- setRoleList(prev => [...prev, { ...data, id:`ROLE-${Math.random().toString(36).substr(2, 4)}`, count: 0 }]);
+ setRoleList((prev: any[]) => [...prev, { ...data, id:`ROLE-${Math.random().toString(36).substr(2, 4)}`, count: 0 }]);
  toast.success('Role Created');
  }
  setSelectedRole(null);
  };
 
- const handleDeleteAdmin = () => {
+ const handleDeleteAdmin = async () => {
  if (!selectedAdmin) return;
- setAdminList(prev => prev.filter(a => a.id !== selectedAdmin.id));
- setIsDeleteModalOpen(false);
- setSelectedAdmin(null);
- toast.error('Admin Access Revoked');
+ try {
+  await adminService.deleteAdmin(selectedAdmin.id);
+  setAdminList((prev: Admin[]) => prev.filter((a: Admin) => a.id !== selectedAdmin.id));
+  setIsDeleteModalOpen(false);
+  setSelectedAdmin(null);
+  toast.error('Admin Access Revoked');
+ } catch (error) {
+  toast.error('Failed to revoke access');
+ }
  };
 
- const handleToggleStatus = (id: string) => {
- setAdminList(prev => prev.map(a => {
- if (a.id === id) {
- const newStatus = a.status ==='Active' ?'Suspended' :'Active';
- toast.info(`Admin ${newStatus}`);
- return { ...a, status: newStatus };
+ const handleToggleStatus = async (admin: Admin) => {
+ try {
+  const newStatus = admin.status ==='Active' ?'Suspended' :'Active';
+  await adminService.updateAdminStatus(admin.id, newStatus as any);
+  setAdminList((prev: Admin[]) => prev.map((a: Admin) => a.id === admin.id ? { ...a, status: newStatus as any } : a));
+  toast.info(`Admin ${newStatus}`);
+ } catch (error) {
+  toast.error('Failed to update status');
  }
- return a;
- }));
  setActiveMenu(null);
+ };
+
+ const handleInvite = async (data: any) => {
+ try {
+  await adminService.inviteAdmin(data.name, data.email, data.role);
+  toast.success('Admin Invited');
+  fetchAdmins();
+ } catch (error) {
+  toast.error('Failed to send invitation');
+ }
  };
 
  const togglePermission = (scopeIndex: number, itemIndex: number) => {
@@ -150,11 +178,10 @@ export default function AdminManagement() {
  description=""
  />
 
- <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
- <div className="xl:col-span-2 space-y-8">
+ <div className="space-y-8">
  {/* Active Roles */}
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
- {roleList.map((role) => (
+ {roleList.map((role: any) => (
  <div key={role.id} className="p-6 bg-card border border-border/40 rounded-[32px] hover:border-primary/30 transition-all group relative overflow-hidden shadow-sm">
  <div className="flex justify-between items-start mb-4">
  <div className="size-12 rounded-2xl bg-secondary/50 border border-border/10 overflow-hidden flex items-center justify-center">
@@ -194,17 +221,17 @@ export default function AdminManagement() {
  <input 
  placeholder="Search admins..."
  value={searchTerm}
- onChange={(e) => setSearchTerm(e.target.value)}
+ onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
  className="w-full bg-background border border-border/40 rounded-xl py-2.5 pl-12 pr-4 text-[12px] font-medium outline-none focus:border-primary/40 transition-all"
  />
  </div>
  <select 
  value={selectedRoleFilter}
- onChange={(e) => setSelectedRoleFilter(e.target.value)}
+ onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedRoleFilter(e.target.value)}
  className="h-11 bg-background border border-border/40 rounded-xl px-4 text-[10px] font-black uppercase outline-none"
  >
  <option>All Roles</option>
- {roleList.map(r => <option key={r.id}>{r.name}</option>)}
+ {roleList.map((r: any) => <option key={r.id}>{r.name}</option>)}
  </select>
  <Button onClick={() => setIsInviteModalOpen(true)} className="h-11 rounded-xl bg-primary text-white px-6 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-2 shrink-0">
  <UserPlus size={16} /> Invite
@@ -213,7 +240,7 @@ export default function AdminManagement() {
 
  <div className="space-y-3">
  <AnimatePresence mode="popLayout">
-   {filteredAdmins.length > 0 && filteredAdmins.map((admin) => (
+   {filteredAdmins.length > 0 && filteredAdmins.map((admin: Admin) => (
  <motion.div
  layout
  initial={{ opacity: 0, y: 10 }}
@@ -224,7 +251,7 @@ export default function AdminManagement() {
  >
  <div className="flex items-center gap-4">
  <div className="size-12 rounded-2xl bg-background border border-border/40 overflow-hidden flex items-center justify-center">
- <img src={getAvatarPath(admin.avatar)} className="size-full object-cover" onError={(e) => (e.currentTarget.src =`https://ui-avatars.com/api/?name=${admin.name}&background=random`)} />
+ <img src={getAvatarPath(admin.avatar)} className="size-full object-cover" onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => (e.currentTarget.src =`https://ui-avatars.com/api/?name=${admin.name}&background=random`)} />
  </div>
  <div>
  <div className="flex items-center gap-2">
@@ -254,7 +281,7 @@ export default function AdminManagement() {
  <>
  <div className="fixed inset-0 z-10" onClick={() => setActiveMenu(null)} />
  <div className="absolute right-0 mt-2 w-48 bg-card border border-border/40 rounded-2xl shadow-2xl z-20 overflow-hidden p-1.5 animate-in fade-in zoom-in-95 duration-200">
- <button onClick={() => handleToggleStatus(admin.id)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase text-muted-foreground hover:bg-secondary hover:text-foreground">
+ <button onClick={() => handleToggleStatus(admin)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase text-muted-foreground hover:bg-secondary hover:text-foreground">
  <ShieldAlert size={14} /> {admin.status ==='Suspended' ?'Activate' :'Suspend'}
  </button>
  <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase text-muted-foreground hover:bg-secondary hover:text-foreground">
@@ -283,101 +310,6 @@ export default function AdminManagement() {
  </SettingsCard>
  </div>
 
- <div className="xl:col-span-1 space-y-8">
- {/* Governance Panel */}
- <div className="p-8 bg-card border border-border/40 rounded-[40px] space-y-8 shadow-sm">
- <div className="flex items-center gap-3 text-primary">
- <ShieldCheck size={20} />
- <h3 className="text-[14px] font-black uppercase tracking-widest">Governance Control</h3>
- </div>
-
- <div className="space-y-4">
- {[
- { label:"Auto-Revoke", desc:"Purge after 90d inactivity", active: autoRevokeEnabled, setter: setAutoRevokeEnabled },
- { label:"Multi-Approval", desc:"Requires 2 admins for payouts", active: multiApprovalEnabled, setter: setMultiApprovalEnabled },
- { label:"Regional Scope", desc:"Geo-fence admin sessions", active: regionalScopeEnabled, setter: setRegionalScopeEnabled },
- ].map((policy, i) => (
- <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-border/10">
- <div className="space-y-0.5">
- <p className="text-[12px] font-black text-foreground">{policy.label}</p>
- <p className="text-[9px] font-medium text-muted-foreground">{policy.desc}</p>
- </div>
- <button onClick={() => policy.setter(!policy.active)} className={cn(
-"px-2 py-0.5 rounded-full text-[8px] font-black uppercase border transition-all",
- policy.active ?"bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :"bg-muted text-muted-foreground border-border/50"
- )}>{policy.active ?"ON" :"OFF"}</button>
- </div>
- ))}
- </div>
-
- <div className="space-y-4 pt-6 border-t border-border/10">
- <div className="flex items-center justify-between">
- <h4 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Policy Matrix</h4>
- <select 
- value={governanceRole}
- onChange={(e) => setGovernanceRole(e.target.value)}
- className="text-[10px] font-black text-primary uppercase bg-transparent outline-none"
- >
- <option>No Role Assigned</option>
- {roleList.map(r => <option key={r.id}>{r.name}</option>)}
- </select>
- </div>
- <div className="grid grid-cols-2 gap-2">
- {permissions[0].items.map((item, j) => {
- const isActive = permissions[0].active.includes(j);
- return (
- <button 
- key={j} 
- onClick={() => togglePermission(0, j)}
- className={cn(
-"flex items-center justify-between p-3 rounded-xl border text-[11px] font-bold transition-all",
- isActive ?"bg-primary/5 border-primary/20 text-primary" :"bg-secondary/20 border-border/5 text-muted-foreground"
- )}
- >
- {item}
- {isActive && <Check size={12} />}
- </button>
- );
- })}
- </div>
- </div>
-
- <div className="pt-4">
- <Button 
- onClick={() => {
- setIsAuditRunning(true);
- toast.success("Audit Logging Active");
- setTimeout(() => setIsAuditRunning(false), 2500);
- }}
- className="w-full h-11 rounded-xl bg-secondary hover:bg-secondary/80 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
- >
- {isAuditRunning ? <Loader2 className="animate-spin" size={14} /> : <Activity size={14} />}
- {isAuditRunning ?"Auditing System..." :"Start Governance Audit"}
- </Button>
- </div>
- </div>
-
- {/* Activity Logs */}
- <SettingsCard title="Recent Activity" icon={History}>
- <div className="space-y-4">
- {activityLogs.length > 0 ? activityLogs.map((log, i) => (
- <div key={i} className="flex items-start gap-3">
- <div className="size-2 rounded-full bg-primary mt-1.5" />
- <div className="space-y-0.5">
- <p className="text-[11px] font-black text-foreground">{log.action}</p>
- <p className="text-[9px] font-medium text-muted-foreground uppercase">{log.user} • {log.time}</p>
- </div>
- </div>
- )) : (
- <div className="py-10 text-center">
- <p className="text-[9px] font-black uppercase text-muted-foreground/30 tracking-widest">No activity available</p>
- </div>
- )}
- </div>
- </SettingsCard>
- </div>
- </div>
-
  {/* Modals */}
  <RoleModal
  isOpen={isRoleModalOpen}
@@ -389,8 +321,8 @@ export default function AdminManagement() {
  isOpen={isInviteModalOpen}
  onClose={() => setIsInviteModalOpen(false)}
  roles={roleList}
- onInvite={(data) => {
- setAdminList(prev => [...prev, { ...data, id:`ADM-${Math.random().toString(36).substr(2, 4)}`, status:'Active', lastActive:'Just now' }]);
+ onInvite={(data: any) => {
+ setAdminList((prev: Admin[]) => [...prev, { ...data, id:`ADM-${Math.random().toString(36).substr(2, 4)}`, status:'Active', lastActive:'Just now' }]);
  toast.success('Admin Invited');
  }}
  onCreateRole={() => setIsRoleModalOpen(true)}

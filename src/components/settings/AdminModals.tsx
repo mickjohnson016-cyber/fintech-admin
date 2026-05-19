@@ -5,6 +5,7 @@ import { X, Shield, Lock, User, Mail, CheckCircle2, AlertCircle, Clock, Plus, Up
 import { motion, AnimatePresence } from'framer-motion';
 import { Button } from"@/components/ui/button";
 import { cn } from"@/lib/utils";
+import { toast } from'sonner';
 
 interface ModalProps {
  isOpen: boolean;

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,8 +11,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && pathname !== '/login') {
-      router.replace('/login');
+    if (!isLoading) {
+      if (!isAuthenticated && pathname !== '/login' && pathname !== '/signup') {
+        router.replace('/login');
+      } else if (isAuthenticated && (pathname === '/login' || pathname === '/signup')) {
+        router.replace('/dashboard');
+      }
     }
   }, [isAuthenticated, isLoading, pathname, router]);
 
@@ -21,12 +24,18 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-background">
         <Loader2 className="size-10 text-primary animate-spin mb-4" />
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Verifying Authorization</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Verifying Authorization</p>
       </div>
     );
   }
 
-  if (!isAuthenticated && pathname !== '/login') {
+  // Prevent flash of protected content before redirect
+  if (!isAuthenticated && pathname !== '/login' && pathname !== '/signup') {
+    return null;
+  }
+
+  // Prevent flash of login/signup page for authenticated users before redirect
+  if (isAuthenticated && (pathname === '/login' || pathname === '/signup')) {
     return null;
   }
 

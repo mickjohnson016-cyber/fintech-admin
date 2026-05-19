@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from'react';
 import { MoreVertical, LucideIcon, ChevronRight } from'lucide-react';
 import { cn } from'@/lib/utils';
-import { motion, AnimatePresence } from'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 export interface ActionDropdownItem {
  label: string;
@@ -56,7 +56,7 @@ export function ActionDropdown({
  };
  }, [isOpen]);
 
- const variants = {
+ const variants: Variants = {
  hidden: { 
  opacity: 0, 
  scale: 0.98, 

@@ -14,10 +14,10 @@ interface FormatOption {
 }
 
 const formats: FormatOption[] = [
- { id:'CSV', label:'CSV Format', description:'Raw comma-separated values', icon: Table },
- { id:'PDF', label:'PDF Report', description:'Print-ready visual document', icon: FileText },
- { id:'JSON', label:'JSON Data', description:'Structured developer format', icon: Code },
- { id:'XLSX', label:'Excel Sheet', description:'Spreadsheet compatibility', icon: FileSpreadsheet },
+  { id: 'CSV', label: 'CSV Format', description: 'Tabular analytics data for operational review', icon: Table },
+  { id: 'PDF', label: 'PDF Report', description: 'Executive-ready financial analytics report', icon: FileText },
+  { id: 'JSON', label: 'JSON Data', description: 'Structured data payload for system integration', icon: Code },
+  { id: 'XLSX', label: 'Excel Sheet', description: 'Standardized spreadsheet for financial modeling', icon: FileSpreadsheet },
 ];
 
 interface ExportSelectorProps {
@@ -27,51 +27,56 @@ interface ExportSelectorProps {
 }
 
 export function ExportSelector({ selectedFormat, onSelect, disabled }: ExportSelectorProps) {
- return (
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
- {formats.map((format) => {
- const isActive = selectedFormat === format.id;
- const Icon = format.icon;
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 outline-none" role="radiogroup" aria-label="Export Formats">
+      {formats.map((format) => {
+        const isActive = selectedFormat === format.id;
+        const Icon = format.icon;
 
- return (
- <button
- key={format.id}
- onClick={() => !disabled && onSelect(format.id)}
- disabled={disabled}
- className={cn(
-"relative flex flex-col items-start p-4 rounded-xl border transition-all duration-200 text-left group",
- isActive 
- ?"bg-primary/5 border-primary" 
- :"bg-card border-border/60 hover:border-primary/40 hover:bg-muted/50",
- disabled &&"opacity-50 cursor-not-allowed"
- )}
- >
- <div className={cn(
-"w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-colors",
- isActive ?"bg-primary text-white" :"bg-muted border border-border/40 text-muted-foreground group-hover:text-primary group-hover:bg-primary/5"
- )}>
- <Icon size={18} strokeWidth={2} />
- </div>
- 
- <div className="space-y-1">
- <p className={cn(
-"text-[12px] font-bold uppercase tracking-tight",
- isActive ?"text-primary" :"text-foreground"
- )}>
- {format.label}
- </p>
- <p className="text-[10px] font-medium text-muted-foreground uppercase opacity-70">
- {format.description}
- </p>
- </div>
+        return (
+          <button
+            key={format.id}
+            type="button"
+            role="radio"
+            aria-checked={isActive}
+            onClick={() => !disabled && onSelect(format.id)}
+            disabled={disabled}
+            className={cn(
+              "relative flex flex-col items-start p-5 rounded-xl border transition-all duration-300 text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+              isActive 
+                ? "bg-slate-50 border-primary shadow-sm" 
+                : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm",
+              disabled && "opacity-50 cursor-not-allowed hover:border-slate-200 hover:bg-white hover:shadow-none"
+            )}
+          >
+            <div className={cn(
+              "w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-colors duration-300",
+              isActive 
+                ? "bg-primary text-white shadow-sm" 
+                : "bg-slate-100 border border-slate-200 text-slate-500 group-hover:text-primary group-hover:bg-slate-50 group-hover:border-slate-300"
+            )}>
+              <Icon size={18} strokeWidth={2} />
+            </div>
+            
+            <div className="space-y-1.5 w-full pr-6">
+              <p className={cn(
+                "text-sm font-semibold tracking-tight transition-colors duration-300",
+                isActive ? "text-slate-900" : "text-slate-700 group-hover:text-slate-900"
+              )}>
+                {format.label}
+              </p>
+              <p className="text-xs font-medium text-slate-500 leading-relaxed">
+                {format.description}
+              </p>
+            </div>
 
- {isActive && (
- <div className="absolute top-4 right-4 text-primary">
- <Check size={16} strokeWidth={3} />
- </div>
- )}
- </button>
- );
+            {isActive && (
+              <div className="absolute top-5 right-5 text-primary animate-in zoom-in duration-200">
+                <Check size={18} strokeWidth={3} />
+              </div>
+            )}
+          </button>
+        );
  })}
  </div>
  );

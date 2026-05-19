@@ -10,9 +10,9 @@ import { ProtectedRoute } from'../auth/ProtectedRoute';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === '/login';
+  const isPublicPage = pathname === '/login' || pathname === '/signup';
 
-  if (isLoginPage) {
+  if (isPublicPage) {
     return (
       <ProtectedRoute>
         {children}
@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Sidebar />
 
           {/* Main Content Area */}
-          <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+          <div className="flex-1 flex flex-col h-screen overflow-hidden relative min-w-0">
             <TopNavbar />
 
             {/* Main Scrolling Container */}

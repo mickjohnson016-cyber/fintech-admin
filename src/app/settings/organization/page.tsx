@@ -30,6 +30,13 @@ export default function OrganizationSettings() {
  const { logo, updateLogo, resetLogo, isDefault } = useBranding();
  const fileInputRef = useRef<HTMLInputElement>(null);
  
+ // State for editable fields
+ const [entityName, setEntityName] = useState("OINZpay Financial Services Ltd.");
+ const [rcNumber, setRcNumber] = useState("RC-1920391");
+ const [website, setWebsite] = useState("https://oinzpay.com");
+ const [email, setEmail] = useState("ops@oinzpay.com");
+ const [headquarters, setHeadquarters] = useState("Lekki Phase 1, Lagos, Nigeria");
+ 
  // Modal states
  const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
  const [isJurisModalOpen, setIsJurisModalOpen] = useState(false);
@@ -64,8 +71,7 @@ export default function OrganizationSettings() {
  description=""
  />
 
- <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
- <div className="xl:col-span-2 space-y-8">
+ <div className="max-w-4xl space-y-8">
  {/* Profile Section */}
  <SettingsCard 
  title="Entity Profile" 
@@ -90,7 +96,7 @@ export default function OrganizationSettings() {
  <div 
  onClick={triggerFileUpload} 
  className={cn(
-"size-32 rounded-[32px] border-2 border-dashed flex flex-col items-center justify-center group/logo cursor-pointer transition-all overflow-hidden relative shadow-inner",
+ "size-32 rounded-[32px] border-2 border-dashed flex flex-col items-center justify-center group/logo cursor-pointer transition-all overflow-hidden relative shadow-inner",
  !isDefault 
  ?"border-primary/20 bg-card" 
  :"bg-primary/5 border-primary/20 text-primary hover:bg-primary/10"
@@ -127,7 +133,8 @@ export default function OrganizationSettings() {
  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Entity Name</label>
  <input 
  type="text" 
- defaultValue="OINZpay Financial Services Ltd."
+ value={entityName}
+ onChange={(e) => setEntityName(e.target.value)}
  className="w-full bg-background border border-border/40 rounded-2xl px-5 py-3 text-[14px] font-black outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all"
  />
  </div>
@@ -135,7 +142,8 @@ export default function OrganizationSettings() {
  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Registration (RC)</label>
  <input 
  type="text" 
- defaultValue="RC-1920391"
+ value={rcNumber}
+ onChange={(e) => setRcNumber(e.target.value)}
  className="w-full bg-background border border-border/40 rounded-2xl px-5 py-3 text-[14px] font-black outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all"
  />
  </div>
@@ -147,19 +155,26 @@ export default function OrganizationSettings() {
  <SettingsField label="Official Website" icon={Globe}>
  <input 
  type="text" 
- defaultValue="https://oinzpay.com"
+ value={website}
+ onChange={(e) => setWebsite(e.target.value)}
  className="w-full sm:w-64 bg-secondary/50 border border-border/40 rounded-xl px-4 py-2 text-[12px] font-bold outline-none focus:border-primary/40 transition-all text-left sm:text-right"
  />
  </SettingsField>
  <SettingsField label="Support Email" icon={Mail}>
  <input 
  type="text" 
- defaultValue="ops@oinzpay.com"
+ value={email}
+ onChange={(e) => setEmail(e.target.value)}
  className="w-full sm:w-64 bg-secondary/50 border border-border/40 rounded-xl px-4 py-2 text-[12px] font-bold outline-none focus:border-primary/40 transition-all text-left sm:text-right"
  />
  </SettingsField>
  <SettingsField label="Headquarters" icon={MapPin}>
- <p className="text-[12px] font-bold text-foreground text-right">Lekki Phase 1, Lagos, Nigeria</p>
+ <input 
+ type="text" 
+ value={headquarters}
+ onChange={(e) => setHeadquarters(e.target.value)}
+ className="w-full sm:w-64 bg-secondary/50 border border-border/40 rounded-xl px-4 py-2 text-[12px] font-bold outline-none focus:border-primary/40 transition-all text-left sm:text-right"
+ />
  </SettingsField>
  </div>
  </div>
@@ -193,55 +208,6 @@ export default function OrganizationSettings() {
  ))}
  </div>
  </SettingsCard>
- </div>
-
- <div className="xl:col-span-1 space-y-8">
- {/* Operational Jurisdictions */}
- <div className="p-8 bg-card border border-border/40 rounded-[32px] space-y-6 shadow-xl shadow-black/5">
- <div className="space-y-1">
- <p className="text-[10px] font-black uppercase tracking-widest text-primary">Global Presence</p>
- <h3 className="text-2xl font-black text-foreground tracking-tighter">Active Markets</h3>
- </div>
- 
- <div className="space-y-4">
- {([] as any[]).map((market: any, i: number) => (
- <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 border border-border/10 rounded-2xl">
- <div className="flex items-center gap-3">
- <Globe size={16} className="text-muted-foreground" />
- <span className="text-[12px] font-black text-foreground">{market.country}</span>
- </div>
- <span className="text-[10px] font-bold text-muted-foreground uppercase">{market.status}</span>
- </div>
- ))}
- </div>
- 
- <Button onClick={() => setIsJurisModalOpen(true)} variant="outline" className="w-full h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/40">
- Manage Jurisdictions
- </Button>
- </div>
-
- {/* Department Structure */}
- <SettingsCard 
- title="Departmental Hierarchy" 
- description=""
- icon={Briefcase}
- >
- <div className="space-y-3">
- {([] as any[]).map((dept: any, i: number) => (
- <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 border border-border/10 rounded-2xl group cursor-pointer hover:bg-secondary/50 transition-all">
- <span className="text-[12px] font-black text-foreground">{dept.name}</span>
- <div className="flex items-center gap-2">
- <span className="text-[11px] font-bold text-muted-foreground">{dept.members}</span>
- <ChevronRight size={14} className="text-muted-foreground/30" />
- </div>
- </div>
- ))}
- <Button onClick={() => setIsDeptModalOpen(true)} variant="ghost" className="w-full text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary">
- Manage Departments
- </Button>
- </div>
- </SettingsCard>
- </div>
  </div>
 
  <DepartmentModal 

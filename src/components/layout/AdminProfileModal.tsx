@@ -44,6 +44,9 @@ import { Button } from'@/components/ui/button';
 import { cn } from'@/lib/utils';
 import { toast } from'sonner';
 import { QuickActionModal } from'@/components/ui/QuickActionModal';
+import { authService } from '@/services/authService';
+import { supabase } from '@/lib/supabase';
+import { adminService } from '@/services/adminService';
 
 interface Admin {
  id: string;
@@ -94,6 +97,22 @@ export default function AdminProfileModal() {
  }
  }, [user, isProfileOpen]);
 
+ // Load admins list from Supabase
+ useEffect(() => {
+ if (isProfileOpen && authUser?.role === 'super_admin') {
+ const fetchAdmins = async () => {
+ try {
+ const list = await adminService.getAdmins();
+ setAdminList(list as any[]);
+ } catch (err) {
+ console.error('Failed to load admins list:', err);
+ toast.error('Failed to load administration directory');
+ }
+ };
+ fetchAdmins();
+ }
+ }, [isProfileOpen, authUser]);
+
  const filteredAdmins = useMemo(() => {
  return adminList.filter(a => 
  a.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -119,54 +138,93 @@ export default function AdminProfileModal() {
  toast.success('Identity Updated');
  };
 
- const handleAvatarSelect = (img: string) => {
+ const handleAvatarSelect = async (img: string) => {
  updateUser({ avatar: img });
+ if (authUser?.id) {
+ try {
+ await supabase
+ .from('admins')
+ .update({ avatar_url: img })
+ .eq('auth_user_id', authUser.id);
+ } catch (err) {
+ console.error('Failed to persist avatar selection:', err);
+ }
+ }
  toast.success('Avatar Updated');
  };
 
- const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
  const file = e.target.files?.[0];
  if (!file) return;
+ 
+ if (!authUser?.id) {
+ toast.error('Session Error', {
+ description: 'You must be authenticated to upload an avatar.'
+ });
+ return;
+ }
+
  setIsUploading(true);
- setTimeout(() => {
- updateUser({ avatar: URL.createObjectURL(file) });
+ try {
+ const publicUrl = await authService.uploadAvatar(authUser.id, file);
+ 
+ // Update locally & in Context
+ updateUser({ avatar: publicUrl });
+ 
+ toast.success('Avatar Uploaded Successfully', {
+ description: 'Your profile picture is now saved permanently.'
+ });
+ } catch (err: any) {
+ console.error('Avatar upload failed:', err);
+ toast.error('Upload Failed', {
+ description: err.message || 'An error occurred during file upload.'
+ });
+ } finally {
  setIsUploading(false);
- toast.success('Custom Avatar Uploaded');
- }, 800);
+ }
  };
 
- const handleAddAdmin = (data: any) => {
- const newAdmin: Admin = {
- id:`ADM-${Math.floor(Math.random() * 1000).toString().padStart(3,'0')}`,
- name: data.name,
- email: data.email,
- role: data.role,
- status:'Active',
- lastActive:'Just now',
- avatar: null
- };
- setAdminList(prev => [newAdmin, ...prev]);
+ const handleAddAdmin = async (data: any) => {
+ try {
+ await adminService.inviteAdmin(data.name, data.email, data.role);
+ const list = await adminService.getAdmins();
+ setAdminList(list as any[]);
  setIsAddAdminModalOpen(false);
- toast.success('Admin Invited');
+ toast.success('Admin Successfully Invited');
+ } catch (err: any) {
+ console.error('Failed to invite admin:', err);
+ toast.error('Invite Failed', { description: err.message || 'Error inviting admin account.' });
+ }
  };
 
- const handleDeleteAdmin = () => {
+ const handleDeleteAdmin = async () => {
  if (!adminToDelete) return;
- setAdminList(prev => prev.filter(a => a.id !== adminToDelete.id));
+ try {
+ await adminService.deleteAdmin(adminToDelete.id);
+ const list = await adminService.getAdmins();
+ setAdminList(list as any[]);
  setIsDeleteModalOpen(false);
  setAdminToDelete(null);
- toast.error('Admin Access Revoked');
+ toast.success('Admin Access Revoked Successfully');
+ } catch (err: any) {
+ console.error('Failed to revoke admin access:', err);
+ toast.error('Revocation Failed', { description: err.message || 'Error deleting admin.' });
+ }
  };
 
- const handleToggleStatus = (id: string) => {
- setAdminList(prev => prev.map(a => {
- if (a.id === id) {
- const newStatus = a.status ==='Suspended' ?'Active' :'Suspended';
- toast.info(`Admin ${newStatus}`);
- return { ...a, status: newStatus as any };
+ const handleToggleStatus = async (id: string) => {
+ const admin = adminList.find(a => a.id === id);
+ if (!admin) return;
+ const newStatus = admin.status === 'Suspended' ? 'Active' : 'Suspended';
+ try {
+ await adminService.updateAdminStatus(id, newStatus);
+ const list = await adminService.getAdmins();
+ setAdminList(list as any[]);
+ toast.success(`Admin Status Updated to ${newStatus}`);
+ } catch (err: any) {
+ console.error('Failed to toggle admin status:', err);
+ toast.error('Failed to update status', { description: err.message || 'Error updating status.' });
  }
- return a;
- }));
  setActiveAdminMenu(null);
  };
 
@@ -211,13 +269,6 @@ export default function AdminProfileModal() {
  >
  <User size={18} />
  My Identity
- </button>
- <button 
- onClick={() => handleNavigate('/settings/access-keys')}
- className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
- >
- <Key size={18} />
- Access Keys
  </button>
  <button 
  onClick={() => setActiveTab('team')}
@@ -381,13 +432,13 @@ export default function AdminProfileModal() {
   <Settings size={16} className="text-primary" />
   <h4 className="text-[11px] font-black uppercase tracking-widest text-foreground">Preferences</h4>
   </div>
-  <button onClick={() => handleNavigate('/settings/appearance')} className="text-[9px] font-black uppercase text-primary hover:underline">Customize</button>
+  <button onClick={() => handleNavigate('/settings')} className="text-[9px] font-black uppercase text-primary hover:underline">Customize</button>
   </div>
   <div className="space-y-4">
   <motion.button 
   whileHover={{ scale: 1.01, x: 4 }}
   whileTap={{ scale: 0.98 }}
-  onClick={() => handleNavigate('/settings/appearance')}
+  onClick={() => handleNavigate('/settings')}
   className="w-full flex items-center justify-between p-4 bg-secondary/10 border border-border/5 rounded-2xl hover:bg-secondary/20 hover:border-primary/20 transition-all text-left group"
   >
   <div className="space-y-1">
@@ -434,7 +485,7 @@ export default function AdminProfileModal() {
   </motion.button>
   </div>
  </motion.div>
- ) : (
+ ) : activeTab === 'team' && authUser?.role === 'super_admin' ? (
  <motion.div
  key="team"
  initial={{ opacity: 0, x: 10 }}
@@ -545,7 +596,7 @@ export default function AdminProfileModal() {
  )}
  </div>
  </motion.div>
- )}
+ ) : null}
  </AnimatePresence>
  </div>
  </div>

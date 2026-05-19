@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 interface UserProfile {
  name: string;
@@ -27,8 +28,21 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: React.ReactNode }) {
  const [user, setUser] = useState<UserProfile>(defaultUser);
  const [isLoading, setIsLoading] = useState(true);
+ const { user: authUser, isAuthenticated } = useAuth();
 
- // Initialize from localStorage
+ // Live-sync UserContext with AuthContext
+ useEffect(() => {
+   if (isAuthenticated && authUser) {
+     setUser({
+       name: authUser.name,
+       email: authUser.email,
+       role: authUser.role,
+       avatar: authUser.avatar ?? null,
+     });
+   }
+ }, [authUser, isAuthenticated]);
+
+ // Initialize from localStorage as secondary fallback
  useEffect(() => {
  const savedUser = localStorage.getItem('oinzpay_admin_profile');
  if (savedUser) {
